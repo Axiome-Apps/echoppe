@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.output/
+.nuxt/
+
+# Caches
+.cache/
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lock files (trop volumineux)
+bun.lock
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
