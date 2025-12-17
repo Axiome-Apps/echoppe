@@ -45,6 +45,26 @@ const router = createRouter({
           name: 'collections',
           component: () => import('../views/CollectionsView.vue'),
         },
+        {
+          path: 'stock',
+          name: 'stock',
+          component: () => import('../views/StockView.vue'),
+        },
+        {
+          path: 'commandes',
+          name: 'orders',
+          component: () => import('../views/OrdersView.vue'),
+        },
+        {
+          path: 'expeditions',
+          name: 'shipping',
+          component: () => import('../views/ShippingView.vue'),
+        },
+        {
+          path: 'paiements',
+          name: 'payments',
+          component: () => import('../views/PaymentsView.vue'),
+        },
       ],
     },
   ],
