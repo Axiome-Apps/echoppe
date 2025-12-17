@@ -1,0 +1,42 @@
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    variant?: 'default' | 'ghost' | 'danger';
+    size?: 'sm' | 'md';
+    title?: string;
+  }>(),
+  {
+    variant: 'ghost',
+    size: 'md',
+  }
+);
+
+defineEmits<{
+  click: [event: MouseEvent];
+}>();
+
+const variantClasses: Record<string, string> = {
+  default: 'text-gray-400 hover:text-gray-600 hover:bg-gray-100',
+  ghost: 'text-gray-400 hover:text-gray-600',
+  danger: 'text-gray-400 hover:text-red-500',
+};
+
+const sizeClasses: Record<string, string> = {
+  sm: 'p-0.5',
+  md: 'p-1',
+};
+</script>
+
+<template>
+  <button
+    @click.stop="$emit('click', $event)"
+    :title="title"
+    :class="[
+      'rounded transition cursor-pointer',
+      variantClasses[variant],
+      sizeClasses[size]
+    ]"
+  >
+    <slot />
+  </button>
+</template>
