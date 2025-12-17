@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
-import { db, media, folder, eq, isNull, asc, desc, like, or } from '@echoppe/core';
+import { db, media, folder, eq, isNull, asc, desc, like, or, and, count, type SQL } from '@echoppe/core';
 import { authPlugin } from '../plugins/auth';
+import { getPaginationParams, buildPaginatedResponse, DEFAULT_LIMIT, MAX_LIMIT } from '../utils/pagination';
 import { randomUUID } from 'crypto';
 import { join } from 'path';
 import { mkdir, unlink } from 'fs/promises';
@@ -32,6 +33,8 @@ const mediaQuery = t.Object({
   sort: t.Optional(t.String()),
   order: t.Optional(t.String()),
   all: t.Optional(t.String()),
+  page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
+  limit: t.Optional(t.Numeric({ minimum: 1, maximum: MAX_LIMIT, default: DEFAULT_LIMIT })),
 });
 
 const uploadBody = t.Object({
@@ -114,32 +117,31 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
 
   // === MEDIA ===
 
-  // GET /media - List media with search, filter, sort
+  // GET /media - List media with search, filter, sort, pagination
   .get(
     '/',
     async ({ query }) => {
       const { folder: folderId, search, sort, order, all } = query;
+      const { page, limit, offset } = getPaginationParams(query);
 
-      let q = db.select().from(media);
+      // Build where conditions
+      const conditions: SQL[] = [];
 
-      // Filter by folder (or show all if 'all' is true)
       if (all !== 'true') {
         if (folderId) {
-          q = q.where(eq(media.folder, folderId)) as typeof q;
+          conditions.push(eq(media.folder, folderId));
         } else {
-          q = q.where(isNull(media.folder)) as typeof q;
+          conditions.push(isNull(media.folder));
         }
       }
 
-      // Search
       if (search) {
         const searchPattern = `%${search}%`;
-        q = q.where(
-          or(
-            like(media.title, searchPattern),
-            like(media.filenameOriginal, searchPattern)
-          )
-        ) as typeof q;
+        const searchCondition = or(
+          like(media.title, searchPattern),
+          like(media.filenameOriginal, searchPattern)
+        );
+        if (searchCondition) conditions.push(searchCondition);
       }
 
       // Sort
@@ -147,9 +149,20 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
                      : sort === 'size' ? media.size
                      : media.dateCreated;
       const sortOrder = order === 'asc' ? asc(sortField) : desc(sortField);
-      q = q.orderBy(sortOrder) as typeof q;
 
-      return await q;
+      // Build where clause
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const [items, [{ total }]] = await Promise.all([
+        whereClause
+          ? db.select().from(media).where(whereClause).orderBy(sortOrder).limit(limit).offset(offset)
+          : db.select().from(media).orderBy(sortOrder).limit(limit).offset(offset),
+        whereClause
+          ? db.select({ total: count(media.id) }).from(media).where(whereClause)
+          : db.select({ total: count(media.id) }).from(media),
+      ]);
+
+      return buildPaginatedResponse(items, total, page, limit);
     },
     { auth: true, query: mediaQuery }
   )

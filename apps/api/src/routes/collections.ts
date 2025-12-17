@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
-import { db, collection, eq } from '@echoppe/core';
+import { db, collection, eq, count } from '@echoppe/core';
 import { authPlugin } from '../plugins/auth';
+import { paginationQuery, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 
 const collectionBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),
@@ -19,11 +20,21 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections' })
 
   // === PUBLIC ROUTES ===
 
-  // GET /collections - List all (public)
-  .get('/', async () => {
-    const collections = await db.select().from(collection).orderBy(collection.dateCreated);
-    return collections;
-  })
+  // GET /collections - List all with pagination (public)
+  .get(
+    '/',
+    async ({ query }) => {
+      const { page, limit, offset } = getPaginationParams(query);
+
+      const [collections, [{ total }]] = await Promise.all([
+        db.select().from(collection).orderBy(collection.dateCreated).limit(limit).offset(offset),
+        db.select({ total: count(collection.id) }).from(collection),
+      ]);
+
+      return buildPaginatedResponse(collections, total, page, limit);
+    },
+    { query: paginationQuery }
+  )
 
   // GET /collections/:id - Get one (public)
   .get(

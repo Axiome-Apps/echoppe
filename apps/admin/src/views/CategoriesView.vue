@@ -5,8 +5,9 @@ import Button from '@/components/atoms/Button.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import MediaPicker from '@/components/MediaPicker.vue';
 
-// Type inféré depuis Eden
-type Category = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>[number];
+// Type inféré depuis Eden (response paginée)
+type CategoriesResponse = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>;
+type Category = CategoriesResponse['data'][number];
 
 const categories = ref<Category[]>([]);
 const loading = ref(true);
@@ -32,8 +33,8 @@ const parentOptions = computed(() => {
 
 async function loadCategories() {
   loading.value = true;
-  const { data } = await api.categories.get();
-  if (data && Array.isArray(data)) categories.value = data;
+  const { data } = await api.categories.get({ query: { limit: 100 } });
+  if (data?.data) categories.value = data.data;
   loading.value = false;
 }
 

@@ -5,7 +5,8 @@ type FoldersResponse = NonNullable<Awaited<ReturnType<typeof api.media.folders.g
 type MediaResponse = NonNullable<Awaited<ReturnType<typeof api.media.get>>['data']>;
 
 export type Folder = Extract<FoldersResponse, unknown[]>[number];
-export type Media = Extract<MediaResponse, unknown[]>[number];
+// MediaResponse est maintenant paginée: { data: Media[], meta: {...} }
+export type Media = MediaResponse['data'][number];
 
 // Type dérivé pour l'arbre de dossiers (UI)
 export interface FolderNode extends Folder {

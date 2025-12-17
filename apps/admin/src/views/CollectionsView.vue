@@ -5,8 +5,9 @@ import Button from '@/components/atoms/Button.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import MediaPicker from '@/components/MediaPicker.vue';
 
-// Type inféré depuis Eden
-type Collection = NonNullable<Awaited<ReturnType<typeof api.collections.get>>['data']>[number];
+// Type inféré depuis Eden (response paginée)
+type CollectionsResponse = NonNullable<Awaited<ReturnType<typeof api.collections.get>>['data']>;
+type Collection = CollectionsResponse['data'][number];
 
 const collections = ref<Collection[]>([]);
 const loading = ref(true);
@@ -26,8 +27,8 @@ const form = ref({
 
 async function loadCollections() {
   loading.value = true;
-  const { data } = await api.collections.get();
-  if (data && Array.isArray(data)) collections.value = data;
+  const { data } = await api.collections.get({ query: { limit: 100 } });
+  if (data?.data) collections.value = data.data;
   loading.value = false;
 }
 

@@ -1,7 +1,8 @@
 import { Elysia, t } from 'elysia';
-import { db, product, variant, option, optionValue, productMedia, eq, and } from '@echoppe/core';
+import { db, product, variant, option, optionValue, productMedia, eq, and, count } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { authPlugin } from '../plugins/auth';
+import { paginationQuery, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 
 const productCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 255 }),
@@ -92,11 +93,21 @@ export const productsRoutes = new Elysia({ prefix: '/products' })
 
   // === PUBLIC ROUTES ===
 
-  // GET /products - List all (public)
-  .get('/', async () => {
-    const products = await db.select().from(product).orderBy(product.dateCreated);
-    return products;
-  })
+  // GET /products - List all with pagination (public)
+  .get(
+    '/',
+    async ({ query }) => {
+      const { page, limit, offset } = getPaginationParams(query);
+
+      const [products, [{ total }]] = await Promise.all([
+        db.select().from(product).orderBy(product.dateCreated).limit(limit).offset(offset),
+        db.select({ total: count(product.id) }).from(product),
+      ]);
+
+      return buildPaginatedResponse(products, total, page, limit);
+    },
+    { query: paginationQuery }
+  )
 
   // GET /products/:id - Get one with variants (public)
   .get(

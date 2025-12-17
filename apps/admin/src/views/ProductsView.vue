@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { api } from '@/lib/api';
 import Badge from '@/components/atoms/Badge.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import Thumbnail from '@/components/atoms/Thumbnail.vue';
 import DataTable from '@/components/organisms/DataTable/DataTable.vue';
+import Pagination from '@/components/molecules/Pagination.vue';
 import type { DataTableColumn } from '@/components/organisms/DataTable/types';
 import type { BatchAction } from '@/components/organisms/DataTable/DataTableHeader.vue';
 
-// Types inférés depuis Eden
-type Product = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>[number];
-type Category = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>[number];
+// Types inférés depuis Eden (response paginée)
+type ProductsResponse = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>;
+type Product = ProductsResponse['data'][number];
+type CategoriesResponse = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>;
+type Category = CategoriesResponse['data'][number];
 
 interface ProductMedia {
   product: string;
@@ -20,8 +23,10 @@ interface ProductMedia {
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const DEFAULT_LIMIT = 20;
 
 const router = useRouter();
+const route = useRoute();
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
@@ -30,15 +35,41 @@ const loading = ref(true);
 const deleteModalOpen = ref(false);
 const selectedProducts = ref<Product[]>([]);
 
+// Pagination state
+const paginationMeta = ref({
+  total: 0,
+  page: 1,
+  limit: DEFAULT_LIMIT,
+  totalPages: 0,
+});
+
 async function loadProducts() {
   loading.value = true;
-  const { data } = await api.products.get();
-  if (data && Array.isArray(data)) products.value = data;
-  loading.value = false;
+  try {
+    const { data } = await api.products.get({
+      query: { page: paginationMeta.value.page, limit: paginationMeta.value.limit },
+    });
+    if (data?.data && data?.meta) {
+      products.value = data.data;
+      paginationMeta.value = data.meta;
+      await loadProductThumbnails();
+    }
+  } catch (e) {
+    console.error('Error loading products:', e);
+  } finally {
+    loading.value = false;
+  }
+}
+
+function setPage(page: number) {
+  paginationMeta.value.page = page;
+  router.replace({ query: { ...route.query, page: page > 1 ? String(page) : undefined } });
+  loadProducts();
 }
 
 async function loadProductThumbnails() {
-  // Fetch product media relations in parallel
+  if (!products.value?.length) return;
+
   const thumbnails = new Map<string, string>();
 
   await Promise.all(
@@ -48,7 +79,6 @@ async function loadProductThumbnails() {
         if (productMediaList && Array.isArray(productMediaList)) {
           const featured = (productMediaList as ProductMedia[]).find((pm) => pm.isFeatured);
           if (featured) {
-            // Use /assets/:id route (takes media UUID)
             thumbnails.set(product.id, `${API_URL}/assets/${featured.media}`);
           }
         }
@@ -62,13 +92,12 @@ async function loadProductThumbnails() {
 }
 
 async function loadCategories() {
-  const { data } = await api.categories.get();
-  if (data && Array.isArray(data)) categories.value = data;
+  const { data } = await api.categories.get({ query: { limit: 100 } });
+  if (data?.data) categories.value = data.data;
 }
 
 onMounted(async () => {
   await Promise.all([loadProducts(), loadCategories()]);
-  await loadProductThumbnails();
 });
 
 function openCreate() {
@@ -246,6 +275,15 @@ const deleteMessage = computed(() => {
       :on-row-click="openEdit"
       @add="openCreate"
       @selection-change="handleSelectionChange"
+    />
+
+    <Pagination
+      v-if="paginationMeta.totalPages > 1"
+      :page="paginationMeta.page"
+      :total-pages="paginationMeta.totalPages"
+      :total="paginationMeta.total"
+      :limit="paginationMeta.limit"
+      @update:page="setPage"
     />
 
     <ConfirmModal

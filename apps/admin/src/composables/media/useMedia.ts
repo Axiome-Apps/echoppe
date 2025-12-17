@@ -143,14 +143,14 @@ export function useMedia(
   // ---------------------------------------------------------------------------
   async function loadMedia() {
     loading.value = true;
-    const query: Record<string, string> = { sort: sortBy.value, order: sortOrder.value };
+    const query: Record<string, string | number> = { sort: sortBy.value, order: sortOrder.value, limit: 100 };
     if (currentFolder.value) query.folder = currentFolder.value;
     if (searchQuery.value) {
       query.search = searchQuery.value;
       query.all = 'true';
     }
     const { data } = await api.media.get({ query });
-    if (data && Array.isArray(data)) mediaItems.value = data;
+    if (data?.data) mediaItems.value = data.data;
     loading.value = false;
   }
 
