@@ -1,0 +1,627 @@
+// ================================
+// ÉCHOPPE — DATABASE SCHEMA
+// E-commerce framework for French artisans
+// ================================
+
+Project echoppe {
+  database_type: 'PostgreSQL'
+  Note: 'E-commerce framework for French artisans'
+}
+
+// ================================
+// TABLE GROUPS
+// ================================
+
+TableGroup referential [color: #3498DB] {
+  country
+  tax_rate
+}
+
+TableGroup media [color: #9B59B6] {
+  folder
+  media
+}
+
+TableGroup catalog [color: #27AE60] {
+  category
+  collection
+  product
+  product_collection
+  product_media
+  option
+  option_value
+  variant
+  variant_option_value
+}
+
+TableGroup stock [color: #E67E22] {
+  stock_move
+}
+
+TableGroup customer [color: #1ABC9C] {
+  customer
+  address
+  wishlist_item
+}
+
+TableGroup cart [color: #F1C40F] {
+  cart
+  cart_item
+}
+
+TableGroup orders [color: #E74C3C] {
+  order
+  order_item
+}
+
+TableGroup payment [color: #E91E63] {
+  payment
+  payment_event
+}
+
+TableGroup shipping [color: #795548] {
+  shipping_provider
+  shipment
+}
+
+TableGroup document [color: #607D8B] {
+  order_document
+  invoice_provider
+  invoice
+}
+
+TableGroup engagement [color: #00BCD4] {
+  review
+  back_in_stock_request
+}
+
+TableGroup auth [color: #673AB7] {
+  role
+  permission
+}
+
+TableGroup admin [color: #212121] {
+  user
+  audit_log
+  company
+}
+
+// ================================
+// ENUMS
+// ================================
+
+Enum product_status {
+  draft
+  published
+  archived
+}
+
+Enum address_type {
+  billing
+  shipping
+}
+
+Enum cart_status {
+  active
+  converted
+  abandoned
+}
+
+Enum order_status {
+  pending
+  confirmed
+  processing
+  shipped
+  delivered
+  cancelled
+  refunded
+}
+
+Enum payment_provider {
+  stripe
+  paypal
+  bank_transfer
+  check
+}
+
+Enum payment_status {
+  pending
+  completed
+  failed
+  refunded
+}
+
+Enum shipment_status {
+  pending
+  label_created
+  shipped
+  in_transit
+  delivered
+  returned
+}
+
+Enum stock_move_type {
+  sale
+  return
+  restock
+  adjustment
+  reservation
+}
+
+Enum document_type {
+  receipt
+  credit_note
+}
+
+Enum invoice_type {
+  invoice
+  credit_note
+}
+
+Enum invoice_status {
+  pending
+  issued
+  cancelled
+}
+
+Enum role_scope {
+  admin
+  store
+}
+
+// ================================
+// REFERENTIAL
+// ================================
+
+Table country {
+  id uuid [pk]
+  name varchar(100) [not null]
+  code char(2) [unique, not null, note: 'ISO 3166-1 alpha-2']
+  is_shipping_enabled boolean [not null, default: true]
+}
+
+Table tax_rate {
+  id uuid [pk]
+  name varchar(50) [not null, note: 'TVA 20%, Franchise en base...']
+  rate decimal(5,2) [not null, note: '20.00 for 20%']
+  is_default boolean [not null, default: false]
+  mention varchar(255) [note: 'TVA non applicable, art. 293 B du CGI']
+}
+
+// ================================
+// MEDIA
+// ================================
+
+Table folder {
+  id uuid [pk]
+  parent uuid [ref: > folder.id]
+  name varchar(100) [not null]
+  sort_order int [not null, default: 0]
+}
+
+Table media {
+  id uuid [pk]
+  folder uuid [ref: > folder.id]
+  filename_disk varchar(255) [not null, note: 'UUID.ext on disk']
+  filename_original varchar(255) [not null]
+  title varchar(255)
+  description text
+  alt varchar(255)
+  mime_type varchar(100) [not null]
+  size int [not null, note: 'bytes']
+  width int
+  height int
+  date_created timestamptz [not null, default: `now()`]
+}
+
+// ================================
+// CATALOG
+// ================================
+
+Table category {
+  id uuid [pk]
+  parent uuid [ref: > category.id]
+  name varchar(100) [not null]
+  slug varchar(100) [unique, not null]
+  description text
+  image uuid [ref: > media.id]
+  sort_order int [not null, default: 0]
+  is_visible boolean [not null, default: true]
+}
+
+Table collection {
+  id uuid [pk]
+  name varchar(100) [not null]
+  slug varchar(100) [unique, not null]
+  description text
+  image uuid [ref: > media.id]
+  is_visible boolean [not null, default: true]
+  date_created timestamptz [not null, default: `now()`]
+}
+
+Table product {
+  id uuid [pk]
+  category uuid [not null, ref: > category.id]
+  tax_rate uuid [not null, ref: > tax_rate.id]
+  name varchar(255) [not null]
+  slug varchar(255) [unique, not null]
+  description text
+  status product_status [not null, default: 'draft']
+  date_created timestamptz [not null, default: `now()`]
+  date_updated timestamptz [not null, default: `now()`]
+}
+
+Table product_collection {
+  product uuid [not null, ref: > product.id]
+  collection uuid [not null, ref: > collection.id]
+
+  indexes {
+    (product, collection) [pk]
+  }
+}
+
+Table product_media {
+  product uuid [not null, ref: > product.id]
+  media uuid [not null, ref: > media.id]
+  sort_order int [not null, default: 0]
+  is_featured boolean [not null, default: false, note: 'Main product image']
+  featured_for_variant uuid [ref: > variant.id, note: 'Image associated with specific variant']
+
+  indexes {
+    (product, media) [pk]
+  }
+}
+
+Table option {
+  id uuid [pk]
+  product uuid [not null, ref: > product.id]
+  name varchar(50) [not null, note: 'Color, Size...']
+  sort_order int [not null, default: 0]
+}
+
+Table option_value {
+  id uuid [pk]
+  option uuid [not null, ref: > option.id]
+  value varchar(100) [not null, note: 'Red, M, XL...']
+  sort_order int [not null, default: 0]
+}
+
+Table variant {
+  id uuid [pk]
+  product uuid [not null, ref: > product.id]
+  sku varchar(50) [unique]
+  barcode varchar(50)
+  price_ht decimal(10,2) [not null]
+  compare_at_price_ht decimal(10,2) [note: 'Strike-through price']
+  cost_price decimal(10,2) [note: 'Cost price']
+  weight decimal(10,3) [note: 'kg']
+  length decimal(10,2) [note: 'cm']
+  width decimal(10,2) [note: 'cm']
+  height decimal(10,2) [note: 'cm']
+  is_default boolean [not null, default: false]
+  status product_status [not null, default: 'draft']
+  sort_order int [not null, default: 0]
+  quantity int [not null, default: 0]
+  reserved int [not null, default: 0]
+  low_stock_threshold int [default: 5]
+}
+
+Table variant_option_value {
+  variant uuid [not null, ref: > variant.id]
+  option_value uuid [not null, ref: > option_value.id]
+
+  indexes {
+    (variant, option_value) [pk]
+  }
+}
+
+// ================================
+// STOCK
+// ================================
+
+Table stock_move {
+  id uuid [pk]
+  variant uuid [ref: > variant.id]
+  label varchar(255) [not null, note: 'Moon Ring — Silver / 52']
+  quantity int [not null, note: 'Positive or negative']
+  type stock_move_type [not null]
+  reference uuid [note: 'Order ID, adjustment...']
+  note text
+  date_created timestamptz [not null, default: `now()`]
+}
+
+// ================================
+// CUSTOMER
+// ================================
+
+Table customer {
+  id uuid [pk]
+  email varchar(255) [unique, not null]
+  password_hash varchar(255) [not null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  phone varchar(20)
+  avatar uuid [ref: > media.id]
+  email_verified boolean [not null, default: false]
+  marketing_optin boolean [not null, default: false]
+  date_created timestamptz [not null, default: `now()`]
+  date_updated timestamptz [not null, default: `now()`]
+  last_login timestamptz
+}
+
+Table address {
+  id uuid [pk]
+  customer uuid [not null, ref: > customer.id]
+  type address_type [not null]
+  label varchar(50) [note: 'Home, Office...']
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  company varchar(100)
+  street varchar(255) [not null]
+  street_2 varchar(255)
+  postal_code varchar(10) [not null]
+  city varchar(100) [not null]
+  country uuid [not null, ref: > country.id]
+  phone varchar(20)
+  is_default boolean [not null, default: false]
+}
+
+Table wishlist_item {
+  customer uuid [not null, ref: > customer.id]
+  variant uuid [not null, ref: > variant.id]
+  date_added timestamptz [not null, default: `now()`]
+
+  indexes {
+    (customer, variant) [pk]
+  }
+}
+
+// ================================
+// CART
+// ================================
+
+Table cart {
+  id uuid [pk]
+  customer uuid [ref: > customer.id, note: 'Nullable if anonymous']
+  session_id varchar(100) [note: 'For anonymous cart']
+  status cart_status [not null, default: 'active']
+  date_created timestamptz [not null, default: `now()`]
+  date_updated timestamptz [not null, default: `now()`]
+}
+
+Table cart_item {
+  id uuid [pk]
+  cart uuid [not null, ref: > cart.id]
+  variant uuid [not null, ref: > variant.id]
+  quantity int [not null]
+  date_added timestamptz [not null, default: `now()`]
+
+  indexes {
+    (cart, variant) [unique]
+  }
+}
+
+// ================================
+// ORDERS
+// ================================
+
+Table order {
+  id uuid [pk]
+  order_number varchar(20) [unique, not null, note: 'CMD-2025-00001']
+  customer uuid [not null, ref: > customer.id]
+  status order_status [not null, default: 'pending']
+  shipping_address jsonb [not null, note: 'Snapshot']
+  billing_address jsonb [not null, note: 'Snapshot']
+  subtotal_ht decimal(10,2) [not null]
+  shipping_ht decimal(10,2) [not null, default: 0]
+  discount_ht decimal(10,2) [not null, default: 0]
+  total_ht decimal(10,2) [not null]
+  total_tax decimal(10,2) [not null]
+  total_ttc decimal(10,2) [not null]
+  customer_note text
+  internal_note text
+  date_created timestamptz [not null, default: `now()`]
+  date_updated timestamptz [not null, default: `now()`]
+}
+
+Table order_item {
+  id uuid [pk]
+  order uuid [not null, ref: > order.id]
+  variant uuid [ref: > variant.id, note: 'Nullable if variant deleted']
+  label varchar(255) [not null, note: 'Moon Ring — Silver / 52']
+  quantity int [not null]
+  unit_price_ht decimal(10,2) [not null]
+  tax_rate decimal(5,2) [not null]
+  total_ht decimal(10,2) [not null]
+  total_ttc decimal(10,2) [not null]
+}
+
+// ================================
+// PAYMENT
+// ================================
+
+Table payment {
+  id uuid [pk]
+  order uuid [unique, not null, ref: > order.id, note: 'One-to-one']
+  provider payment_provider [not null]
+  status payment_status [not null, default: 'pending']
+  amount decimal(10,2) [not null]
+  provider_transaction_id varchar(255)
+  date_created timestamptz [not null, default: `now()`]
+  date_updated timestamptz [not null, default: `now()`]
+}
+
+Table payment_event {
+  id uuid [pk]
+  payment uuid [not null, ref: > payment.id]
+  type varchar(50) [not null, note: 'attempt, success, failure, refund, dispute']
+  data jsonb [note: 'Raw provider payload']
+  date_created timestamptz [not null, default: `now()`]
+}
+
+// ================================
+// SHIPPING
+// ================================
+
+Table shipping_provider {
+  id uuid [pk]
+  name varchar(50) [not null, note: 'Colissimo, Sendcloud...']
+  type varchar(50) [not null, note: 'colissimo, sendcloud, boxtal...']
+  is_enabled boolean [not null, default: true]
+}
+
+Table shipment {
+  id uuid [pk]
+  order uuid [unique, not null, ref: > order.id, note: 'One-to-one']
+  provider uuid [not null, ref: > shipping_provider.id]
+  status shipment_status [not null, default: 'pending']
+  tracking_number varchar(100)
+  tracking_url varchar(500)
+  weight decimal(10,3)
+  shipped_at timestamptz
+  delivered_at timestamptz
+  date_created timestamptz [not null, default: `now()`]
+  date_updated timestamptz [not null, default: `now()`]
+}
+
+// ================================
+// DOCUMENT
+// ================================
+
+Table order_document {
+  id uuid [pk]
+  order uuid [not null, ref: > order.id]
+  type document_type [not null]
+  number varchar(20) [not null, note: 'REC-2025-00001']
+  pdf uuid [ref: > media.id]
+  date_created timestamptz [not null, default: `now()`]
+}
+
+Table invoice_provider {
+  id uuid [pk]
+  name varchar(50) [not null, note: 'Indy, Pennylane...']
+  type varchar(50) [not null, note: 'indy, pennylane...']
+  is_enabled boolean [not null, default: false]
+}
+
+Table invoice {
+  id uuid [pk]
+  order uuid [not null, ref: > order.id]
+  provider uuid [not null, ref: > invoice_provider.id]
+  type invoice_type [not null]
+  number varchar(20) [not null, note: 'FA-2025-00001']
+  status invoice_status [not null, default: 'pending']
+  provider_invoice_id varchar(255)
+  pdf_url varchar(500)
+  date_issued timestamptz
+  date_created timestamptz [not null, default: `now()`]
+}
+
+// ================================
+// ENGAGEMENT
+// ================================
+
+Table review {
+  id uuid [pk]
+  product uuid [not null, ref: > product.id]
+  customer uuid [not null, ref: > customer.id]
+  rating int [not null, note: '1-5']
+  title varchar(255)
+  content text
+  date_created timestamptz [not null, default: `now()`]
+
+  indexes {
+    (product, customer) [unique]
+  }
+}
+
+Table back_in_stock_request {
+  id uuid [pk]
+  variant uuid [not null, ref: > variant.id]
+  customer uuid [not null, ref: > customer.id]
+  date_created timestamptz [not null, default: `now()`]
+
+  indexes {
+    (variant, customer) [unique]
+  }
+}
+
+// ================================
+// AUTH
+// ================================
+
+Table role {
+  id uuid [pk]
+  name varchar(50) [not null]
+  description text
+  scope role_scope [not null, default: 'admin']
+  is_system boolean [not null, default: false, note: 'public, customer, owner cannot be deleted']
+  date_created timestamptz [not null, default: `now()`]
+}
+
+Table permission {
+  id uuid [pk]
+  role uuid [not null, ref: > role.id]
+  resource varchar(50) [not null, note: 'product, order, customer...']
+  can_create boolean [not null, default: false]
+  can_read boolean [not null, default: false]
+  can_update boolean [not null, default: false]
+  can_delete boolean [not null, default: false]
+  self_only boolean [not null, default: false, note: 'Auto ownership filter']
+
+  indexes {
+    (role, resource) [unique]
+  }
+}
+
+// ================================
+// ADMIN
+// ================================
+
+Table user {
+  id uuid [pk]
+  email varchar(255) [unique, not null]
+  password_hash varchar(255) [not null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  role uuid [not null, ref: > role.id]
+  is_owner boolean [not null, default: false, note: 'Only one, transferable']
+  is_active boolean [not null, default: true]
+  date_created timestamptz [not null, default: `now()`]
+  last_login timestamptz
+}
+
+Table audit_log {
+  id uuid [pk]
+  user uuid [ref: > user.id, note: 'Nullable if system action']
+  action varchar(100) [not null, note: 'product.create, order.refund, user.login...']
+  entity_type varchar(50) [note: 'product, order...']
+  entity_id uuid
+  data jsonb [note: 'Contextual details']
+  ip_address varchar(45)
+  date_created timestamptz [not null, default: `now()`]
+}
+
+Table company {
+  id uuid [pk]
+  shop_name varchar(255) [not null]
+  logo uuid [ref: > media.id]
+  public_email varchar(255) [not null]
+  public_phone varchar(20)
+  legal_name varchar(255) [not null]
+  legal_form varchar(50) [note: 'SASU, EURL, EI, AE...']
+  siren varchar(9)
+  siret varchar(14)
+  tva_intra varchar(20)
+  rcs_city varchar(100)
+  share_capital decimal(10,2)
+  street varchar(255) [not null]
+  street_2 varchar(255)
+  postal_code varchar(10) [not null]
+  city varchar(100) [not null]
+  country uuid [not null, ref: > country.id]
+  document_prefix varchar(10) [not null, default: 'REC']
+  document_next_number int [not null, default: 1]
+  invoice_prefix varchar(10) [not null, default: 'FA']
+  invoice_next_number int [not null, default: 1]
+}
