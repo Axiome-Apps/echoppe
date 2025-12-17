@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import type { NavigationConfig } from '@/types/navigation';
 import SidebarNav from '@/components/organisms/SidebarNav.vue';
+import SidebarUserMenu from '@/components/molecules/SidebarUserMenu.vue';
 
 const router = useRouter();
 const auth = useAuth();
@@ -15,10 +16,10 @@ async function handleLogout() {
 
 const navigationConfig: NavigationConfig = [
   {
-    title: 'TABLEAU DE BORD',
+    title: '',
     items: [
       {
-        name: 'Dashboard',
+        name: 'Tableau de bord',
         path: '/',
         icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
       },
@@ -92,36 +93,29 @@ const badgeCounts = ref<Record<string, number>>({
 <template>
   <div class="min-h-screen bg-gray-100">
     <!-- Sidebar -->
-    <aside class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200">
-      <div class="flex items-center h-16 px-6 border-b border-gray-200">
+    <aside class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col">
+      <!-- Logo -->
+      <div class="flex items-center h-16 px-6 border-b border-gray-200 shrink-0">
         <h1 class="text-xl font-bold text-gray-900">Echoppe</h1>
       </div>
 
-      <SidebarNav :navigation="navigationConfig" :badge-counts="badgeCounts" />
+      <!-- Navigation scrollable -->
+      <div class="flex-1 overflow-y-auto">
+        <SidebarNav :navigation="navigationConfig" :badge-counts="badgeCounts" />
+      </div>
+
+      <!-- User menu -->
+      <SidebarUserMenu
+        v-if="auth.user.value"
+        :first-name="auth.user.value.firstName"
+        :last-name="auth.user.value.lastName"
+        @logout="handleLogout"
+      />
     </aside>
 
     <!-- Main content -->
-    <div class="pl-64">
-      <!-- Header -->
-      <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-        <div></div>
-        <div class="flex items-center gap-4">
-          <span v-if="auth.user.value" class="text-sm text-gray-600">
-            {{ auth.user.value.firstName }} {{ auth.user.value.lastName }}
-          </span>
-          <button
-            @click="handleLogout"
-            class="text-sm text-gray-500 hover:text-gray-700 transition"
-          >
-            Deconnexion
-          </button>
-        </div>
-      </header>
-
-      <!-- Page content -->
-      <main class="p-6">
-        <router-view />
-      </main>
-    </div>
+    <main class="ml-64 p-6">
+      <router-view />
+    </main>
   </div>
 </template>

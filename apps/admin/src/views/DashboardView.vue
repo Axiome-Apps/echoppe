@@ -23,7 +23,7 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Tableau de bord</h1>
 
     <div v-if="loading" class="text-gray-500">Chargement...</div>
 
