@@ -12,8 +12,8 @@ withDefaults(
 
 const sizeClasses = {
   sm: 'text-xs',
-  md: 'text-xs',
-  lg: 'text-sm',
+  md: 'text-sm',
+  lg: 'text-base',
 };
 </script>
 

@@ -488,73 +488,69 @@ function goBack() {
       <!-- Right: Sidebar -->
       <div class="w-80 flex-shrink-0 space-y-6">
         <!-- Status card -->
-        <div class="bg-white rounded-lg shadow p-4">
-          <h3 class="text-sm font-semibold text-gray-900 mb-3">Publication</h3>
+        <div class="bg-white rounded-lg shadow p-5">
+          <h3 class="font-semibold text-gray-900 mb-4">Publication</h3>
           <div>
-            <Label size="sm">Statut</Label>
+            <Label>Statut</Label>
             <Select
               v-model="form.status"
               :options="statusOptions"
-              size="sm"
             />
           </div>
         </div>
 
         <!-- Organization card -->
-        <div class="bg-white rounded-lg shadow p-4">
-          <h3 class="text-sm font-semibold text-gray-900 mb-3">Organisation</h3>
-          <div class="space-y-3">
+        <div class="bg-white rounded-lg shadow p-5">
+          <h3 class="font-semibold text-gray-900 mb-4">Organisation</h3>
+          <div class="space-y-4">
             <div>
-              <Label size="sm" required>Categorie</Label>
+              <Label required>Catégorie</Label>
               <Select
                 v-model="form.category"
                 :options="categoryOptions"
-                placeholder="Selectionner une categorie"
-                size="sm"
+                placeholder="Sélectionner une catégorie"
               />
             </div>
             <div>
-              <Label size="sm">Collection</Label>
+              <Label>Collection</Label>
               <Select
                 v-model="form.collection"
                 :options="collectionOptions"
-                size="sm"
               />
             </div>
           </div>
         </div>
 
         <!-- Tax card -->
-        <div class="bg-white rounded-lg shadow p-4">
-          <h3 class="text-sm font-semibold text-gray-900 mb-3">Fiscalite</h3>
+        <div class="bg-white rounded-lg shadow p-5">
+          <h3 class="font-semibold text-gray-900 mb-4">Fiscalité</h3>
           <div>
-            <Label size="sm" required>Taux de TVA</Label>
+            <Label required>Taux de TVA</Label>
             <Select
               v-model="form.taxRate"
               :options="taxRateOptions"
-              size="sm"
             />
           </div>
         </div>
 
         <!-- Metadata card (only for existing products) -->
-        <div v-if="!isNew" class="bg-white rounded-lg shadow p-4">
-          <h3 class="text-sm font-semibold text-gray-900 mb-3">Informations</h3>
-          <div class="space-y-3 text-sm">
+        <div v-if="!isNew" class="bg-white rounded-lg shadow p-5">
+          <h3 class="font-semibold text-gray-900 mb-4">Informations</h3>
+          <div class="space-y-4">
             <div>
-              <Label size="sm">Slug</Label>
-              <div class="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded text-gray-600 text-xs font-mono">
+              <Label>Slug</Label>
+              <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-gray-600 font-mono">
                 {{ form.slug }}
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <span class="text-xs text-gray-500">Cree le</span>
-                <div class="text-xs text-gray-700">{{ dateCreated }}</div>
+                <span class="text-sm text-gray-500">Créé le</span>
+                <div class="text-sm text-gray-700">{{ dateCreated }}</div>
               </div>
               <div>
-                <span class="text-xs text-gray-500">Modifie le</span>
-                <div class="text-xs text-gray-700">{{ dateUpdated }}</div>
+                <span class="text-sm text-gray-500">Modifié le</span>
+                <div class="text-sm text-gray-700">{{ dateUpdated }}</div>
               </div>
             </div>
           </div>
