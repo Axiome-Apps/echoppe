@@ -3,10 +3,10 @@ import { ref, onMounted, computed } from 'vue';
 import { api } from '@/lib/api';
 import StarIcon from '@/components/atoms/icons/StarIcon.vue';
 import TrashIcon from '@/components/atoms/icons/TrashIcon.vue';
-import MediaPickerModal from '@/components/organisms/MediaPickerModal.vue';
+import MediaBrowserModal from '@/components/organisms/MediaBrowserModal.vue';
+import { type Media, getMediaUrl as getMediaAssetUrl } from '@/composables/media';
 
 // Types inférés depuis Eden
-type Media = NonNullable<Awaited<ReturnType<typeof api.media.get>>['data']>['data'][number];
 type ProductMedia = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['media']['get']>>['data']>[number];
 type Variant = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['variants']['get']>>['data']>[number];
 
@@ -15,47 +15,48 @@ const props = defineProps<{
   variants: Variant[];
 }>();
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
 const productMedia = ref<ProductMedia[]>([]);
-const allMedia = ref<Media[]>([]);
+const mediaCache = ref<Map<string, Media>>(new Map());
 const loading = ref(true);
 const showPicker = ref(false);
 
 const mediaWithDetails = computed(() => {
   return productMedia.value.map((pm) => {
-    const media = allMedia.value.find((m) => m.id === pm.media);
+    const media = mediaCache.value.get(pm.media);
     return { ...pm, mediaDetails: media };
   });
 });
 
-const galleryMediaIds = computed(() => new Set(productMedia.value.map((pm) => pm.media)));
-
 async function loadProductMedia() {
   const { data } = await api.products({ id: props.productId }).media.get();
-  if (data) productMedia.value = data;
-}
-
-async function loadAllMedia() {
-  const { data } = await api.media.get({ query: { limit: 100 } });
-  if (data && 'data' in data) {
-    allMedia.value = data.data.filter((m) => m.mimeType.startsWith('image/'));
+  if (data) {
+    productMedia.value = data;
+    // Charger les détails des médias manquants
+    for (const pm of data) {
+      if (!mediaCache.value.has(pm.media)) {
+        const { data: mediaData } = await api.media({ id: pm.media }).get();
+        if (mediaData && 'id' in mediaData) {
+          mediaCache.value.set(pm.media, mediaData as Media);
+        }
+      }
+    }
   }
 }
 
 onMounted(async () => {
   loading.value = true;
-  await Promise.all([loadProductMedia(), loadAllMedia()]);
+  await loadProductMedia();
   loading.value = false;
 });
 
-async function addMedia(mediaId: string) {
+async function handleMediaSelect(media: Media) {
   const maxSortOrder = Math.max(0, ...productMedia.value.map((m) => m.sortOrder));
   await api.products({ id: props.productId }).media.post({
-    mediaId,
+    mediaId: media.id,
     sortOrder: maxSortOrder + 1,
     isFeatured: productMedia.value.length === 0,
   });
+  mediaCache.value.set(media.id, media);
   await loadProductMedia();
   showPicker.value = false;
 }
@@ -80,7 +81,7 @@ async function setVariantFeatured(mediaId: string, variantId: string | null) {
 }
 
 function getMediaUrl(item: Media) {
-  return `${API_URL}/assets/${item.id}`;
+  return getMediaAssetUrl(item);
 }
 
 function getVariantLabel(variantId: string) {
@@ -176,16 +177,13 @@ function getVariantLabel(variantId: string) {
       </div>
     </div>
 
-    <!-- Media Picker Modal -->
-    <MediaPickerModal
-      :open="showPicker"
-      title="Ajouter des images"
-      :media="allMedia"
-      :disabled-ids="galleryMediaIds"
-      :columns="5"
-      empty-message="Aucune image dans la mediatheque."
-      @select="addMedia"
-      @close="showPicker = false"
+    <!-- Media Browser Modal -->
+    <MediaBrowserModal
+      v-if="showPicker"
+      title="Ajouter une image"
+      accept="images"
+      :on-select="handleMediaSelect"
+      :on-close="() => showPicker = false"
     />
   </div>
 </template>

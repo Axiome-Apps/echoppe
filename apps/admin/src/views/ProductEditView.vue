@@ -9,6 +9,7 @@ import Select from '@/components/atoms/Select.vue';
 import Label from '@/components/atoms/Label.vue';
 import Badge from '@/components/atoms/Badge.vue';
 import IconButton from '@/components/atoms/IconButton.vue';
+import RichTextEditor from '@/components/atoms/RichTextEditor.vue';
 import GripIcon from '@/components/atoms/icons/GripIcon.vue';
 import TrashIcon from '@/components/atoms/icons/TrashIcon.vue';
 import PlusIcon from '@/components/atoms/icons/PlusIcon.vue';
@@ -341,12 +342,12 @@ function goBack() {
 
             <div>
               <Label>Description</Label>
-              <textarea
-                v-model="form.description"
-                rows="5"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              <RichTextEditor
+                :content="form.description"
+                :on-change="(html) => form.description = html"
                 placeholder="Description du produit..."
-              ></textarea>
+                min-height="200px"
+              />
             </div>
           </div>
         </div>

@@ -16,6 +16,13 @@
     "@echoppe/shared": "workspace:*",
     "@elysiajs/eden": "^1.4.5",
     "@tanstack/vue-table": "^8.21.3",
+    "@tiptap/extension-image": "^3.13.0",
+    "@tiptap/extension-link": "^3.13.0",
+    "@tiptap/extension-placeholder": "^3.13.0",
+    "@tiptap/extension-text-align": "^3.13.0",
+    "@tiptap/extension-underline": "^3.13.0",
+    "@tiptap/starter-kit": "^3.13.0",
+    "@tiptap/vue-3": "^3.13.0",
     "vue": "^3.5.25",
     "vue-draggable-plus": "^0.6.0",
     "vue-router": "^4.5.1"
