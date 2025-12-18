@@ -272,6 +272,8 @@ async function save() {
     if (isNew.value) {
       const { data } = await api.products.post(payload);
       if (data && 'id' in data) {
+        product.value = data;
+        form.value.slug = data.slug;
         router.replace(`/produits/${data.id}`);
       }
     } else if (productId.value) {
