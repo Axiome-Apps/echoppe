@@ -226,8 +226,8 @@ async function handleFileSelect(e: Event) {
           <label
             class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition cursor-pointer text-sm font-medium"
           >
-            <span v-if="uploading">Upload...</span>
-            <span v-else>Uploader</span>
+            <span v-if="uploading">Import...</span>
+            <span v-else>Importer</span>
             <input
               type="file"
               multiple
@@ -257,7 +257,7 @@ async function handleFileSelect(e: Event) {
           >
             <ImageIcon size="lg" class="w-12 h-12 mb-3" />
             <p v-if="searchQuery">Aucun résultat pour "{{ searchQuery }}"</p>
-            <p v-else>Glissez des fichiers ici ou cliquez sur "Uploader"</p>
+            <p v-else>Glissez des fichiers ici ou cliquez sur "Importer"</p>
           </div>
 
           <!-- Grid view -->

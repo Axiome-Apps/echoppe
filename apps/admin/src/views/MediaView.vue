@@ -326,8 +326,8 @@ function closeContextMenu() {
 
           <!-- Upload -->
           <label class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer text-sm font-medium">
-            <span v-if="uploading">Upload...</span>
-            <span v-else>Uploader</span>
+            <span v-if="uploading">Import...</span>
+            <span v-else>Importer</span>
             <input type="file" multiple class="hidden" @change="handleFileSelect" :disabled="uploading" />
           </label>
         </div>
@@ -359,7 +359,7 @@ function closeContextMenu() {
         <div v-else-if="mediaItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400">
           <ImageIcon size="lg" class="w-16 h-16 mb-4" />
           <p v-if="searchQuery">Aucun resultat pour "{{ searchQuery }}"</p>
-          <p v-else>Glissez des fichiers ici ou cliquez sur "Uploader"</p>
+          <p v-else>Glissez des fichiers ici ou cliquez sur "Importer"</p>
         </div>
 
         <!-- Grid view -->

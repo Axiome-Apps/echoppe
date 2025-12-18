@@ -55,7 +55,6 @@ const productMedia = ref<ProductMedia[]>([]);
 const mediaCache = ref<Map<string, Media>>(new Map());
 const loading = ref(true);
 const saving = ref(false);
-const activeTab = ref<'variants' | 'media'>('variants');
 
 // Modal state
 const showVariantModal = ref(false);
@@ -502,6 +501,7 @@ function goBack() {
       <div class="flex-1 min-w-0 space-y-6">
         <!-- Product info card -->
         <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="font-medium text-gray-900 mb-4">Informations principales</h3>
           <div class="space-y-4">
             <div>
               <Label required>Nom du produit</Label>
@@ -526,51 +526,34 @@ function goBack() {
           </div>
         </div>
 
-        <!-- Tabs: Variants & Media (only for existing products) -->
-        <div v-if="!isNew" class="bg-white rounded-lg shadow">
-          <div class="border-b flex">
-            <button
-              @click="activeTab = 'variants'"
-              :class="['px-6 py-3 text-sm font-medium border-b-2 -mb-px transition', activeTab === 'variants' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700']"
-            >
-              Variantes ({{ variants.length }})
-            </button>
-            <button
-              @click="activeTab = 'media'"
-              :class="['px-6 py-3 text-sm font-medium border-b-2 -mb-px transition', activeTab === 'media' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700']"
-            >
-              Medias
-            </button>
-          </div>
+        <!-- Media section (only for existing products) -->
+        <div v-if="!isNew" class="bg-white rounded-lg shadow p-6">
+          <ProductMediaGallery
+            v-if="productId"
+            :product-id="productId"
+            :variants="variants"
+          />
+        </div>
 
-          <div class="p-6">
-            <!-- Variants Tab -->
-            <div v-if="activeTab === 'variants'">
-              <DataTable
-                :data="variantsData"
-                :columns="variantColumns"
-                :selectable="false"
-                :searchable="false"
-                :filterable="false"
-                :add-column-enabled="true"
-                :reorderable="true"
-                :row-id="getVariantRowId"
-                :on-reorder="handleVariantReorder"
-                add-label="Ajouter une variante"
-                empty-message="Aucune variante pour ce produit"
-                @add="handleAddVariant"
-              />
-            </div>
-
-            <!-- Media Tab -->
-            <div v-if="activeTab === 'media'">
-              <ProductMediaGallery
-                v-if="productId"
-                :product-id="productId"
-                :variants="variants"
-              />
-            </div>
+        <!-- Variants section (only for existing products) -->
+        <div v-if="!isNew" class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-medium text-gray-900">Variantes ({{ variants.length }})</h3>
           </div>
+          <DataTable
+            :data="variantsData"
+            :columns="variantColumns"
+            :selectable="false"
+            :searchable="false"
+            :filterable="false"
+            :add-column-enabled="true"
+            :reorderable="true"
+            :row-id="getVariantRowId"
+            :on-reorder="handleVariantReorder"
+            add-label="Ajouter une variante"
+            empty-message="Aucune variante pour ce produit"
+            @add="handleAddVariant"
+          />
         </div>
       </div>
 
