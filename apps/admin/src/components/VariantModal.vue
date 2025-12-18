@@ -7,10 +7,15 @@ import Select from '@/components/atoms/Select.vue';
 import Input from '@/components/atoms/Input.vue';
 import Combobox from '@/components/atoms/Combobox.vue';
 import type { ComboboxOption } from '@/components/atoms/Combobox.vue';
+import CheckIcon from '@/components/atoms/icons/CheckIcon.vue';
 import { api } from '@/lib/api';
+import { type Media, getMediaUrl } from '@/composables/media';
 
 // Type pour les options globales (sans valeurs)
 type GlobalOption = { id: string; name: string };
+
+// Types inférés depuis Eden
+type ProductMedia = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['media']['get']>>['data']>[number];
 
 type Variant = {
   id: string;
@@ -43,6 +48,8 @@ const props = defineProps<{
   productId: string;
   variant?: Variant | null;
   options: Option[];
+  productMedia: ProductMedia[];
+  mediaCache: Map<string, Media>;
   onClose: () => void;
   onSaved: () => void;
   onOptionsChange: (options: Option[]) => void;
@@ -50,6 +57,26 @@ const props = defineProps<{
 
 const isNew = computed(() => !props.variant);
 const saving = ref(false);
+
+// Image sélectionnée pour cette variante
+const selectedMediaId = ref<string | null>(null);
+
+// Images disponibles (exclut featured et celles assignées à d'autres variantes)
+const availableImages = computed(() => {
+  return props.productMedia.filter((pm) => {
+    // Exclure les images featured du produit
+    if (pm.isFeatured) return false;
+    // Exclure les images déjà assignées à d'autres variantes
+    if (pm.featuredForVariant && pm.featuredForVariant !== props.variant?.id) return false;
+    return true;
+  });
+});
+
+// Image actuellement assignée à cette variante
+const currentVariantMedia = computed(() => {
+  if (!props.variant) return null;
+  return props.productMedia.find((pm) => pm.featuredForVariant === props.variant?.id) ?? null;
+});
 
 // Form data
 const form = ref({
@@ -116,6 +143,9 @@ watch(
       } else {
         variantOptions.value = [];
       }
+      // Initialize selected image
+      const variantMedia = props.productMedia.find((pm) => pm.featuredForVariant === v.id);
+      selectedMediaId.value = variantMedia?.media ?? null;
     } else {
       form.value = {
         status: 'draft',
@@ -131,6 +161,7 @@ watch(
         weight: '',
       };
       variantOptions.value = [];
+      selectedMediaId.value = null;
     }
   },
   { immediate: true }
@@ -277,6 +308,25 @@ async function save() {
       // Eden bracket notation pour les params dynamiques
       await (api.products as any)[props.productId].variants[savedVariant.id].options.put({ optionValueIds });
 
+      // Mettre à jour l'image de la variante
+      const previousMediaId = currentVariantMedia.value?.media ?? null;
+
+      // Si l'image a changé
+      if (selectedMediaId.value !== previousMediaId) {
+        // Retirer l'ancienne association si elle existait
+        if (previousMediaId) {
+          await api.products({ id: props.productId }).media({ mediaId: previousMediaId }).put({
+            featuredForVariant: null,
+          });
+        }
+        // Assigner la nouvelle image si sélectionnée
+        if (selectedMediaId.value) {
+          await api.products({ id: props.productId }).media({ mediaId: selectedMediaId.value }).put({
+            featuredForVariant: savedVariant.id,
+          });
+        }
+      }
+
       props.onSaved();
     }
   } finally {
@@ -288,6 +338,49 @@ async function save() {
 <template>
   <Modal :title="isNew ? 'Nouvelle variante' : 'Modifier la variante'" size="2xl" tall @close="onClose">
     <div class="space-y-6">
+      <!-- Section: Image de la variante -->
+      <section v-if="availableImages.length > 0 || selectedMediaId">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+          Image de la variante
+        </h3>
+        <div v-if="availableImages.length === 0 && !selectedMediaId" class="text-sm text-gray-500">
+          Aucune image disponible. Ajoutez des images dans l'onglet Medias.
+        </div>
+        <div v-else class="flex gap-3 flex-wrap">
+          <!-- Option: Aucune image -->
+          <button
+            type="button"
+            class="w-20 h-20 rounded-lg border-2 flex items-center justify-center transition-all cursor-pointer"
+            :class="selectedMediaId === null ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-gray-50'"
+            @click="selectedMediaId = null"
+          >
+            <span class="text-xs text-gray-400">Aucune</span>
+          </button>
+          <!-- Images disponibles -->
+          <button
+            v-for="pm in availableImages"
+            :key="pm.media"
+            type="button"
+            class="w-20 h-20 rounded-lg border-2 overflow-hidden relative transition-all cursor-pointer"
+            :class="selectedMediaId === pm.media ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-gray-300'"
+            @click="selectedMediaId = pm.media"
+          >
+            <img
+              v-if="mediaCache.get(pm.media)"
+              :src="getMediaUrl(mediaCache.get(pm.media)!)"
+              class="w-full h-full object-cover"
+              :alt="mediaCache.get(pm.media)?.alt || ''"
+            />
+            <div
+              v-if="selectedMediaId === pm.media"
+              class="absolute inset-0 bg-blue-500/20 flex items-center justify-center"
+            >
+              <CheckIcon class="w-6 h-6 text-blue-600" />
+            </div>
+          </button>
+        </div>
+      </section>
+
       <!-- Section: Infos principales -->
       <section>
         <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">

@@ -16,6 +16,7 @@ import ProductMediaGallery from '@/components/ProductMediaGallery.vue';
 import VariantModal from '@/components/VariantModal.vue';
 import DataTable from '@/components/organisms/DataTable/DataTable.vue';
 import type { DataTableColumn } from '@/components/organisms/DataTable/types';
+import { type Media } from '@/composables/media';
 
 // Types inferes depuis Eden
 type Product = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>['data'][number];
@@ -32,6 +33,9 @@ type Option = {
   values: { id: string; value: string }[];
 };
 
+// Type ProductMedia inféré depuis Eden
+type ProductMedia = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['media']['get']>>['data']>[number];
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const route = useRoute();
@@ -47,6 +51,8 @@ const collections = ref<Collection[]>([]);
 const variants = ref<Variant[]>([]);
 const options = ref<Option[]>([]);
 const variantThumbnails = ref<Map<string, string>>(new Map());
+const productMedia = ref<ProductMedia[]>([]);
+const mediaCache = ref<Map<string, Media>>(new Map());
 const loading = ref(true);
 const saving = ref(false);
 const activeTab = ref<'variants' | 'media'>('variants');
@@ -147,20 +153,30 @@ async function loadProduct() {
     if ('options' in data && Array.isArray(data.options)) {
       options.value = data.options;
     }
-    // Load variant thumbnails
-    await loadVariantThumbnails();
+    // Load product media and variant thumbnails
+    await loadProductMedia();
   }
 }
 
-async function loadVariantThumbnails() {
-  if (!productId.value || variants.value.length === 0) return;
+async function loadProductMedia() {
+  if (!productId.value) return;
 
   const thumbnails = new Map<string, string>();
 
   try {
     const { data: productMediaList } = await api.products({ id: productId.value }).media.get();
     if (productMediaList) {
+      productMedia.value = productMediaList;
+
+      // Charger les détails des médias manquants
       for (const pm of productMediaList) {
+        if (!mediaCache.value.has(pm.media)) {
+          const { data: mediaData } = await api.media({ id: pm.media }).get();
+          if (mediaData && 'id' in mediaData) {
+            mediaCache.value.set(pm.media, mediaData as Media);
+          }
+        }
+        // Construire les thumbnails des variantes
         if (pm.featuredForVariant) {
           thumbnails.set(pm.featuredForVariant, `${API_URL}/assets/${pm.media}`);
         }
@@ -637,6 +653,8 @@ function goBack() {
       :product-id="productId"
       :variant="editingVariant"
       :options="options"
+      :product-media="productMedia"
+      :media-cache="mediaCache"
       :on-close="closeVariantModal"
       :on-saved="onVariantSaved"
       :on-options-change="updateOptions"

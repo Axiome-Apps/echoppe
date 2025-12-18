@@ -447,7 +447,6 @@ function handleBatchAction(actionId: string) {
                 'w-10 pl-2 pr-0': cell.column.id === '_reorder',
               }"
               :data-datatable-drop="isDragEnabled && cell.column.id === '_reorder' || undefined"
-              @click.stop="cell.column.id === '_reorder' ? undefined : undefined"
             >
               <FlexRender
                 :render="cell.column.columnDef.cell"
