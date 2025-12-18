@@ -16,6 +16,8 @@ import SpinnerIcon from '@/components/atoms/icons/SpinnerIcon.vue';
 import ChevronUpIcon from '@/components/atoms/icons/ChevronUpIcon.vue';
 import ChevronDownIcon from '@/components/atoms/icons/ChevronDownIcon.vue';
 import SortIcon from '@/components/atoms/icons/SortIcon.vue';
+import GripIcon from '@/components/atoms/icons/GripIcon.vue';
+import { useSortable, type FlatDropPosition } from '@/composables/sortable';
 import type { DataTableColumn } from './types';
 import DataTableHeader, { type BatchAction } from './DataTableHeader.vue';
 import ColumnMenu from './ColumnMenu.vue';
@@ -37,6 +39,9 @@ const props = withDefaults(
     showAdd?: boolean;
     batchActions?: BatchAction[];
     onBatchAction?: (actionId: string) => void;
+    reorderable?: boolean;
+    rowId?: (row: TData) => string;
+    onReorder?: (draggedId: string, targetId: string, position: FlatDropPosition) => void;
   }>(),
   {
     loading: false,
@@ -49,6 +54,7 @@ const props = withDefaults(
     emptyMessage: 'Aucun element',
     showAdd: true,
     batchActions: () => [],
+    reorderable: false,
   }
 );
 
@@ -89,8 +95,46 @@ watch(
   { immediate: true, once: true }
 );
 
+// Drag & drop sortable
+function getRowId(row: TData): string {
+  if (props.rowId) return props.rowId(row);
+  return (row as Record<string, unknown>).id as string;
+}
+
+function handleReorder(draggedId: string, targetId: string, position: FlatDropPosition) {
+  props.onReorder?.(draggedId, targetId, position);
+}
+
+const sortable = useSortable({
+  dropZoneAttr: 'data-datatable-drop',
+  onReorder: handleReorder,
+});
+
+// Drag is only enabled when sorting by _reorder column or no sorting
+const isDragEnabled = computed(() => {
+  if (!props.reorderable) return false;
+  // Drag enabled if no sorting or sorting by _reorder
+  return sorting.value.length === 0 || sorting.value[0]?.id === '_reorder';
+});
+
 const tableColumns = computed<ColumnDef<TData, unknown>[]>(() => {
   const cols: ColumnDef<TData, unknown>[] = [];
+
+  // Reorder column (grip icon when drag enabled, order number otherwise)
+  if (props.reorderable) {
+    cols.push({
+      id: '_reorder',
+      header: 'Ordre',
+      accessorKey: '_reorder',
+      cell: ({ row }) =>
+        isDragEnabled.value
+          ? h('div', { class: 'cursor-grab text-gray-400 hover:text-gray-600' }, [h(GripIcon)])
+          : h('span', { class: 'text-gray-400 text-sm' }, String(row.index + 1)),
+      size: 60,
+      enableSorting: true,
+      enableHiding: false,
+    });
+  }
 
   // Selection column
   if (props.selectable) {
@@ -151,7 +195,10 @@ const table = useVueTable({
       return rowSelection.value;
     },
     get columnOrder() {
-      return props.selectable ? ['_select', ...columnOrder.value] : columnOrder.value;
+      const order = [...columnOrder.value];
+      if (props.selectable) order.unshift('_select');
+      if (props.reorderable) order.unshift('_reorder');
+      return order;
     },
   },
   onSortingChange: (updater) => {
@@ -230,8 +277,9 @@ function handleShowColumn(columnId: string) {
   columnVisibility.value = rest;
 }
 
-// Handle row click
+// Handle row click (disabled when drag is enabled)
 function handleRowClick(row: TData) {
+  if (isDragEnabled.value) return;
   props.onRowClick?.(row);
 }
 
@@ -270,7 +318,7 @@ function handleBatchAction(actionId: string) {
       @clear-selection="clearSelection"
     />
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white rounded-lg shadow overflow-visible">
       <div v-if="loading" class="p-8 text-center text-gray-500">
         <SpinnerIcon size="lg" class="mx-auto text-blue-600" />
         <p class="mt-2">Chargement...</p>
@@ -355,21 +403,51 @@ function handleBatchAction(actionId: string) {
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-gray-200">
+        <tbody class="divide-y divide-gray-200" :data-datatable-drop="isDragEnabled || undefined">
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            class="hover:bg-gray-50 transition-colors"
-            :class="{ 'cursor-pointer': !!onRowClick }"
+            class="hover:bg-gray-50 transition-colors relative"
+            :class="[
+              { 'cursor-pointer': !!onRowClick && !isDragEnabled },
+              isDragEnabled && sortable.isItemDragging(getRowId(row.original)) && 'opacity-40 bg-blue-50',
+            ]"
+            :draggable="isDragEnabled"
+            :data-datatable-drop="isDragEnabled || undefined"
             @click="handleRowClick(row.original)"
+            @dragstart="isDragEnabled && sortable.handleDragStart($event, getRowId(row.original))"
+            @dragover="isDragEnabled && sortable.handleDragOver($event, getRowId(row.original))"
+            @dragleave="isDragEnabled && sortable.handleDragLeave($event)"
+            @drop="isDragEnabled && sortable.handleDrop($event, getRowId(row.original))"
+            @dragend="isDragEnabled && sortable.handleDragEnd()"
           >
+            <!-- Drop indicator line - before -->
+            <td
+              v-if="isDragEnabled && sortable.isDropTarget(getRowId(row.original)) && sortable.getItemDropPosition(getRowId(row.original)) === 'before'"
+              :colspan="row.getVisibleCells().length + (addColumnEnabled ? 1 : 0)"
+              class="absolute inset-x-0 top-0 h-0 p-0 border-none"
+            >
+              <div class="h-0.5 bg-blue-500 rounded-full mx-2" />
+            </td>
+            <!-- Drop indicator line - after -->
+            <td
+              v-if="isDragEnabled && sortable.isDropTarget(getRowId(row.original)) && sortable.getItemDropPosition(getRowId(row.original)) === 'after'"
+              :colspan="row.getVisibleCells().length + (addColumnEnabled ? 1 : 0)"
+              class="absolute inset-x-0 bottom-0 h-0 p-0 border-none"
+            >
+              <div class="h-0.5 bg-blue-500 rounded-full mx-2" />
+            </td>
+
             <td
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
               class="px-4 py-3 text-sm"
               :class="{
                 'w-10 px-3': cell.column.id === '_select',
+                'w-10 pl-2 pr-0': cell.column.id === '_reorder',
               }"
+              :data-datatable-drop="isDragEnabled && cell.column.id === '_reorder' || undefined"
+              @click.stop="cell.column.id === '_reorder' ? undefined : undefined"
             >
               <FlexRender
                 :render="cell.column.columnDef.cell"

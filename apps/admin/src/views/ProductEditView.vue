@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, h } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '@/lib/api';
-import { useSortable } from '@/composables/sortable';
-import type { FlatDropPosition } from '@/composables/sortable';
+import { useSortable, type FlatDropPosition } from '@/composables/sortable';
 import Button from '@/components/atoms/Button.vue';
 import Select from '@/components/atoms/Select.vue';
 import Label from '@/components/atoms/Label.vue';
 import Badge from '@/components/atoms/Badge.vue';
 import IconButton from '@/components/atoms/IconButton.vue';
 import RichTextEditor from '@/components/atoms/RichTextEditor.vue';
-import GripIcon from '@/components/atoms/icons/GripIcon.vue';
 import TrashIcon from '@/components/atoms/icons/TrashIcon.vue';
-import PlusIcon from '@/components/atoms/icons/PlusIcon.vue';
+import EditIcon from '@/components/atoms/icons/EditIcon.vue';
+import Thumbnail from '@/components/atoms/Thumbnail.vue';
 import ProductMediaGallery from '@/components/ProductMediaGallery.vue';
 import VariantModal from '@/components/VariantModal.vue';
+import DataTable from '@/components/organisms/DataTable/DataTable.vue';
+import type { DataTableColumn } from '@/components/organisms/DataTable/types';
 
 // Types inferes depuis Eden
 type Product = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>['data'][number];
@@ -31,6 +32,8 @@ type Option = {
   values: { id: string; value: string }[];
 };
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const route = useRoute();
 const router = useRouter();
 
@@ -43,6 +46,7 @@ const taxRates = ref<TaxRate[]>([]);
 const collections = ref<Collection[]>([]);
 const variants = ref<Variant[]>([]);
 const options = ref<Option[]>([]);
+const variantThumbnails = ref<Map<string, string>>(new Map());
 const loading = ref(true);
 const saving = ref(false);
 const activeTab = ref<'variants' | 'media'>('variants');
@@ -143,7 +147,30 @@ async function loadProduct() {
     if ('options' in data && Array.isArray(data.options)) {
       options.value = data.options;
     }
+    // Load variant thumbnails
+    await loadVariantThumbnails();
   }
+}
+
+async function loadVariantThumbnails() {
+  if (!productId.value || variants.value.length === 0) return;
+
+  const thumbnails = new Map<string, string>();
+
+  try {
+    const { data: productMediaList } = await api.products({ id: productId.value }).media.get();
+    if (productMediaList) {
+      for (const pm of productMediaList) {
+        if (pm.featuredForVariant) {
+          thumbnails.set(pm.featuredForVariant, `${API_URL}/assets/${pm.media}`);
+        }
+      }
+    }
+  } catch {
+    // Ignore errors
+  }
+
+  variantThumbnails.value = thumbnails;
 }
 
 
@@ -193,17 +220,153 @@ function getStatusLabel(status: string): string {
   }
 }
 
-// Drag & drop for variants reorder
+// DataTable columns for variants
+type VariantRecord = Variant & Record<string, unknown>;
+const variantColumns = computed<DataTableColumn<VariantRecord>[]>(() => [
+  {
+    id: 'thumbnail',
+    label: '',
+    accessorKey: 'id',
+    size: 64,
+    sortable: false,
+    hideable: false,
+    cell: ({ row }) =>
+      h(Thumbnail, {
+        src: variantThumbnails.value.get(row.original.id) || null,
+        alt: row.original.sku || 'Variante',
+        size: 'md',
+      }),
+  },
+  {
+    id: 'sku',
+    label: 'SKU',
+    accessorKey: 'sku',
+    cell: ({ row }) => h('span', { class: 'font-mono text-gray-700' }, row.original.sku || '-'),
+  },
+  {
+    id: 'barcode',
+    label: 'Code-barres',
+    accessorKey: 'barcode',
+    defaultVisible: false,
+    cell: ({ row }) => h('span', { class: 'font-mono text-gray-500 text-sm' }, row.original.barcode || '-'),
+  },
+  {
+    id: 'priceHt',
+    label: 'Prix HT',
+    accessorKey: 'priceHt',
+    cell: ({ row }) => h('span', { class: 'font-medium' }, `${row.original.priceHt} €`),
+  },
+  {
+    id: 'compareAtPriceHt',
+    label: 'Prix barré',
+    accessorKey: 'compareAtPriceHt',
+    defaultVisible: false,
+    cell: ({ row }) =>
+      h('span', { class: 'text-gray-500' }, row.original.compareAtPriceHt ? `${row.original.compareAtPriceHt} €` : '-'),
+  },
+  {
+    id: 'costPrice',
+    label: 'Coût d\'achat',
+    accessorKey: 'costPrice',
+    defaultVisible: false,
+    cell: ({ row }) =>
+      h('span', { class: 'text-gray-500' }, row.original.costPrice ? `${row.original.costPrice} €` : '-'),
+  },
+  {
+    id: 'quantity',
+    label: 'Stock',
+    accessorKey: 'quantity',
+    cell: ({ row }) =>
+      h(
+        'span',
+        { class: row.original.quantity > 0 ? 'text-gray-900' : 'text-red-600 font-medium' },
+        String(row.original.quantity)
+      ),
+  },
+  {
+    id: 'weight',
+    label: 'Poids',
+    accessorKey: 'weight',
+    defaultVisible: false,
+    cell: ({ row }) =>
+      h('span', { class: 'text-gray-500' }, row.original.weight ? `${row.original.weight} kg` : '-'),
+  },
+  {
+    id: 'status',
+    label: 'Statut',
+    accessorKey: 'status',
+    cell: ({ row }) =>
+      h(Badge, { variant: getStatusBadge(row.original.status), size: 'sm' }, () =>
+        getStatusLabel(row.original.status)
+      ),
+  },
+  {
+    id: 'actions',
+    label: '',
+    sortable: false,
+    hideable: false,
+    size: 90,
+    cell: ({ row }) =>
+      h('div', { class: 'flex items-center gap-1' }, [
+        h(
+          IconButton,
+          {
+            variant: 'ghost',
+            size: 'sm',
+            title: 'Modifier',
+            class: 'text-gray-400 hover:text-blue-600 hover:bg-blue-50',
+            onClick: (e: Event) => {
+              e.stopPropagation();
+              openVariantModal(row.original as Variant);
+            },
+          },
+          () => h(EditIcon, { class: 'w-4 h-4' })
+        ),
+        h(
+          IconButton,
+          {
+            variant: 'ghost',
+            size: 'sm',
+            title: 'Supprimer',
+            class: 'text-gray-400 hover:text-red-600 hover:bg-red-50',
+            onClick: (e: Event) => {
+              e.stopPropagation();
+              deleteVariant(row.original.id);
+            },
+          },
+          () => h(TrashIcon, { class: 'w-4 h-4' })
+        ),
+      ]),
+  },
+]);
+
+// Variants data cast pour DataTable
+const variantsData = computed<VariantRecord[]>(() => variants.value as VariantRecord[]);
+
+function handleAddVariant() {
+  openVariantModal();
+}
+
+function getVariantRowId(row: VariantRecord): string {
+  return row.id;
+}
+
+// Sortable instance for calculating new order
+const variantSortable = useSortable({
+  dropZoneAttr: 'data-datatable-drop',
+  onReorder: () => {}, // Not used directly, we use handleVariantReorder
+});
+
 async function handleVariantReorder(draggedId: string, targetId: string, position: FlatDropPosition) {
   if (!productId.value) return;
 
-  // Calculer le nouvel ordre
+  // Calculate new order
   const sortableItems = variants.value.map((v) => ({ id: v.id, sortOrder: v.sortOrder }));
   const newOrder = variantSortable.calculateNewOrder(sortableItems, draggedId, targetId, position);
 
   if (newOrder.length === 0) return;
 
-  // Mettre à jour en local d'abord pour un feedback immédiat
+  // Update locally first for immediate feedback
   const reorderedVariants = [...variants.value].sort((a, b) => {
     const aOrder = newOrder.find((o) => o.id === a.id)?.sortOrder ?? a.sortOrder;
     const bOrder = newOrder.find((o) => o.id === b.id)?.sortOrder ?? b.sortOrder;
@@ -211,7 +374,7 @@ async function handleVariantReorder(draggedId: string, targetId: string, positio
   });
   variants.value = reorderedVariants;
 
-  // Mettre à jour l'API
+  // Update API
   await Promise.all(
     newOrder.map(({ id, sortOrder }) => {
       const v = variants.value.find((variant) => variant.id === id)!;
@@ -234,14 +397,9 @@ async function handleVariantReorder(draggedId: string, targetId: string, positio
     })
   );
 
-  // Reload pour avoir les données fraîches
+  // Reload for fresh data
   await loadProduct();
 }
-
-const variantSortable = useSortable({
-  dropZoneAttr: 'data-variant-drop',
-  onReorder: handleVariantReorder,
-});
 
 onMounted(async () => {
   loading.value = true;
@@ -371,109 +529,21 @@ function goBack() {
 
           <div class="p-6">
             <!-- Variants Tab -->
-            <div v-if="activeTab === 'variants'" class="space-y-4">
-              <!-- Header with add button -->
-              <div class="flex justify-end">
-                <Button variant="primary" size="sm" @click="openVariantModal()">
-                  <PlusIcon class="w-4 h-4 mr-1" />
-                  Ajouter une variante
-                </Button>
-              </div>
-
-              <!-- Variants list -->
-              <div v-if="variants.length > 0" class="border border-gray-200 rounded-lg overflow-hidden">
-                <table class="w-full">
-                  <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
-                    <tr>
-                      <th class="w-10"></th>
-                      <th class="px-4 py-3 text-left font-medium">SKU</th>
-                      <th class="px-4 py-3 text-left font-medium">Prix HT</th>
-                      <th class="px-4 py-3 text-left font-medium">Stock</th>
-                      <th class="px-4 py-3 text-left font-medium">Statut</th>
-                      <th class="px-4 py-3 text-right font-medium w-16"></th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-100" data-variant-drop>
-                    <tr
-                      v-for="v in variants"
-                      :key="v.id"
-                      :class="[
-                        'hover:bg-gray-50 cursor-pointer transition-colors relative group/row',
-                        variantSortable.isItemDragging(v.id) && 'opacity-40 bg-blue-50',
-                      ]"
-                      draggable="true"
-                      data-variant-drop
-                      @click="openVariantModal(v)"
-                      @dragstart="variantSortable.handleDragStart($event, v.id)"
-                      @dragover="variantSortable.handleDragOver($event, v.id)"
-                      @dragleave="variantSortable.handleDragLeave($event)"
-                      @drop="variantSortable.handleDrop($event, v.id)"
-                      @dragend="variantSortable.handleDragEnd"
-                    >
-                      <!-- Drop indicator line - before -->
-                      <td
-                        v-if="variantSortable.isDropTarget(v.id) && variantSortable.getItemDropPosition(v.id) === 'before'"
-                        colspan="6"
-                        class="absolute inset-x-0 top-0 h-0 p-0 border-none"
-                      >
-                        <div class="h-0.5 bg-blue-500 rounded-full mx-2" />
-                      </td>
-                      <!-- Drop indicator line - after -->
-                      <td
-                        v-if="variantSortable.isDropTarget(v.id) && variantSortable.getItemDropPosition(v.id) === 'after'"
-                        colspan="6"
-                        class="absolute inset-x-0 bottom-0 h-0 p-0 border-none"
-                      >
-                        <div class="h-0.5 bg-blue-500 rounded-full mx-2" />
-                      </td>
-                      <td class="pl-2 py-3" @click.stop data-variant-drop>
-                        <div class="cursor-grab text-gray-400 hover:text-gray-600">
-                          <GripIcon />
-                        </div>
-                      </td>
-                      <td class="px-4 py-3 text-sm">
-                        <span class="font-mono text-gray-700">{{ v.sku || '-' }}</span>
-                      </td>
-                      <td class="px-4 py-3 text-sm font-medium">
-                        {{ v.priceHt }} €
-                      </td>
-                      <td class="px-4 py-3 text-sm">
-                        <span :class="v.quantity > 0 ? 'text-gray-900' : 'text-red-600 font-medium'">
-                          {{ v.quantity }}
-                        </span>
-                      </td>
-                      <td class="px-4 py-3">
-                        <Badge :variant="getStatusBadge(v.status)" size="sm">
-                          {{ getStatusLabel(v.status) }}
-                        </Badge>
-                      </td>
-                      <td class="px-4 py-3 text-right" @click.stop>
-                        <IconButton
-                          variant="ghost"
-                          size="sm"
-                          title="Supprimer"
-                          class="text-gray-400 hover:text-red-600 hover:bg-red-50"
-                          @click="deleteVariant(v.id)"
-                        >
-                          <TrashIcon class="w-4 h-4" />
-                        </IconButton>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Empty state -->
-              <div
-                v-else
-                class="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg"
-              >
-                <p class="text-gray-500 mb-4">Aucune variante pour ce produit</p>
-                <Button variant="secondary" size="sm" @click="openVariantModal()">
-                  <PlusIcon class="w-4 h-4 mr-1" />
-                  Créer la première variante
-                </Button>
-              </div>
+            <div v-if="activeTab === 'variants'">
+              <DataTable
+                :data="variantsData"
+                :columns="variantColumns"
+                :selectable="false"
+                :searchable="false"
+                :filterable="false"
+                :add-column-enabled="true"
+                :reorderable="true"
+                :row-id="getVariantRowId"
+                :on-reorder="handleVariantReorder"
+                add-label="Ajouter une variante"
+                empty-message="Aucune variante pour ce produit"
+                @add="handleAddVariant"
+              />
             </div>
 
             <!-- Media Tab -->
