@@ -2,7 +2,20 @@ import { Elysia, t } from 'elysia';
 import { db, product, variant, option, optionValue, productMedia, eq, and, count } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { authPlugin } from '../plugins/auth';
-import { paginationQuery, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+
+// Schema du produit pour les réponses
+const productSchema = t.Object({
+  id: t.String(),
+  category: t.String(),
+  taxRate: t.String(),
+  name: t.String(),
+  slug: t.String(),
+  description: t.Nullable(t.String()),
+  status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
+  dateCreated: t.Date(),
+  dateUpdated: t.Date(),
+});
 
 const productCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 255 }),
@@ -88,6 +101,36 @@ const optionValueBody = t.Object({
   sortOrder: t.Optional(t.Number({ default: 0 })),
 });
 
+// Schema pour product media (réponse)
+const productMediaSchema = t.Object({
+  product: t.String(),
+  media: t.String(),
+  sortOrder: t.Number(),
+  isFeatured: t.Boolean(),
+  featuredForVariant: t.Nullable(t.String()),
+});
+
+// Schema pour variant (réponse)
+const variantSchema = t.Object({
+  id: t.String(),
+  product: t.String(),
+  sku: t.Nullable(t.String()),
+  barcode: t.Nullable(t.String()),
+  priceHt: t.String(),
+  compareAtPriceHt: t.Nullable(t.String()),
+  costPrice: t.Nullable(t.String()),
+  weight: t.Nullable(t.String()),
+  length: t.Nullable(t.String()),
+  width: t.Nullable(t.String()),
+  height: t.Nullable(t.String()),
+  isDefault: t.Boolean(),
+  status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
+  sortOrder: t.Number(),
+  quantity: t.Number(),
+  reserved: t.Number(),
+  lowStockThreshold: t.Nullable(t.Number()),
+});
+
 export const productsRoutes = new Elysia({ prefix: '/products' })
   .use(authPlugin)
 
@@ -106,7 +149,7 @@ export const productsRoutes = new Elysia({ prefix: '/products' })
 
       return buildPaginatedResponse(products, total, page, limit);
     },
-    { query: paginationQuery }
+    { query: paginationQuery, response: paginatedResponse(productSchema) }
   )
 
   // GET /products/:id - Get one with variants (public)
@@ -138,7 +181,7 @@ export const productsRoutes = new Elysia({ prefix: '/products' })
       const variants = await db.select().from(variant).where(eq(variant.product, params.id)).orderBy(variant.sortOrder);
       return variants;
     },
-    { params: productParams }
+    { params: productParams, response: t.Array(variantSchema) }
   )
 
   // === PROTECTED ROUTES (Admin) ===
@@ -312,7 +355,7 @@ export const productsRoutes = new Elysia({ prefix: '/products' })
         .orderBy(productMedia.sortOrder);
       return media;
     },
-    { auth: true, params: productParams }
+    { auth: true, params: productParams, response: t.Array(productMediaSchema) }
   )
 
   // POST /products/:id/media - Add media to product

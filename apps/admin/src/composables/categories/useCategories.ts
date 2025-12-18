@@ -68,8 +68,8 @@ export function useCategories() {
   // ---------------------------------------------------------------------------
   async function loadCategories() {
     loading.value = true;
-    const { data } = await api.categories.get({ query: { limit: 100 } });
-    if (data?.data) categories.value = data.data;
+    const { data } = await api.categories.get();
+    if (data) categories.value = data;
     loading.value = false;
   }
 

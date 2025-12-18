@@ -2,7 +2,7 @@
 withDefaults(
   defineProps<{
     variant?: 'default' | 'ghost' | 'danger';
-    size?: 'sm' | 'md';
+    size?: 'sm' | 'md' | 'lg';
     title?: string;
   }>(),
   {
@@ -24,6 +24,7 @@ const variantClasses: Record<string, string> = {
 const sizeClasses: Record<string, string> = {
   sm: 'p-0.5',
   md: 'p-1',
+  lg: 'p-1.5',
 };
 </script>
 

@@ -1,20 +1,10 @@
 import { ref, computed } from 'vue';
 import { api } from '@/lib/api';
 
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  isOwner: boolean;
-  isActive: boolean;
-}
-
-interface Role {
-  id: string;
-  name: string;
-  scope: string;
-}
+// Types inférés depuis Eden
+type MeResponse = NonNullable<Awaited<ReturnType<typeof api.auth.me.get>>['data']>;
+type User = MeResponse['user'];
+type Role = MeResponse['role'];
 
 interface AuthState {
   user: User | null;

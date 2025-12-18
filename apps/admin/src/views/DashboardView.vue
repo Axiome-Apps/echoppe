@@ -9,11 +9,11 @@ const loading = ref(true);
 onMounted(async () => {
   try {
     const [productsRes, categoriesRes] = await Promise.all([
-      api.products.get(),
+      api.products.get({ query: { limit: 1 } }),
       api.categories.get(),
     ]);
 
-    if (productsRes.data) productsCount.value = productsRes.data.length;
+    if (productsRes.data && 'meta' in productsRes.data) productsCount.value = productsRes.data.meta.total;
     if (categoriesRes.data) categoriesCount.value = categoriesRes.data.length;
   } finally {
     loading.value = false;

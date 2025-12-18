@@ -5,20 +5,10 @@ import StarIcon from '@/components/atoms/icons/StarIcon.vue';
 import TrashIcon from '@/components/atoms/icons/TrashIcon.vue';
 import MediaPickerModal from '@/components/organisms/MediaPickerModal.vue';
 
-type Media = NonNullable<Extract<Awaited<ReturnType<typeof api.media.get>>['data'], unknown[]>>[number];
-
-interface ProductMedia {
-  product: string;
-  media: string;
-  sortOrder: number;
-  isFeatured: boolean;
-  featuredForVariant: string | null;
-}
-
-interface Variant {
-  id: string;
-  sku: string | null;
-}
+// Types inférés depuis Eden
+type Media = NonNullable<Awaited<ReturnType<typeof api.media.get>>['data']>['data'][number];
+type ProductMedia = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['media']['get']>>['data']>[number];
+type Variant = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['variants']['get']>>['data']>[number];
 
 const props = defineProps<{
   productId: string;
@@ -43,13 +33,13 @@ const galleryMediaIds = computed(() => new Set(productMedia.value.map((pm) => pm
 
 async function loadProductMedia() {
   const { data } = await api.products({ id: props.productId }).media.get();
-  if (data && Array.isArray(data)) productMedia.value = data;
+  if (data) productMedia.value = data;
 }
 
 async function loadAllMedia() {
-  const { data } = await api.media.get({ query: {} });
-  if (data && Array.isArray(data)) {
-    allMedia.value = data.filter((m) => m.mimeType.startsWith('image/'));
+  const { data } = await api.media.get({ query: { limit: 100 } });
+  if (data && 'data' in data) {
+    allMedia.value = data.data.filter((m) => m.mimeType.startsWith('image/'));
   }
 }
 

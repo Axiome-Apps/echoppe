@@ -10,17 +10,10 @@ import Pagination from '@/components/molecules/Pagination.vue';
 import type { DataTableColumn } from '@/components/organisms/DataTable/types';
 import type { BatchAction } from '@/components/organisms/DataTable/DataTableHeader.vue';
 
-// Types inférés depuis Eden (response paginée)
+// Types inférés depuis Eden
 type ProductsResponse = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>;
 type Product = ProductsResponse['data'][number];
-type CategoriesResponse = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>;
-type Category = CategoriesResponse['data'][number];
-
-interface ProductMedia {
-  product: string;
-  media: string;
-  isFeatured: boolean;
-}
+type Category = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>[number];
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const DEFAULT_LIMIT = 20;
@@ -76,8 +69,8 @@ async function loadProductThumbnails() {
     products.value.map(async (product) => {
       try {
         const { data: productMediaList } = await api.products({ id: product.id }).media.get();
-        if (productMediaList && Array.isArray(productMediaList)) {
-          const featured = (productMediaList as ProductMedia[]).find((pm) => pm.isFeatured);
+        if (productMediaList) {
+          const featured = productMediaList.find((pm) => pm.isFeatured);
           if (featured) {
             thumbnails.set(product.id, `${API_URL}/assets/${featured.media}`);
           }
@@ -92,8 +85,8 @@ async function loadProductThumbnails() {
 }
 
 async function loadCategories() {
-  const { data } = await api.categories.get({ query: { limit: 100 } });
-  if (data?.data) categories.value = data.data;
+  const { data } = await api.categories.get();
+  if (data) categories.value = data;
 }
 
 onMounted(async () => {

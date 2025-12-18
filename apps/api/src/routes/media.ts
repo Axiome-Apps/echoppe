@@ -1,10 +1,34 @@
 import { Elysia, t } from 'elysia';
 import { db, media, folder, eq, isNull, asc, desc, like, or, and, count, type SQL } from '@echoppe/core';
 import { authPlugin } from '../plugins/auth';
-import { getPaginationParams, buildPaginatedResponse, DEFAULT_LIMIT, MAX_LIMIT } from '../utils/pagination';
+import { paginatedResponse, getPaginationParams, buildPaginatedResponse, DEFAULT_LIMIT, MAX_LIMIT } from '../utils/pagination';
 import { randomUUID } from 'crypto';
 import { join } from 'path';
 import { mkdir, unlink } from 'fs/promises';
+
+// Schema de réponse pour les médias
+const mediaSchema = t.Object({
+  id: t.String(),
+  folder: t.Nullable(t.String()),
+  filenameDisk: t.String(),
+  filenameOriginal: t.String(),
+  title: t.Nullable(t.String()),
+  description: t.Nullable(t.String()),
+  alt: t.Nullable(t.String()),
+  mimeType: t.String(),
+  size: t.Number(),
+  width: t.Nullable(t.Number()),
+  height: t.Nullable(t.Number()),
+  dateCreated: t.Date(),
+});
+
+// Schema de réponse pour les dossiers
+const folderSchema = t.Object({
+  id: t.String(),
+  parent: t.Nullable(t.String()),
+  name: t.String(),
+  sortOrder: t.Number(),
+});
 
 const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
 
@@ -62,7 +86,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
   .get('/folders', async () => {
     const folders = await db.select().from(folder).orderBy(asc(folder.name));
     return folders;
-  }, { auth: true })
+  }, { auth: true, response: t.Array(folderSchema) })
 
   // POST /media/folders - Create folder
   .post(
@@ -164,7 +188,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
 
       return buildPaginatedResponse(items, total, page, limit);
     },
-    { auth: true, query: mediaQuery }
+    { auth: true, query: mediaQuery, response: paginatedResponse(mediaSchema) }
   )
 
   // GET /media/:id - Get single media
@@ -176,7 +200,14 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
       if (!item) return status(404, { message: 'Média non trouvé' });
       return item;
     },
-    { auth: true, params: uuidParam }
+    {
+      auth: true,
+      params: uuidParam,
+      response: {
+        200: mediaSchema,
+        404: t.Object({ message: t.String() }),
+      },
+    }
   )
 
   // POST /media/upload - Upload file(s)

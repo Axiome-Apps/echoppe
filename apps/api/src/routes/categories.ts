@@ -1,8 +1,19 @@
 import { Elysia, t } from 'elysia';
-import { db, category, eq, count } from '@echoppe/core';
+import { db, category, eq } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { authPlugin } from '../plugins/auth';
-import { paginationQuery, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+
+// Schema de réponse pour les catégories
+const categorySchema = t.Object({
+  id: t.String(),
+  name: t.String(),
+  slug: t.String(),
+  description: t.Nullable(t.String()),
+  parent: t.Nullable(t.String()),
+  image: t.Nullable(t.String()),
+  sortOrder: t.Number(),
+  isVisible: t.Boolean(),
+});
 
 const batchOrderBody = t.Array(
   t.Object({
@@ -39,21 +50,10 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories' })
 
   // === PUBLIC ROUTES ===
 
-  // GET /categories - List all with pagination (public)
-  .get(
-    '/',
-    async ({ query }) => {
-      const { page, limit, offset } = getPaginationParams(query);
-
-      const [categories, [{ total }]] = await Promise.all([
-        db.select().from(category).orderBy(category.sortOrder).limit(limit).offset(offset),
-        db.select({ total: count(category.id) }).from(category),
-      ]);
-
-      return buildPaginatedResponse(categories, total, page, limit);
-    },
-    { query: paginationQuery }
-  )
+  // GET /categories - List all (public)
+  .get('/', async () => {
+    return db.select().from(category).orderBy(category.sortOrder);
+  }, { response: t.Array(categorySchema) })
 
   // GET /categories/:id - Get one (public)
   .get(

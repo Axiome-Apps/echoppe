@@ -2,7 +2,18 @@ import { Elysia, t } from 'elysia';
 import { db, collection, eq, count } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { authPlugin } from '../plugins/auth';
-import { paginationQuery, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+
+// Schema de réponse pour les collections
+const collectionSchema = t.Object({
+  id: t.String(),
+  name: t.String(),
+  slug: t.String(),
+  description: t.Nullable(t.String()),
+  image: t.Nullable(t.String()),
+  isVisible: t.Boolean(),
+  dateCreated: t.Date(),
+});
 
 const collectionCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),
@@ -40,7 +51,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections' })
 
       return buildPaginatedResponse(collections, total, page, limit);
     },
-    { query: paginationQuery }
+    { query: paginationQuery, response: paginatedResponse(collectionSchema) }
   )
 
   // GET /collections/:id - Get one (public)
@@ -51,7 +62,13 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections' })
       if (!found) return status(404, { message: 'Collection non trouvee' });
       return found;
     },
-    { params: collectionParams }
+    {
+      params: collectionParams,
+      response: {
+        200: collectionSchema,
+        404: t.Object({ message: t.String() }),
+      },
+    }
   )
 
   // === PROTECTED ROUTES (Admin) ===

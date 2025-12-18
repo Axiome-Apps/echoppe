@@ -1,8 +1,7 @@
 import { api } from '@/lib/api';
 
-// Types inférés depuis Eden (response paginée)
-type CategoriesResponse = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>;
-export type Category = CategoriesResponse['data'][number];
+// Type inféré depuis Eden
+export type Category = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>[number];
 
 // Type dérivé pour l'arbre de catégories (UI)
 export interface CategoryNode extends Category {

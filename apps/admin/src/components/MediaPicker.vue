@@ -6,13 +6,8 @@ import EditIcon from '@/components/atoms/icons/EditIcon.vue';
 import ImageIcon from '@/components/atoms/icons/ImageIcon.vue';
 import MediaPickerModal from '@/components/organisms/MediaPickerModal.vue';
 
-interface Media {
-  id: string;
-  filenameDisk: string;
-  filenameOriginal: string;
-  title: string | null;
-  mimeType: string;
-}
+// Type inféré depuis Eden
+type Media = NonNullable<Awaited<ReturnType<typeof api.media.get>>['data']>['data'][number];
 
 const props = defineProps<{
   modelValue: string | null;
@@ -31,15 +26,17 @@ const selectedMedia = ref<Media | null>(null);
 
 async function loadMedia() {
   loading.value = true;
-  const { data } = await api.media.get({ query: {} });
-  if (data) media.value = (data as Media[]).filter((m) => m.mimeType.startsWith('image/'));
+  const { data } = await api.media.get({ query: { limit: 100 } });
+  if (data) {
+    media.value = data.data.filter((m) => m.mimeType.startsWith('image/'));
+  }
   loading.value = false;
 }
 
 async function loadSelected() {
   if (props.modelValue) {
     const { data } = await api.media({ id: props.modelValue }).get();
-    if (data) selectedMedia.value = data as Media;
+    if (data && 'id' in data) selectedMedia.value = data;
   }
 }
 

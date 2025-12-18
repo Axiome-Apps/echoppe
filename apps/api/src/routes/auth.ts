@@ -10,6 +10,27 @@ const cookieSchema = t.Cookie({
   [COOKIE_NAME]: t.Optional(t.String()),
 });
 
+// Schema pour /auth/me (réponse)
+const meUserSchema = t.Object({
+  id: t.String(),
+  email: t.String(),
+  firstName: t.String(),
+  lastName: t.String(),
+  isOwner: t.Boolean(),
+  isActive: t.Boolean(),
+});
+
+const meRoleSchema = t.Object({
+  id: t.String(),
+  name: t.String(),
+  scope: t.String(),
+});
+
+const meResponseSchema = t.Object({
+  user: meUserSchema,
+  role: meRoleSchema,
+});
+
 function generateToken(): string {
   return randomBytes(32).toString('hex');
 }
@@ -165,4 +186,11 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
       user: sessionData.user,
       role: sessionData.role,
     };
-  }, { cookie: cookieSchema });
+  }, {
+    cookie: cookieSchema,
+    response: {
+      200: meResponseSchema,
+      401: t.Object({ message: t.String() }),
+      403: t.Object({ message: t.String() }),
+    },
+  });

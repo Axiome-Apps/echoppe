@@ -1,4 +1,4 @@
-import { t } from 'elysia';
+import { t, type TSchema } from 'elysia';
 
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 20;
@@ -13,6 +13,22 @@ export type PaginationQuery = {
   page?: number;
   limit?: number;
 };
+
+// Schema pour la meta pagination
+const paginatedMeta = t.Object({
+  total: t.Number(),
+  page: t.Number(),
+  limit: t.Number(),
+  totalPages: t.Number(),
+});
+
+// Helper pour créer un schema de réponse paginée typé
+export function paginatedResponse<T extends TSchema>(itemSchema: T) {
+  return t.Object({
+    data: t.Array(itemSchema),
+    meta: paginatedMeta,
+  });
+}
 
 export interface PaginatedMeta {
   total: number;

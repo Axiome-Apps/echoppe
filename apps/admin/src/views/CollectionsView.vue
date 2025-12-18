@@ -17,10 +17,15 @@ const saving = ref(false);
 const deleteModalOpen = ref(false);
 const collectionToDelete = ref<Collection | null>(null);
 
-const form = ref({
+const form = ref<{
+  name: string;
+  description: string;
+  image: string | null;
+  isVisible: boolean;
+}>({
   name: '',
   description: '',
-  image: null as string | null,
+  image: null,
   isVisible: true,
 });
 
