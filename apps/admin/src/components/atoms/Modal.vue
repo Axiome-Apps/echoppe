@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CloseIcon from './icons/CloseIcon.vue';
+import { useModalStack } from '@/composables/useModalStack';
 
 const props = withDefaults(
   defineProps<{
@@ -17,6 +18,8 @@ defineEmits<{
   close: [];
 }>();
 
+const { zIndex } = useModalStack();
+
 const sizeClasses: Record<string, string> = {
   sm: 'max-w-sm',
   md: 'max-w-md',
@@ -27,10 +30,12 @@ const sizeClasses: Record<string, string> = {
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-    @click.self="$emit('close')"
-  >
+  <Teleport to="body">
+    <div
+      class="fixed inset-0 bg-black/50 flex items-center justify-center"
+      :style="{ zIndex }"
+      @click.self="$emit('close')"
+    >
     <div :class="['bg-white rounded-lg shadow-xl w-full mx-4 max-h-[90vh] flex flex-col', sizeClasses[size], tall && 'min-h-[80vh]']">
       <div v-if="title || $slots.header" class="flex items-start justify-between p-5 pb-0 shrink-0">
         <slot name="header">
@@ -51,4 +56,5 @@ const sizeClasses: Record<string, string> = {
       </div>
     </div>
   </div>
+  </Teleport>
 </template>

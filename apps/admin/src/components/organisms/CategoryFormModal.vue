@@ -113,26 +113,6 @@ function handleSubmit() {
         <MediaPicker v-model="form.image" />
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Ordre</label>
-          <input
-            v-model.number="form.sortOrder"
-            type="number"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div class="flex items-center pt-6">
-          <input
-            v-model="form.isVisible"
-            type="checkbox"
-            id="isVisible"
-            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <label for="isVisible" class="ml-2 text-sm text-gray-700">Visible</label>
-        </div>
-      </div>
     </form>
 
     <template #footer>
