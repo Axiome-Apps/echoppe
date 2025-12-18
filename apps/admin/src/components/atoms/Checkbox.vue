@@ -18,7 +18,6 @@ defineEmits<{
 
 <template>
   <div
-    @click.stop="$emit('click', $event)"
     :class="[
       'rounded border-2 flex items-center justify-center cursor-pointer transition-colors',
       size === 'sm' ? 'w-4 h-4' : 'w-5 h-5',
@@ -28,6 +27,7 @@ defineEmits<{
           ? 'bg-white/90 border-gray-300 shadow-sm'
           : 'border-gray-300'
     ]"
+    @click.stop="$emit('click', $event)"
   >
     <svg
       v-if="checked"

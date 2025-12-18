@@ -18,12 +18,13 @@ const props = withDefaults(
     placeholder?: string;
     disabled?: boolean;
     minHeight?: string;
-    onChange?: (html: string) => void;
+    onChange?: (_html: string) => void;
   }>(),
   {
     placeholder: 'Écrivez votre contenu...',
     disabled: false,
     minHeight: '150px',
+    onChange: undefined,
   }
 );
 
@@ -193,55 +194,100 @@ function handleMediaSelect(media: Media) {
       <div class="flex items-center gap-0.5">
         <button
           type="button"
-          @click="editor.chain().focus().toggleBold().run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('bold') && 'bg-gray-200 text-blue-600',
           ]"
           title="Gras"
+          @click="editor.chain().focus().toggleBold().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().toggleItalic().run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('italic') && 'bg-gray-200 text-blue-600',
           ]"
           title="Italique"
+          @click="editor.chain().focus().toggleItalic().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 4h4m-2 0l-4 16m0 0h4" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 4h4m-2 0l-4 16m0 0h4"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().toggleUnderline().run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('underline') && 'bg-gray-200 text-blue-600',
           ]"
           title="Souligné"
+          @click="editor.chain().focus().toggleUnderline().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3M4 21h16" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3M4 21h16"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().toggleStrike().run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('strike') && 'bg-gray-200 text-blue-600',
           ]"
           title="Barré"
+          @click="editor.chain().focus().toggleStrike().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 12H7m10 0a4 4 0 01-4 4H9a4 4 0 01-4-4m12 0a4 4 0 00-4-4H9a4 4 0 00-4 4" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 12H7m10 0a4 4 0 01-4 4H9a4 4 0 01-4-4m12 0a4 4 0 00-4-4H9a4 4 0 00-4 4"
+            />
           </svg>
         </button>
       </div>
@@ -252,34 +298,34 @@ function handleMediaSelect(media: Media) {
       <div class="flex items-center gap-0.5">
         <button
           type="button"
-          @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
           :class="[
             'px-1.5 py-1 rounded hover:bg-gray-200 transition text-xs font-semibold',
             editor.isActive('heading', { level: 2 }) && 'bg-gray-200 text-blue-600',
           ]"
           title="Titre 2"
+          @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
         >
           H2
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
           :class="[
             'px-1.5 py-1 rounded hover:bg-gray-200 transition text-xs font-semibold',
             editor.isActive('heading', { level: 3 }) && 'bg-gray-200 text-blue-600',
           ]"
           title="Titre 3"
+          @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
         >
           H3
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().toggleHeading({ level: 4 }).run()"
           :class="[
             'px-1.5 py-1 rounded hover:bg-gray-200 transition text-xs font-semibold',
             editor.isActive('heading', { level: 4 }) && 'bg-gray-200 text-blue-600',
           ]"
           title="Titre 4"
+          @click="editor.chain().focus().toggleHeading({ level: 4 }).run()"
         >
           H4
         </button>
@@ -291,34 +337,84 @@ function handleMediaSelect(media: Media) {
       <div class="flex items-center gap-0.5">
         <button
           type="button"
-          @click="editor.chain().focus().toggleBulletList().run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('bulletList') && 'bg-gray-200 text-blue-600',
           ]"
           title="Liste à puces"
+          @click="editor.chain().focus().toggleBulletList().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            <circle cx="2" cy="6" r="1" fill="currentColor" />
-            <circle cx="2" cy="12" r="1" fill="currentColor" />
-            <circle cx="2" cy="18" r="1" fill="currentColor" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+            <circle
+              cx="2"
+              cy="6"
+              r="1"
+              fill="currentColor"
+            />
+            <circle
+              cx="2"
+              cy="12"
+              r="1"
+              fill="currentColor"
+            />
+            <circle
+              cx="2"
+              cy="18"
+              r="1"
+              fill="currentColor"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().toggleOrderedList().run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('orderedList') && 'bg-gray-200 text-blue-600',
           ]"
           title="Liste numérotée"
+          @click="editor.chain().focus().toggleOrderedList().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 6h13M7 12h13M7 18h13" />
-            <text x="2" y="8" font-size="6" fill="currentColor">1</text>
-            <text x="2" y="14" font-size="6" fill="currentColor">2</text>
-            <text x="2" y="20" font-size="6" fill="currentColor">3</text>
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 6h13M7 12h13M7 18h13"
+            />
+            <text
+              x="2"
+              y="8"
+              font-size="6"
+              fill="currentColor"
+            >1</text>
+            <text
+              x="2"
+              y="14"
+              font-size="6"
+              fill="currentColor"
+            >2</text>
+            <text
+              x="2"
+              y="20"
+              font-size="6"
+              fill="currentColor"
+            >3</text>
           </svg>
         </button>
       </div>
@@ -329,41 +425,71 @@ function handleMediaSelect(media: Media) {
       <div class="flex items-center gap-0.5">
         <button
           type="button"
-          @click="editor.chain().focus().setTextAlign('left').run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive({ textAlign: 'left' }) && 'bg-gray-200 text-blue-600',
           ]"
           title="Aligner à gauche"
+          @click="editor.chain().focus().setTextAlign('left').run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h14" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h10M4 18h14"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().setTextAlign('center').run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive({ textAlign: 'center' }) && 'bg-gray-200 text-blue-600',
           ]"
           title="Centrer"
+          @click="editor.chain().focus().setTextAlign('center').run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M5 18h14" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M7 12h10M5 18h14"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().setTextAlign('right').run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive({ textAlign: 'right' }) && 'bg-gray-200 text-blue-600',
           ]"
           title="Aligner à droite"
+          @click="editor.chain().focus().setTextAlign('right').run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M10 12h10M6 18h14" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M10 12h10M6 18h14"
+            />
           </svg>
         </button>
       </div>
@@ -374,38 +500,62 @@ function handleMediaSelect(media: Media) {
       <div class="flex items-center gap-0.5">
         <button
           type="button"
-          @click="editor.chain().focus().toggleBlockquote().run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('blockquote') && 'bg-gray-200 text-blue-600',
           ]"
           title="Citation"
+          @click="editor.chain().focus().toggleBlockquote().run()"
         >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-4 h-4"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().toggleCodeBlock().run()"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('codeBlock') && 'bg-gray-200 text-blue-600',
           ]"
           title="Bloc de code"
+          @click="editor.chain().focus().toggleCodeBlock().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().setHorizontalRule().run()"
           class="p-1.5 rounded hover:bg-gray-200 transition"
           title="Ligne horizontale"
+          @click="editor.chain().focus().setHorizontalRule().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 12h16"
+            />
           </svg>
         </button>
       </div>
@@ -416,25 +566,45 @@ function handleMediaSelect(media: Media) {
       <div class="flex items-center gap-0.5">
         <button
           type="button"
-          @click="openLinkModal"
           :class="[
             'p-1.5 rounded hover:bg-gray-200 transition',
             editor.isActive('link') && 'bg-gray-200 text-blue-600',
           ]"
           title="Lien"
+          @click="openLinkModal"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="openImageModal"
           class="p-1.5 rounded hover:bg-gray-200 transition"
           title="Image"
+          @click="openImageModal"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
         </button>
       </div>
@@ -445,24 +615,44 @@ function handleMediaSelect(media: Media) {
       <div class="flex items-center gap-0.5">
         <button
           type="button"
-          @click="editor.chain().focus().undo().run()"
           :disabled="!editor.can().undo() || showHtmlMode"
           class="p-1.5 rounded hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
           title="Annuler"
+          @click="editor.chain().focus().undo().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+            />
           </svg>
         </button>
         <button
           type="button"
-          @click="editor.chain().focus().redo().run()"
           :disabled="!editor.can().redo() || showHtmlMode"
           class="p-1.5 rounded hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
           title="Rétablir"
+          @click="editor.chain().focus().redo().run()"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"
+            />
           </svg>
         </button>
       </div>
@@ -472,15 +662,25 @@ function handleMediaSelect(media: Media) {
       <!-- HTML Mode Toggle -->
       <button
         type="button"
-        @click="toggleHtmlMode"
         :class="[
           'p-1.5 rounded hover:bg-gray-200 transition',
           showHtmlMode && 'bg-gray-200 text-blue-600',
         ]"
         title="Code HTML"
+        @click="toggleHtmlMode"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+          />
         </svg>
       </button>
     </div>
@@ -500,10 +700,10 @@ function handleMediaSelect(media: Media) {
     <textarea
       v-else
       :value="htmlContent"
-      @input="updateHtmlContent(($event.target as HTMLTextAreaElement).value)"
       class="w-full px-3 py-2 font-mono text-sm bg-gray-900 text-gray-100 resize-none focus:outline-none"
       :style="{ minHeight }"
       spellcheck="false"
+      @input="updateHtmlContent(($event.target as HTMLTextAreaElement).value)"
     />
 
     <!-- Link Modal -->
@@ -513,7 +713,10 @@ function handleMediaSelect(media: Media) {
       size="sm"
       @close="closeLinkModal"
     >
-      <form @submit.prevent="confirmLink" class="space-y-4">
+      <form
+        class="space-y-4"
+        @submit.prevent="confirmLink"
+      >
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
           <input
@@ -530,10 +733,18 @@ function handleMediaSelect(media: Media) {
       </form>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button variant="secondary" size="md" @click="closeLinkModal">
+          <Button
+            variant="secondary"
+            size="md"
+            @click="closeLinkModal"
+          >
             Annuler
           </Button>
-          <Button variant="primary" size="md" @click="confirmLink">
+          <Button
+            variant="primary"
+            size="md"
+            @click="confirmLink"
+          >
             Confirmer
           </Button>
         </div>
@@ -551,42 +762,52 @@ function handleMediaSelect(media: Media) {
       <div class="flex border-b border-gray-200 -mx-5 -mt-2 px-5 mb-4">
         <button
           type="button"
-          @click="imageTab = 'media'"
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition',
             imageTab === 'media'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700',
           ]"
+          @click="imageTab = 'media'"
         >
           Médiathèque
         </button>
         <button
           type="button"
-          @click="imageTab = 'url'"
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition',
             imageTab === 'url'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700',
           ]"
+          @click="imageTab = 'url'"
         >
           URL externe
         </button>
       </div>
 
       <!-- Media tab -->
-      <div v-if="imageTab === 'media'" class="text-center py-6">
+      <div
+        v-if="imageTab === 'media'"
+        class="text-center py-6"
+      >
         <p class="text-gray-600 mb-4">
           Sélectionnez une image depuis votre médiathèque
         </p>
-        <Button variant="primary" @click="openMediaBrowser">
+        <Button
+          variant="primary"
+          @click="openMediaBrowser"
+        >
           Ouvrir la médiathèque
         </Button>
       </div>
 
       <!-- URL tab -->
-      <form v-else @submit.prevent="confirmImageUrl" class="space-y-4">
+      <form
+        v-else
+        class="space-y-4"
+        @submit.prevent="confirmImageUrl"
+      >
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">URL de l'image</label>
           <input
@@ -598,10 +819,19 @@ function handleMediaSelect(media: Media) {
           />
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <Button variant="secondary" size="md" @click="closeImageModal">
+          <Button
+            variant="secondary"
+            size="md"
+            @click="closeImageModal"
+          >
             Annuler
           </Button>
-          <Button variant="primary" size="md" :disabled="!imageUrl" @click="confirmImageUrl">
+          <Button
+            variant="primary"
+            size="md"
+            :disabled="!imageUrl"
+            @click="confirmImageUrl"
+          >
             Insérer
           </Button>
         </div>

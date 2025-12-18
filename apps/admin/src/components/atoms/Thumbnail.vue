@@ -7,6 +7,7 @@ withDefaults(
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'full';
   }>(),
   {
+    src: undefined,
     alt: '',
     isImage: true,
     size: 'full',

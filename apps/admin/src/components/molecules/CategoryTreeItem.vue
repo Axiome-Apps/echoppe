@@ -90,13 +90,24 @@ function onDragStart(e: DragEvent) {
         <!-- Expand toggle -->
         <button
           v-if="hasChildren"
-          @click.stop="$emit('toggleExpand', category.id)"
           class="p-1.5 hover:bg-gray-200 rounded-lg flex-shrink-0 cursor-pointer"
+          @click.stop="$emit('toggleExpand', category.id)"
         >
-          <ChevronDownIcon v-if="isExpanded" size="md" class="text-gray-500" />
-          <ChevronRightIcon v-else size="md" class="text-gray-500" />
+          <ChevronDownIcon
+            v-if="isExpanded"
+            size="md"
+            class="text-gray-500"
+          />
+          <ChevronRightIcon
+            v-else
+            size="md"
+            class="text-gray-500"
+          />
         </button>
-        <span v-else class="w-6 flex-shrink-0" />
+        <span
+          v-else
+          class="w-6 flex-shrink-0"
+        />
 
         <!-- Name -->
         <span class="flex-1 truncate text-lg font-medium text-gray-900">{{ category.name }}</span>
@@ -111,10 +122,19 @@ function onDragStart(e: DragEvent) {
 
         <!-- Actions (visible on hover) -->
         <div class="opacity-0 group-hover:opacity-100 flex gap-1.5 flex-shrink-0 cursor-pointer">
-          <IconButton size="lg" @click.stop="$emit('edit', category)" title="Modifier">
+          <IconButton
+            size="lg"
+            title="Modifier"
+            @click.stop="$emit('edit', category)"
+          >
             <EditIcon size="md" />
           </IconButton>
-          <IconButton size="lg" variant="danger" @click.stop="$emit('delete', category.id)" title="Supprimer">
+          <IconButton
+            size="lg"
+            variant="danger"
+            title="Supprimer"
+            @click.stop="$emit('delete', category.id)"
+          >
             <CloseIcon size="md" />
           </IconButton>
         </div>

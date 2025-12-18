@@ -8,6 +8,7 @@ withDefaults(
   {
     variant: 'ghost',
     size: 'md',
+    title: undefined,
   }
 );
 
@@ -30,13 +31,13 @@ const sizeClasses: Record<string, string> = {
 
 <template>
   <button
-    @click.stop="$emit('click', $event)"
     :title="title"
     :class="[
       'rounded transition cursor-pointer',
       variantClasses[variant],
       sizeClasses[size]
     ]"
+    @click.stop="$emit('click', $event)"
   >
     <slot />
   </button>

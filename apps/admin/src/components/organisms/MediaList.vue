@@ -23,11 +23,19 @@ defineEmits<{
     <table class="w-full">
       <thead class="bg-gray-50 border-b border-gray-200">
         <tr>
-          <th class="w-8 px-3 py-2"></th>
-          <th class="text-left px-3 py-2 text-xs font-medium text-gray-500 uppercase">Fichier</th>
-          <th class="text-left px-3 py-2 text-xs font-medium text-gray-500 uppercase">Type</th>
-          <th class="text-left px-3 py-2 text-xs font-medium text-gray-500 uppercase">Taille</th>
-          <th class="text-left px-3 py-2 text-xs font-medium text-gray-500 uppercase">Date</th>
+          <th class="w-8 px-3 py-2" />
+          <th class="text-left px-3 py-2 text-xs font-medium text-gray-500 uppercase">
+            Fichier
+          </th>
+          <th class="text-left px-3 py-2 text-xs font-medium text-gray-500 uppercase">
+            Type
+          </th>
+          <th class="text-left px-3 py-2 text-xs font-medium text-gray-500 uppercase">
+            Taille
+          </th>
+          <th class="text-left px-3 py-2 text-xs font-medium text-gray-500 uppercase">
+            Date
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">

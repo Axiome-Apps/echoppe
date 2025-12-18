@@ -63,7 +63,10 @@ function handleSubmit() {
     size="md"
     @close="$emit('close')"
   >
-    <form @submit.prevent="handleSubmit" class="space-y-4">
+    <form
+      class="space-y-4"
+      @submit.prevent="handleSubmit"
+    >
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
         <input
@@ -92,7 +95,7 @@ function handleSubmit() {
           rows="3"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Description optionnelle..."
-        ></textarea>
+        />
       </div>
 
       <div>
@@ -101,8 +104,14 @@ function handleSubmit() {
           v-model="form.parent"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option :value="null">Aucune (racine)</option>
-          <option v-for="opt in parentOptions" :key="opt.id" :value="opt.id">
+          <option :value="null">
+            Aucune (racine)
+          </option>
+          <option
+            v-for="opt in parentOptions"
+            :key="opt.id"
+            :value="opt.id"
+          >
             {{ '\u2014'.repeat(opt.level) }} {{ opt.name }}
           </option>
         </select>
@@ -112,13 +121,18 @@ function handleSubmit() {
         <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
         <MediaPicker v-model="form.image" />
       </div>
-
     </form>
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <Button @click="$emit('close')">Annuler</Button>
-        <Button variant="primary" :loading="saving" @click="handleSubmit">
+        <Button @click="$emit('close')">
+          Annuler
+        </Button>
+        <Button
+          variant="primary"
+          :loading="saving"
+          @click="handleSubmit"
+        >
           {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
         </Button>
       </div>

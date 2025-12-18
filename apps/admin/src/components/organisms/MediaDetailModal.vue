@@ -65,8 +65,13 @@ function handleDelete() {
         <!-- Details -->
         <div class="w-1/2 p-5 flex flex-col">
           <div class="flex items-start justify-between mb-4">
-            <h2 class="text-lg font-semibold text-gray-900">Details</h2>
-            <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600 p-1">
+            <h2 class="text-lg font-semibold text-gray-900">
+              Details
+            </h2>
+            <button
+              class="text-gray-400 hover:text-gray-600 p-1"
+              @click="$emit('close')"
+            >
               <CloseIcon />
             </button>
           </div>
@@ -89,7 +94,12 @@ function handleDelete() {
               type="textarea"
               :rows="2"
             />
-            <Button variant="primary" class="w-full" :loading="isSaving" @click="handleSave">
+            <Button
+              variant="primary"
+              class="w-full"
+              :loading="isSaving"
+              @click="handleSave"
+            >
               {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
             </Button>
           </div>
@@ -108,7 +118,11 @@ function handleDelete() {
             >
               Telecharger
             </a>
-            <Button variant="danger" class="flex-1" @click="handleDelete">
+            <Button
+              variant="danger"
+              class="flex-1"
+              @click="handleDelete"
+            >
               Supprimer
             </Button>
           </div>

@@ -21,8 +21,8 @@ const labels: Record<typeof sizes[number], string> = {
     <button
       v-for="size in sizes"
       :key="size"
-      @click="$emit('update:modelValue', size)"
       :class="['px-2 py-1 text-xs', modelValue === size ? 'bg-gray-100' : 'hover:bg-gray-50']"
+      @click="$emit('update:modelValue', size)"
     >
       {{ labels[size] }}
     </button>

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState } from '@tanstack/vue-table';
 
 export type FilterOperator = 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'gte' | 'lt' | 'lte';

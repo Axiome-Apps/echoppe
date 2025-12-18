@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { api } from '@/lib/api';
 import StarIcon from '@/components/atoms/icons/StarIcon.vue';
 import TrashIcon from '@/components/atoms/icons/TrashIcon.vue';
@@ -13,16 +13,19 @@ type Variant = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['v
 const props = defineProps<{
   productId: string;
   variants: Variant[];
+  productMedia: ProductMedia[];
+  mediaCache: Map<string, Media>;
 }>();
 
-const productMedia = ref<ProductMedia[]>([]);
-const mediaCache = ref<Map<string, Media>>(new Map());
-const loading = ref(true);
+const emit = defineEmits<{
+  'media-change': [];
+}>();
+
 const showPicker = ref(false);
 
 const mediaWithDetails = computed(() => {
-  return productMedia.value.map((pm) => {
-    const media = mediaCache.value.get(pm.media);
+  return props.productMedia.map((pm) => {
+    const media = props.mediaCache.get(pm.media);
     return { ...pm, mediaDetails: media };
   });
 });
@@ -30,57 +33,34 @@ const mediaWithDetails = computed(() => {
 const featuredMedia = computed(() => mediaWithDetails.value.find((m) => m.isFeatured));
 const otherMedia = computed(() => mediaWithDetails.value.filter((m) => !m.isFeatured));
 
-async function loadProductMedia() {
-  const { data } = await api.products({ id: props.productId }).media.get();
-  if (data) {
-    productMedia.value = data;
-    // Charger les détails des médias manquants
-    for (const pm of data) {
-      if (!mediaCache.value.has(pm.media)) {
-        const { data: mediaData } = await api.media({ id: pm.media }).get();
-        if (mediaData && 'id' in mediaData) {
-          mediaCache.value.set(pm.media, mediaData as Media);
-        }
-      }
-    }
-  }
-}
-
-onMounted(async () => {
-  loading.value = true;
-  await loadProductMedia();
-  loading.value = false;
-});
-
 async function handleMediaSelect(media: Media) {
-  const maxSortOrder = Math.max(0, ...productMedia.value.map((m) => m.sortOrder));
+  const maxSortOrder = Math.max(0, ...props.productMedia.map((m) => m.sortOrder));
   await api.products({ id: props.productId }).media.post({
     mediaId: media.id,
     sortOrder: maxSortOrder + 1,
-    isFeatured: productMedia.value.length === 0,
+    isFeatured: props.productMedia.length === 0,
   });
-  mediaCache.value.set(media.id, media);
-  await loadProductMedia();
+  emit('media-change');
   showPicker.value = false;
 }
 
 async function removeMedia(mediaId: string) {
   await api.products({ id: props.productId }).media({ mediaId }).delete();
-  await loadProductMedia();
+  emit('media-change');
 }
 
 async function setFeatured(mediaId: string) {
   await api.products({ id: props.productId }).media({ mediaId }).put({
     isFeatured: true,
   });
-  await loadProductMedia();
+  emit('media-change');
 }
 
 async function setVariantFeatured(mediaId: string, variantId: string | null) {
   await api.products({ id: props.productId }).media({ mediaId }).put({
     featuredForVariant: variantId,
   });
-  await loadProductMedia();
+  emit('media-change');
 }
 
 function getMediaUrl(item: Media) {
@@ -96,23 +76,29 @@ function getVariantLabel(variantId: string) {
 <template>
   <div class="space-y-4">
     <div class="flex items-center justify-between">
-      <h3 class="font-medium text-gray-900">Images du produit</h3>
+      <h3 class="font-medium text-gray-900">
+        Images du produit
+      </h3>
       <button
-        @click="showPicker = true"
         class="text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
+        @click="showPicker = true"
       >
         + Ajouter des images
       </button>
     </div>
 
-    <div v-if="loading" class="text-gray-500 text-sm">Chargement...</div>
-
-    <div v-else-if="mediaWithDetails.length === 0" class="text-gray-500 text-sm">
+    <div
+      v-if="mediaWithDetails.length === 0"
+      class="text-gray-500 text-sm"
+    >
       Aucune image. Cliquez sur "Ajouter des images" pour commencer.
     </div>
 
     <!-- Grid: featured (2x2) + small images -->
-    <div v-else class="grid grid-cols-10 gap-2">
+    <div
+      v-else
+      class="grid grid-cols-10 gap-2"
+    >
       <!-- Featured image (spans 2 cols and 2 rows) -->
       <div
         v-if="featuredMedia"
@@ -141,25 +127,37 @@ function getVariantLabel(variantId: string) {
 
         <!-- Hover overlay -->
         <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 rounded-lg">
-          <div v-if="variants.length > 0" class="relative">
+          <div
+            v-if="variants.length > 0"
+            class="relative"
+          >
             <select
               :value="featuredMedia.featuredForVariant || ''"
-              @change="setVariantFeatured(featuredMedia.media, ($event.target as HTMLSelectElement).value || null)"
               class="p-2 text-xs bg-white rounded border-0 cursor-pointer"
+              @change="setVariantFeatured(featuredMedia.media, ($event.target as HTMLSelectElement).value || null)"
             >
-              <option value="">Aucune variante</option>
-              <option v-for="v in variants" :key="v.id" :value="v.id">
+              <option value="">
+                Aucune variante
+              </option>
+              <option
+                v-for="v in variants"
+                :key="v.id"
+                :value="v.id"
+              >
                 {{ v.sku || 'Variante' }}
               </option>
             </select>
           </div>
 
           <button
-            @click="removeMedia(featuredMedia.media)"
             class="p-2 bg-white rounded-full hover:bg-red-50"
             title="Retirer"
+            @click="removeMedia(featuredMedia.media)"
           >
-            <TrashIcon size="sm" class="text-red-600" />
+            <TrashIcon
+              size="sm"
+              class="text-red-600"
+            />
           </button>
         </div>
       </div>
@@ -189,32 +187,47 @@ function getVariantLabel(variantId: string) {
         <!-- Hover overlay -->
         <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1 rounded-lg">
           <button
-            @click="setFeatured(item.media)"
             class="p-1.5 bg-white rounded-full hover:bg-blue-50"
             title="Définir comme principale"
+            @click="setFeatured(item.media)"
           >
-            <StarIcon size="sm" class="text-blue-600" />
+            <StarIcon
+              size="sm"
+              class="text-blue-600"
+            />
           </button>
 
-          <div v-if="variants.length > 0" class="relative">
+          <div
+            v-if="variants.length > 0"
+            class="relative"
+          >
             <select
               :value="item.featuredForVariant || ''"
-              @change="setVariantFeatured(item.media, ($event.target as HTMLSelectElement).value || null)"
               class="p-1 text-[10px] bg-white rounded border-0 cursor-pointer"
+              @change="setVariantFeatured(item.media, ($event.target as HTMLSelectElement).value || null)"
             >
-              <option value="">—</option>
-              <option v-for="v in variants" :key="v.id" :value="v.id">
+              <option value="">
+                —
+              </option>
+              <option
+                v-for="v in variants"
+                :key="v.id"
+                :value="v.id"
+              >
                 {{ v.sku || 'Var.' }}
               </option>
             </select>
           </div>
 
           <button
-            @click="removeMedia(item.media)"
             class="p-1.5 bg-white rounded-full hover:bg-red-50"
             title="Retirer"
+            @click="removeMedia(item.media)"
           >
-            <TrashIcon size="sm" class="text-red-600" />
+            <TrashIcon
+              size="sm"
+              class="text-red-600"
+            />
           </button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+/* eslint-disable no-redeclare */
 import { ref, computed } from 'vue';
 import type {
   SortableState,
@@ -9,9 +10,9 @@ import type {
 } from './types';
 
 // Surcharge pour liste plate
-export function useSortable(options: UseSortableOptions): ReturnType<typeof createSortable>;
+export function useSortable(_options: UseSortableOptions): ReturnType<typeof createSortable>;
 // Surcharge pour arbre
-export function useSortable(options: UseTreeSortableOptions & { treeMode: true }): ReturnType<typeof createTreeSortable>;
+export function useSortable(_options: UseTreeSortableOptions & { treeMode: true }): ReturnType<typeof createTreeSortable>;
 // Implémentation
 export function useSortable(
   options: UseSortableOptions | (UseTreeSortableOptions & { treeMode: true })

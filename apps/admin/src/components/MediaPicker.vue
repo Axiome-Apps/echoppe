@@ -54,13 +54,27 @@ function closePicker() {
       v-if="selectedMedia"
       class="relative w-32 h-32 bg-gray-100 rounded-lg overflow-hidden group"
     >
-      <img :src="getMediaUrl(selectedMedia)" class="w-full h-full object-cover" />
+      <img
+        :src="getMediaUrl(selectedMedia)"
+        class="w-full h-full object-cover"
+      />
       <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition">
-        <button type="button" @click="openPicker" class="p-2 bg-white rounded-full">
+        <button
+          type="button"
+          class="p-2 bg-white rounded-full"
+          @click="openPicker"
+        >
           <EditIcon size="sm" />
         </button>
-        <button type="button" @click="clearMedia" class="p-2 bg-white rounded-full">
-          <CloseIcon size="sm" class="text-red-500" />
+        <button
+          type="button"
+          class="p-2 bg-white rounded-full"
+          @click="clearMedia"
+        >
+          <CloseIcon
+            size="sm"
+            class="text-red-500"
+          />
         </button>
       </div>
     </div>
@@ -69,10 +83,13 @@ function closePicker() {
     <button
       v-else
       type="button"
-      @click="openPicker"
       class="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 hover:text-gray-500 transition"
+      @click="openPicker"
     >
-      <ImageIcon size="lg" class="w-8 h-8 mb-1" />
+      <ImageIcon
+        size="lg"
+        class="w-8 h-8 mb-1"
+      />
       <span class="text-xs">Choisir</span>
     </button>
 

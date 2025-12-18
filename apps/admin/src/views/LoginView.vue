@@ -34,11 +34,18 @@ async function handleSubmit() {
   <div class="min-h-screen bg-gray-100 flex items-center justify-center px-4">
     <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
       <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">Echoppe</h1>
-        <p class="text-gray-500 mt-2">Connexion administration</p>
+        <h1 class="text-2xl font-bold text-gray-900">
+          Echoppe
+        </h1>
+        <p class="text-gray-500 mt-2">
+          Connexion administration
+        </p>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="space-y-6">
+      <form
+        class="space-y-6"
+        @submit.prevent="handleSubmit"
+      >
         <div
           v-if="errorMessage"
           class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
@@ -47,7 +54,10 @@ async function handleSubmit() {
         </div>
 
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            for="email"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
             Email
           </label>
           <input
@@ -62,7 +72,10 @@ async function handleSubmit() {
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            for="password"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
             Mot de passe
           </label>
           <input

@@ -23,16 +23,16 @@ defineEmits<{
 <template>
   <div
     draggable="true"
-    @dragstart="$emit('dragstart', $event)"
-    @dragend="$emit('dragend')"
-    @click="$emit('click', $event)"
-    @dblclick="$emit('dblclick')"
-    @contextmenu="$emit('contextmenu', $event)"
     :class="[
       'relative cursor-pointer group',
       selected ? 'ring-2 ring-blue-500 ring-offset-1 rounded-lg' : '',
       dragging ? 'opacity-50' : ''
     ]"
+    @dragstart="$emit('dragstart', $event)"
+    @dragend="$emit('dragend')"
+    @click="$emit('click', $event)"
+    @dblclick="$emit('dblclick')"
+    @contextmenu="$emit('contextmenu', $event)"
   >
     <!-- Square thumbnail -->
     <div class="aspect-square bg-gray-200 rounded-lg overflow-hidden">

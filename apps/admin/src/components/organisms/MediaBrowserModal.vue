@@ -26,12 +26,14 @@ const props = withDefaults(
   defineProps<{
     title?: string;
     accept?: 'images' | 'all';
-    onSelect?: (media: Media) => void;
+    onSelect?: (_media: Media) => void;
     onClose?: () => void;
   }>(),
   {
     title: 'Sélectionner un média',
     accept: 'images',
+    onSelect: undefined,
+    onClose: undefined,
   }
 );
 
@@ -128,7 +130,12 @@ async function handleFileSelect(e: Event) {
 </script>
 
 <template>
-  <Modal :title="title" size="2xl" tall @close="onClose?.()">
+  <Modal
+    :title="title"
+    size="2xl"
+    tall
+    @close="onClose?.()"
+  >
     <div class="flex h-full -m-5">
       <!-- Sidebar: Folders -->
       <div class="w-48 border-r border-gray-200 bg-gray-50 flex flex-col">
@@ -137,13 +144,13 @@ async function handleFileSelect(e: Event) {
         </div>
         <div class="flex-1 overflow-auto p-2">
           <button
-            @click="handleNavigate(null)"
             :class="[
               'w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-left transition',
               currentFolder === null
                 ? 'bg-blue-100 text-blue-700'
                 : 'hover:bg-gray-100 text-gray-700',
             ]"
+            @click="handleNavigate(null)"
           >
             <FolderIcon size="sm" />
             <span>Tous les médias</span>
@@ -151,7 +158,6 @@ async function handleFileSelect(e: Event) {
           <button
             v-for="folder in flatFolderList"
             :key="folder.id"
-            @click="handleNavigate(folder.id)"
             :style="{ paddingLeft: `${(folder.level + 1) * 12}px` }"
             :class="[
               'w-full flex items-center gap-2 py-1.5 pr-2 rounded text-sm text-left transition',
@@ -159,6 +165,7 @@ async function handleFileSelect(e: Event) {
                 ? 'bg-blue-100 text-blue-700'
                 : 'hover:bg-gray-100 text-gray-700',
             ]"
+            @click="handleNavigate(folder.id)"
           >
             <FolderIcon size="sm" />
             <span class="truncate">{{ folder.name }}</span>
@@ -173,21 +180,27 @@ async function handleFileSelect(e: Event) {
           <!-- Breadcrumb -->
           <div class="flex items-center gap-1 text-sm text-gray-600">
             <button
-              @click="handleNavigate(null)"
               class="hover:text-blue-600 transition"
+              @click="handleNavigate(null)"
             >
               Médias
             </button>
-            <template v-for="(item, index) in breadcrumb" :key="item.id">
-              <ChevronRightIcon size="xs" class="text-gray-400" />
+            <template
+              v-for="(item, index) in breadcrumb"
+              :key="item.id"
+            >
+              <ChevronRightIcon
+                size="xs"
+                class="text-gray-400"
+              />
               <button
-                @click="handleNavigate(item.id)"
                 :class="[
                   'transition',
                   index === breadcrumb.length - 1
                     ? 'text-gray-900 font-medium'
                     : 'hover:text-blue-600',
                 ]"
+                @click="handleNavigate(item.id)"
               >
                 {{ item.name }}
               </button>
@@ -206,21 +219,36 @@ async function handleFileSelect(e: Event) {
             v-model="sortBy"
             class="px-2 py-1 border border-gray-300 rounded text-sm"
           >
-            <option value="date">Date</option>
-            <option value="name">Nom</option>
-            <option value="size">Taille</option>
+            <option value="date">
+              Date
+            </option>
+            <option value="name">
+              Nom
+            </option>
+            <option value="size">
+              Taille
+            </option>
           </select>
 
           <button
-            @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
             class="p-1 border border-gray-300 rounded hover:bg-gray-50"
+            @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
           >
-            <ChevronDownIcon v-if="sortOrder === 'desc'" size="sm" />
-            <ChevronUpIcon v-else size="sm" />
+            <ChevronDownIcon
+              v-if="sortOrder === 'desc'"
+              size="sm"
+            />
+            <ChevronUpIcon
+              v-else
+              size="sm"
+            />
           </button>
 
           <ViewToggle v-model="viewMode" />
-          <GridSizeToggle v-if="viewMode === 'grid'" v-model="gridSize" />
+          <GridSizeToggle
+            v-if="viewMode === 'grid'"
+            v-model="gridSize"
+          />
 
           <!-- Upload -->
           <label
@@ -233,8 +261,8 @@ async function handleFileSelect(e: Event) {
               multiple
               :accept="accept === 'images' ? 'image/*' : undefined"
               class="hidden"
-              @change="handleFileSelect"
               :disabled="uploading"
+              @change="handleFileSelect"
             />
           </label>
         </div>
@@ -247,7 +275,10 @@ async function handleFileSelect(e: Event) {
           @dragleave.prevent="dragOver = false"
           @drop="handleDrop"
         >
-          <div v-if="loading" class="flex items-center justify-center h-full text-gray-500">
+          <div
+            v-if="loading"
+            class="flex items-center justify-center h-full text-gray-500"
+          >
             Chargement...
           </div>
 
@@ -255,18 +286,26 @@ async function handleFileSelect(e: Event) {
             v-else-if="filteredMedia.length === 0"
             class="flex flex-col items-center justify-center h-full text-gray-400"
           >
-            <ImageIcon size="lg" class="w-12 h-12 mb-3" />
-            <p v-if="searchQuery">Aucun résultat pour "{{ searchQuery }}"</p>
-            <p v-else>Glissez des fichiers ici ou cliquez sur "Importer"</p>
+            <ImageIcon
+              size="lg"
+              class="w-12 h-12 mb-3"
+            />
+            <p v-if="searchQuery">
+              Aucun résultat pour "{{ searchQuery }}"
+            </p>
+            <p v-else>
+              Glissez des fichiers ici ou cliquez sur "Importer"
+            </p>
           </div>
 
           <!-- Grid view -->
-          <div v-else-if="viewMode === 'grid'" :class="['grid', gridSizeClasses[gridSize]]">
+          <div
+            v-else-if="viewMode === 'grid'"
+            :class="['grid', gridSizeClasses[gridSize]]"
+          >
             <button
               v-for="item in filteredMedia"
               :key="item.id"
-              @click="handleSelect(item)"
-              @dblclick="selectedMedia = item; confirmSelection()"
               :class="[
                 'relative bg-white rounded-lg overflow-hidden border-2 transition group',
                 itemSizeClasses[gridSize],
@@ -274,6 +313,8 @@ async function handleFileSelect(e: Event) {
                   ? 'border-blue-500 ring-2 ring-blue-200'
                   : 'border-transparent hover:border-gray-300',
               ]"
+              @click="handleSelect(item)"
+              @dblclick="selectedMedia = item; confirmSelection()"
             >
               <img
                 v-if="isImage(item)"
@@ -285,14 +326,20 @@ async function handleFileSelect(e: Event) {
                 v-else
                 class="w-full h-full flex items-center justify-center bg-gray-100"
               >
-                <ImageIcon size="lg" class="text-gray-400" />
+                <ImageIcon
+                  size="lg"
+                  class="text-gray-400"
+                />
               </div>
               <!-- Selection indicator -->
               <div
                 v-if="selectedMedia?.id === item.id"
                 class="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
               >
-                <CheckIcon size="sm" class="text-white" />
+                <CheckIcon
+                  size="sm"
+                  class="text-white"
+                />
               </div>
               <!-- Filename on hover -->
               <div
@@ -306,28 +353,39 @@ async function handleFileSelect(e: Event) {
           </div>
 
           <!-- List view -->
-          <div v-else class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div
+            v-else
+            class="bg-white rounded-lg border border-gray-200 overflow-hidden"
+          >
             <table class="w-full">
               <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                 <tr>
-                  <th class="px-4 py-2 text-left">Aperçu</th>
-                  <th class="px-4 py-2 text-left">Nom</th>
-                  <th class="px-4 py-2 text-left">Type</th>
-                  <th class="px-4 py-2 text-left">Taille</th>
+                  <th class="px-4 py-2 text-left">
+                    Aperçu
+                  </th>
+                  <th class="px-4 py-2 text-left">
+                    Nom
+                  </th>
+                  <th class="px-4 py-2 text-left">
+                    Type
+                  </th>
+                  <th class="px-4 py-2 text-left">
+                    Taille
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
                 <tr
                   v-for="item in filteredMedia"
                   :key="item.id"
-                  @click="handleSelect(item)"
-                  @dblclick="selectedMedia = item; confirmSelection()"
                   :class="[
                     'cursor-pointer transition',
                     selectedMedia?.id === item.id
                       ? 'bg-blue-50'
                       : 'hover:bg-gray-50',
                   ]"
+                  @click="handleSelect(item)"
+                  @dblclick="selectedMedia = item; confirmSelection()"
                 >
                   <td class="px-4 py-2">
                     <div class="w-10 h-10 bg-gray-100 rounded overflow-hidden">
@@ -364,7 +422,12 @@ async function handleFileSelect(e: Event) {
           <span v-else>Cliquez sur un média pour le sélectionner</span>
         </div>
         <div class="flex gap-2">
-          <Button variant="secondary" @click="onClose?.()">Annuler</Button>
+          <Button
+            variant="secondary"
+            @click="onClose?.()"
+          >
+            Annuler
+          </Button>
           <Button
             variant="primary"
             :disabled="!selectedMedia"

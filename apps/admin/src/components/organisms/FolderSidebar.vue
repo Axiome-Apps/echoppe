@@ -31,8 +31,14 @@ defineEmits<{
 <template>
   <aside class="w-56 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
     <div class="p-3 border-b border-gray-200 flex items-center justify-between">
-      <h2 class="font-medium text-sm text-gray-900">Dossiers</h2>
-      <IconButton variant="default" @click="$emit('newFolder')" title="Nouveau dossier">
+      <h2 class="font-medium text-sm text-gray-900">
+        Dossiers
+      </h2>
+      <IconButton
+        variant="default"
+        title="Nouveau dossier"
+        @click="$emit('newFolder')"
+      >
         <PlusIcon size="sm" />
       </IconButton>
     </div>
@@ -40,18 +46,21 @@ defineEmits<{
     <nav class="flex-1 overflow-auto py-2">
       <!-- Root -->
       <button
-        @click="$emit('navigate', null)"
-        @dragover="$emit('rootDragOver', $event)"
-        @dragleave="$emit('rootDragLeave')"
-        @drop="$emit('folderDrop', $event, null)"
         data-folder-drop
         :class="[
           'w-full flex items-center gap-2 px-3 py-1.5 text-left text-sm transition',
           currentFolder === null ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700',
           isDraggingToRoot ? 'ring-2 ring-blue-500 ring-inset bg-blue-50' : ''
         ]"
+        @click="$emit('navigate', null)"
+        @dragover="$emit('rootDragOver', $event)"
+        @dragleave="$emit('rootDragLeave')"
+        @drop="$emit('folderDrop', $event, null)"
       >
-        <HomeIcon size="sm" class="flex-shrink-0" />
+        <HomeIcon
+          size="sm"
+          class="flex-shrink-0"
+        />
         <span class="truncate">Tous les fichiers</span>
       </button>
 

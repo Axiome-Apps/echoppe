@@ -23,24 +23,46 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Tableau de bord</h1>
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">
+      Tableau de bord
+    </h1>
 
-    <div v-if="loading" class="text-gray-500">Chargement...</div>
+    <div
+      v-if="loading"
+      class="text-gray-500"
+    >
+      Chargement...
+    </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div
+      v-else
+      class="grid grid-cols-1 md:grid-cols-3 gap-6"
+    >
       <div class="bg-white rounded-lg shadow p-6">
-        <p class="text-sm text-gray-500 mb-1">Produits</p>
-        <p class="text-3xl font-bold text-gray-900">{{ productsCount }}</p>
+        <p class="text-sm text-gray-500 mb-1">
+          Produits
+        </p>
+        <p class="text-3xl font-bold text-gray-900">
+          {{ productsCount }}
+        </p>
       </div>
 
       <div class="bg-white rounded-lg shadow p-6">
-        <p class="text-sm text-gray-500 mb-1">Categories</p>
-        <p class="text-3xl font-bold text-gray-900">{{ categoriesCount }}</p>
+        <p class="text-sm text-gray-500 mb-1">
+          Categories
+        </p>
+        <p class="text-3xl font-bold text-gray-900">
+          {{ categoriesCount }}
+        </p>
       </div>
 
       <div class="bg-white rounded-lg shadow p-6">
-        <p class="text-sm text-gray-500 mb-1">Commandes</p>
-        <p class="text-3xl font-bold text-gray-900">0</p>
+        <p class="text-sm text-gray-500 mb-1">
+          Commandes
+        </p>
+        <p class="text-3xl font-bold text-gray-900">
+          0
+        </p>
       </div>
     </div>
   </div>

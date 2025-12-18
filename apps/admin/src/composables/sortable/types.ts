@@ -18,9 +18,9 @@ export interface UseSortableOptions {
   /** Mode arbre (ajoute position "inside") */
   treeMode?: boolean;
   /** Callback appelé lors du drop */
-  onReorder: (draggedId: string, targetId: string, position: FlatDropPosition) => void | Promise<void>;
+  onReorder: (_draggedId: string, _targetId: string, _position: FlatDropPosition) => void | Promise<void>;
   /** Validation personnalisée du drop (ex: éviter les cycles dans un arbre) */
-  isValidDrop?: (draggedId: string, targetId: string) => boolean;
+  isValidDrop?: (_draggedId: string, _targetId: string) => boolean;
 }
 
 // Options de configuration pour arbres
@@ -28,9 +28,9 @@ export interface UseTreeSortableOptions {
   /** Attribut data pour identifier la zone de drop */
   dropZoneAttr?: string;
   /** Callback appelé lors du drop */
-  onReorder: (draggedId: string, targetId: string, position: TreeDropPosition) => void | Promise<void>;
+  onReorder: (_draggedId: string, _targetId: string, _position: TreeDropPosition) => void | Promise<void>;
   /** Validation personnalisée du drop (ex: éviter les cycles dans un arbre) */
-  isValidDrop?: (draggedId: string, targetId: string) => boolean;
+  isValidDrop?: (_draggedId: string, _targetId: string) => boolean;
 }
 
 // Item avec sortOrder pour le calcul de réordonnancement

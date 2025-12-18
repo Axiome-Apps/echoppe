@@ -14,6 +14,7 @@ withDefaults(
     size?: 'sm' | 'md' | 'lg';
   }>(),
   {
+    placeholder: undefined,
     disabled: false,
     size: 'md',
   }
@@ -33,15 +34,21 @@ const sizeClasses = {
 <template>
   <select
     :value="modelValue"
-    @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
     :disabled="disabled"
     :class="[
       'w-full border border-gray-300 rounded bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none cursor-pointer',
       sizeClasses[size],
       disabled && 'bg-gray-100 cursor-not-allowed opacity-60'
     ]"
+    @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
   >
-    <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
+    <option
+      v-if="placeholder"
+      value=""
+      disabled
+    >
+      {{ placeholder }}
+    </option>
     <option
       v-for="opt in options"
       :key="opt.value"

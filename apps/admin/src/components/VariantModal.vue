@@ -52,7 +52,7 @@ const props = defineProps<{
   mediaCache: Map<string, Media>;
   onClose: () => void;
   onSaved: () => void;
-  onOptionsChange: (options: Option[]) => void;
+  onOptionsChange: (_options: Option[]) => void;
 }>();
 
 const isNew = computed(() => !props.variant);
@@ -336,17 +336,28 @@ async function save() {
 </script>
 
 <template>
-  <Modal :title="isNew ? 'Nouvelle variante' : 'Modifier la variante'" size="2xl" tall @close="onClose">
+  <Modal
+    :title="isNew ? 'Nouvelle variante' : 'Modifier la variante'"
+    size="2xl"
+    tall
+    @close="onClose"
+  >
     <div class="space-y-6">
       <!-- Section: Image de la variante -->
       <section v-if="availableImages.length > 0 || selectedMediaId">
         <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
           Image de la variante
         </h3>
-        <div v-if="availableImages.length === 0 && !selectedMediaId" class="text-sm text-gray-500">
+        <div
+          v-if="availableImages.length === 0 && !selectedMediaId"
+          class="text-sm text-gray-500"
+        >
           Aucune image disponible. Ajoutez des images dans l'onglet Medias.
         </div>
-        <div v-else class="flex gap-3 flex-wrap">
+        <div
+          v-else
+          class="flex gap-3 flex-wrap"
+        >
           <!-- Option: Aucune image -->
           <button
             type="button"
@@ -389,7 +400,11 @@ async function save() {
         <div class="grid grid-cols-2 gap-6">
           <div>
             <Label>Statut</Label>
-            <Select v-model="form.status" :options="statusOptions" size="lg" />
+            <Select
+              v-model="form.status"
+              :options="statusOptions"
+              size="lg"
+            />
           </div>
           <div>
             <Label>Stock</Label>
@@ -463,11 +478,19 @@ async function save() {
         <div class="grid grid-cols-2 gap-6">
           <div>
             <Label>SKU</Label>
-            <Input v-model="form.sku" placeholder="ABC-123" size="lg" />
+            <Input
+              v-model="form.sku"
+              placeholder="ABC-123"
+              size="lg"
+            />
           </div>
           <div>
             <Label>Code-barres</Label>
-            <Input v-model="form.barcode" placeholder="EAN / UPC" size="lg" />
+            <Input
+              v-model="form.barcode"
+              placeholder="EAN / UPC"
+              size="lg"
+            />
           </div>
         </div>
       </section>
@@ -535,18 +558,29 @@ async function save() {
             </div>
           </div>
         </div>
-        <div v-if="volume" class="mt-2 text-sm text-gray-500">
+        <div
+          v-if="volume"
+          class="mt-2 text-sm text-gray-500"
+        >
           Volume calculé : <span class="font-medium">{{ volume }} L</span>
         </div>
       </section>
 
       <!-- Section: Options -->
       <section>
-        <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Options</h3>
+        <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+          Options
+        </h3>
 
         <!-- Existing options -->
-        <div v-if="options.length > 0" class="space-y-4 mb-4">
-          <div v-for="opt in options" :key="opt.id">
+        <div
+          v-if="options.length > 0"
+          class="space-y-4 mb-4"
+        >
+          <div
+            v-for="opt in options"
+            :key="opt.id"
+          >
             <Label>{{ opt.name }}</Label>
             <Combobox
               :model-value="getSelectedValueForOption(opt.id)"
@@ -560,7 +594,10 @@ async function save() {
         </div>
 
         <!-- Add new option -->
-        <div v-if="showAddOptionCombobox" class="flex gap-3 items-end">
+        <div
+          v-if="showAddOptionCombobox"
+          class="flex gap-3 items-end"
+        >
           <div class="flex-1">
             <Label>Option à ajouter</Label>
             <Combobox
@@ -593,8 +630,17 @@ async function save() {
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <Button variant="ghost" @click="onClose">Annuler</Button>
-        <Button variant="primary" :loading="saving" @click="save">
+        <Button
+          variant="ghost"
+          @click="onClose"
+        >
+          Annuler
+        </Button>
+        <Button
+          variant="primary"
+          :loading="saving"
+          @click="save"
+        >
           {{ isNew ? 'Créer' : 'Enregistrer' }}
         </Button>
       </div>

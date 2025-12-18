@@ -96,12 +96,17 @@ const badgeCounts = ref<Record<string, number>>({
     <aside class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col">
       <!-- Logo -->
       <div class="flex items-center h-16 px-6 border-b border-gray-200 shrink-0">
-        <h1 class="text-xl font-bold text-gray-900">Echoppe</h1>
+        <h1 class="text-xl font-bold text-gray-900">
+          Echoppe
+        </h1>
       </div>
 
       <!-- Navigation scrollable -->
       <div class="flex-1 overflow-y-auto">
-        <SidebarNav :navigation="navigationConfig" :badge-counts="badgeCounts" />
+        <SidebarNav
+          :navigation="navigationConfig"
+          :badge-counts="badgeCounts"
+        />
       </div>
 
       <!-- User menu -->

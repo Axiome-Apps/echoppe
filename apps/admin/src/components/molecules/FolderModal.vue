@@ -24,14 +24,14 @@ const emit = defineEmits<{
 }>();
 
 const name = ref('');
-const parentId = ref<string | null>(null);
+const selectedParentId = ref<string | null>(null);
 
 watch(
   () => props.open,
   (open) => {
     if (open) {
       name.value = props.folderName || '';
-      parentId.value = props.parentId ?? null;
+      selectedParentId.value = props.parentId ?? null;
     }
   },
   { immediate: true }
@@ -47,12 +47,16 @@ const filteredOptions = computed(() => {
 
 function handleSubmit() {
   if (!name.value.trim()) return;
-  emit('submit', { name: name.value.trim(), parentId: parentId.value });
+  emit('submit', { name: name.value.trim(), parentId: selectedParentId.value });
 }
 </script>
 
 <template>
-  <Modal v-if="open" :title="title" @close="emit('close')">
+  <Modal
+    v-if="open"
+    :title="title"
+    @close="emit('close')"
+  >
     <div class="space-y-3">
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">Nom</label>
@@ -61,15 +65,24 @@ function handleSubmit() {
           type="text"
           placeholder="Nom du dossier"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          @keyup.enter="handleSubmit"
           autofocus
+          @keyup.enter="handleSubmit"
         />
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">Dossier parent</label>
-        <select v-model="parentId" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-          <option :value="null">Racine</option>
-          <option v-for="f in filteredOptions" :key="f.id" :value="f.id">
+        <select
+          v-model="selectedParentId"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+        >
+          <option :value="null">
+            Racine
+          </option>
+          <option
+            v-for="f in filteredOptions"
+            :key="f.id"
+            :value="f.id"
+          >
             {{ '\u2014'.repeat(f.level) }} {{ f.name }}
           </option>
         </select>
@@ -77,8 +90,15 @@ function handleSubmit() {
     </div>
     <template #footer>
       <div class="flex justify-end gap-2">
-        <Button @click="emit('close')">Annuler</Button>
-        <Button variant="primary" @click="handleSubmit">{{ submitLabel }}</Button>
+        <Button @click="emit('close')">
+          Annuler
+        </Button>
+        <Button
+          variant="primary"
+          @click="handleSubmit"
+        >
+          {{ submitLabel }}
+        </Button>
       </div>
     </template>
   </Modal>

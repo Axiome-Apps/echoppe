@@ -28,13 +28,7 @@ defineEmits<{
 <template>
   <div class="group">
     <button
-      @click="$emit('click')"
       draggable="true"
-      @dragstart="$emit('dragstart', $event)"
-      @dragend="$emit('dragend')"
-      @dragover="$emit('dragover', $event)"
-      @dragleave="$emit('dragleave', $event)"
-      @drop="$emit('drop', $event)"
       data-folder-drop
       :class="[
         'w-full flex items-center gap-2 py-1.5 pr-2 text-left text-sm transition',
@@ -43,14 +37,35 @@ defineEmits<{
         isDragging ? 'opacity-50' : ''
       ]"
       :style="{ paddingLeft: `${12 + folder.level * 12}px` }"
+      @click="$emit('click')"
+      @dragstart="$emit('dragstart', $event)"
+      @dragend="$emit('dragend')"
+      @dragover="$emit('dragover', $event)"
+      @dragleave="$emit('dragleave', $event)"
+      @drop="$emit('drop', $event)"
     >
-      <FolderIcon size="sm" class="text-yellow-500 flex-shrink-0" />
+      <FolderIcon
+        size="sm"
+        class="text-yellow-500 flex-shrink-0"
+      />
       <span class="truncate flex-1">{{ folder.name }}</span>
-      <div v-if="showActions" class="opacity-0 group-hover:opacity-100 flex gap-0.5">
-        <IconButton size="sm" @click="$emit('edit', $event)" title="Modifier">
+      <div
+        v-if="showActions"
+        class="opacity-0 group-hover:opacity-100 flex gap-0.5"
+      >
+        <IconButton
+          size="sm"
+          title="Modifier"
+          @click="$emit('edit', $event)"
+        >
           <EditIcon size="xs" />
         </IconButton>
-        <IconButton size="sm" variant="danger" @click="$emit('delete', $event)" title="Supprimer">
+        <IconButton
+          size="sm"
+          variant="danger"
+          title="Supprimer"
+          @click="$emit('delete', $event)"
+        >
           <CloseIcon size="xs" />
         </IconButton>
       </div>

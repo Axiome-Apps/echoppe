@@ -272,7 +272,10 @@ function closeContextMenu() {
 </script>
 
 <template>
-  <div class="h-[calc(100vh-8rem)] flex" @click="closeContextMenu">
+  <div
+    class="h-[calc(100vh-8rem)] flex"
+    @click="closeContextMenu"
+  >
     <!-- Sidebar -->
     <FolderSidebar
       :folders="flatFolderList"
@@ -298,7 +301,10 @@ function closeContextMenu() {
       <!-- Toolbar -->
       <div class="bg-white border-b border-gray-200 px-4 py-3">
         <div class="flex items-center gap-3">
-          <Breadcrumb :items="breadcrumb" @navigate="handleNavigate" />
+          <Breadcrumb
+            :items="breadcrumb"
+            @navigate="handleNavigate"
+          />
           <div class="flex-1" />
           <SearchInput
             ref="searchInputRef"
@@ -307,39 +313,80 @@ function closeContextMenu() {
           />
 
           <!-- Sort -->
-          <select v-model="sortBy" class="px-2 py-1.5 border border-gray-300 rounded-lg text-sm">
-            <option value="date">Date</option>
-            <option value="name">Nom</option>
-            <option value="size">Taille</option>
+          <select
+            v-model="sortBy"
+            class="px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+          >
+            <option value="date">
+              Date
+            </option>
+            <option value="name">
+              Nom
+            </option>
+            <option value="size">
+              Taille
+            </option>
           </select>
 
           <button
-            @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
             class="p-1.5 border border-gray-300 rounded-lg hover:bg-gray-50"
+            @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
           >
-            <ChevronDownIcon v-if="sortOrder === 'desc'" size="sm" />
-            <ChevronUpIcon v-else size="sm" />
+            <ChevronDownIcon
+              v-if="sortOrder === 'desc'"
+              size="sm"
+            />
+            <ChevronUpIcon
+              v-else
+              size="sm"
+            />
           </button>
 
           <ViewToggle v-model="viewMode" />
-          <GridSizeToggle v-if="viewMode === 'grid'" v-model="gridSize" />
+          <GridSizeToggle
+            v-if="viewMode === 'grid'"
+            v-model="gridSize"
+          />
 
           <!-- Upload -->
           <label class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer text-sm font-medium">
             <span v-if="uploading">Import...</span>
             <span v-else>Importer</span>
-            <input type="file" multiple class="hidden" @change="handleFileSelect" :disabled="uploading" />
+            <input
+              type="file"
+              multiple
+              class="hidden"
+              :disabled="uploading"
+              @change="handleFileSelect"
+            />
           </label>
         </div>
 
         <!-- Bulk actions -->
-        <div v-if="selectedItems.size > 0" class="mt-2 flex items-center gap-3 text-sm">
+        <div
+          v-if="selectedItems.size > 0"
+          class="mt-2 flex items-center gap-3 text-sm"
+        >
           <span class="text-gray-600">{{ selectedItems.size }} selectionne(s)</span>
-          <button @click="selectAll" class="text-blue-600 hover:text-blue-800">
+          <button
+            class="text-blue-600 hover:text-blue-800"
+            @click="selectAll"
+          >
             {{ selectedItems.size === mediaItems.length ? 'Tout deselectionner' : 'Tout selectionner' }}
           </button>
-          <Button size="sm" @click="openMoveModal">Deplacer</Button>
-          <Button size="sm" variant="danger" @click="handleDeleteSelected">Supprimer</Button>
+          <Button
+            size="sm"
+            @click="openMoveModal"
+          >
+            Deplacer
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            @click="handleDeleteSelected"
+          >
+            Supprimer
+          </Button>
         </div>
       </div>
 
@@ -352,14 +399,27 @@ function closeContextMenu() {
         @dragleave.prevent="dragOver = false"
         @drop="handleDrop"
       >
-        <div v-if="loading" class="flex items-center justify-center h-full text-gray-500">
+        <div
+          v-if="loading"
+          class="flex items-center justify-center h-full text-gray-500"
+        >
           Chargement...
         </div>
 
-        <div v-else-if="mediaItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400">
-          <ImageIcon size="lg" class="w-16 h-16 mb-4" />
-          <p v-if="searchQuery">Aucun resultat pour "{{ searchQuery }}"</p>
-          <p v-else>Glissez des fichiers ici ou cliquez sur "Importer"</p>
+        <div
+          v-else-if="mediaItems.length === 0"
+          class="flex flex-col items-center justify-center h-full text-gray-400"
+        >
+          <ImageIcon
+            size="lg"
+            class="w-16 h-16 mb-4"
+          />
+          <p v-if="searchQuery">
+            Aucun resultat pour "{{ searchQuery }}"
+          </p>
+          <p v-else>
+            Glissez des fichiers ici ou cliquez sur "Importer"
+          </p>
         </div>
 
         <!-- Grid view -->
@@ -407,24 +467,69 @@ function closeContextMenu() {
       @close="closeContextMenu"
     >
       <template #icon-view>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
         </svg>
       </template>
       <template #icon-move>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+          />
         </svg>
       </template>
       <template #icon-download>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+          />
         </svg>
       </template>
       <template #icon-delete>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
         </svg>
       </template>
     </ContextMenu>
@@ -439,7 +544,11 @@ function closeContextMenu() {
     />
 
     <!-- New Folder Modal -->
-    <Modal v-if="showNewFolder" title="Nouveau dossier" @close="showNewFolder = false">
+    <Modal
+      v-if="showNewFolder"
+      title="Nouveau dossier"
+      @close="showNewFolder = false"
+    >
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">Nom</label>
@@ -448,15 +557,24 @@ function closeContextMenu() {
             type="text"
             placeholder="Nom du dossier"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            @keyup.enter="handleCreateFolder"
             autofocus
+            @keyup.enter="handleCreateFolder"
           />
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">Dossier parent</label>
-          <select v-model="newFolderParent" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-            <option :value="null">Racine</option>
-            <option v-for="f in flatFolderList" :key="f.id" :value="f.id">
+          <select
+            v-model="newFolderParent"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          >
+            <option :value="null">
+              Racine
+            </option>
+            <option
+              v-for="f in flatFolderList"
+              :key="f.id"
+              :value="f.id"
+            >
               {{ '\u2014'.repeat(f.level) }} {{ f.name }}
             </option>
           </select>
@@ -464,14 +582,25 @@ function closeContextMenu() {
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button @click="showNewFolder = false">Annuler</Button>
-          <Button variant="primary" @click="handleCreateFolder">Creer</Button>
+          <Button @click="showNewFolder = false">
+            Annuler
+          </Button>
+          <Button
+            variant="primary"
+            @click="handleCreateFolder"
+          >
+            Creer
+          </Button>
         </div>
       </template>
     </Modal>
 
     <!-- Edit Folder Modal -->
-    <Modal v-if="showEditFolder" title="Modifier le dossier" @close="showEditFolder = null">
+    <Modal
+      v-if="showEditFolder"
+      title="Modifier le dossier"
+      @close="showEditFolder = null"
+    >
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">Nom</label>
@@ -479,14 +608,19 @@ function closeContextMenu() {
             v-model="editFolderName"
             type="text"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            @keyup.enter="handleSaveFolder"
             autofocus
+            @keyup.enter="handleSaveFolder"
           />
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">Dossier parent</label>
-          <select v-model="editFolderParent" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-            <option :value="null">Racine</option>
+          <select
+            v-model="editFolderParent"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          >
+            <option :value="null">
+              Racine
+            </option>
             <option
               v-for="f in getValidParentOptions(showEditFolder.id)"
               :key="f.id"
@@ -499,27 +633,54 @@ function closeContextMenu() {
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button @click="showEditFolder = null">Annuler</Button>
-          <Button variant="primary" @click="handleSaveFolder">Enregistrer</Button>
+          <Button @click="showEditFolder = null">
+            Annuler
+          </Button>
+          <Button
+            variant="primary"
+            @click="handleSaveFolder"
+          >
+            Enregistrer
+          </Button>
         </div>
       </template>
     </Modal>
 
     <!-- Move Modal -->
-    <Modal v-if="showMoveModal" :title="`Deplacer ${selectedItems.size} fichier(s)`" @close="showMoveModal = false">
+    <Modal
+      v-if="showMoveModal"
+      :title="`Deplacer ${selectedItems.size} fichier(s)`"
+      @close="showMoveModal = false"
+    >
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">Dossier de destination</label>
-        <select v-model="moveTargetFolder" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-          <option :value="null">Racine</option>
-          <option v-for="f in flatFolderList" :key="f.id" :value="f.id">
+        <select
+          v-model="moveTargetFolder"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+        >
+          <option :value="null">
+            Racine
+          </option>
+          <option
+            v-for="f in flatFolderList"
+            :key="f.id"
+            :value="f.id"
+          >
             {{ '\u2014'.repeat(f.level) }} {{ f.name }}
           </option>
         </select>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button @click="showMoveModal = false">Annuler</Button>
-          <Button variant="primary" @click="handleMoveSelected">Deplacer</Button>
+          <Button @click="showMoveModal = false">
+            Annuler
+          </Button>
+          <Button
+            variant="primary"
+            @click="handleMoveSelected"
+          >
+            Deplacer
+          </Button>
         </div>
       </template>
     </Modal>

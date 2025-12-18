@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, h } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { api } from '@/lib/api';
+import { useToast } from '@/composables/useToast';
 import Badge from '@/components/atoms/Badge.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import Thumbnail from '@/components/atoms/Thumbnail.vue';
@@ -20,6 +21,7 @@ const DEFAULT_LIMIT = 20;
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
@@ -47,8 +49,8 @@ async function loadProducts() {
       paginationMeta.value = data.meta;
       await loadProductThumbnails();
     }
-  } catch (e) {
-    console.error('Error loading products:', e);
+  } catch {
+    toast.error('Erreur lors du chargement des produits');
   } finally {
     loading.value = false;
   }
@@ -253,7 +255,9 @@ const deleteMessage = computed(() => {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Produits</h1>
+      <h1 class="text-2xl font-bold text-gray-900">
+        Produits
+      </h1>
     </div>
 
     <DataTable

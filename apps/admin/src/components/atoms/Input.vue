@@ -9,6 +9,7 @@ withDefaults(
   }>(),
   {
     type: 'text',
+    placeholder: undefined,
     disabled: false,
     size: 'md',
   }
@@ -29,7 +30,6 @@ const sizeClasses = {
   <input
     :type="type"
     :value="modelValue"
-    @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     :placeholder="placeholder"
     :disabled="disabled"
     :class="[
@@ -37,5 +37,6 @@ const sizeClasses = {
       sizeClasses[size],
       disabled && 'bg-gray-100 cursor-not-allowed opacity-60'
     ]"
+    @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
   />
 </template>

@@ -23,16 +23,16 @@ defineEmits<{
 <template>
   <tr
     draggable="true"
-    @dragstart="$emit('dragstart', $event)"
-    @dragend="$emit('dragend')"
-    @click="$emit('click', $event)"
-    @dblclick="$emit('dblclick')"
-    @contextmenu="$emit('contextmenu', $event)"
     :class="[
       'cursor-pointer transition',
       selected ? 'bg-blue-50' : 'hover:bg-gray-50',
       dragging ? 'opacity-50' : ''
     ]"
+    @dragstart="$emit('dragstart', $event)"
+    @dragend="$emit('dragend')"
+    @click="$emit('click', $event)"
+    @dblclick="$emit('dblclick')"
+    @contextmenu="$emit('contextmenu', $event)"
   >
     <td class="px-3 py-2">
       <Checkbox
@@ -52,7 +52,9 @@ defineEmits<{
           <p class="text-sm font-medium text-gray-900 truncate">
             {{ item.title || item.filenameOriginal }}
           </p>
-          <p class="text-xs text-gray-500 truncate">{{ item.filenameOriginal }}</p>
+          <p class="text-xs text-gray-500 truncate">
+            {{ item.filenameOriginal }}
+          </p>
         </div>
       </div>
     </td>

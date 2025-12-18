@@ -13,7 +13,9 @@ const initials = computed(() => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Mon profil</h1>
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">
+      Mon profil
+    </h1>
 
     <div class="bg-white rounded-lg shadow">
       <!-- Header profil -->
@@ -28,7 +30,9 @@ const initials = computed(() => {
             <h2 class="text-xl font-semibold text-gray-900">
               {{ auth.user.value?.firstName }} {{ auth.user.value?.lastName }}
             </h2>
-            <p class="text-sm text-gray-500">Administrateur</p>
+            <p class="text-sm text-gray-500">
+              Administrateur
+            </p>
           </div>
         </div>
       </div>
@@ -37,17 +41,23 @@ const initials = computed(() => {
       <div class="p-6 space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Email</label>
-          <p class="text-gray-900">{{ auth.user.value?.email }}</p>
+          <p class="text-gray-900">
+            {{ auth.user.value?.email }}
+          </p>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Prénom</label>
-          <p class="text-gray-900">{{ auth.user.value?.firstName }}</p>
+          <p class="text-gray-900">
+            {{ auth.user.value?.firstName }}
+          </p>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Nom</label>
-          <p class="text-gray-900">{{ auth.user.value?.lastName }}</p>
+          <p class="text-gray-900">
+            {{ auth.user.value?.lastName }}
+          </p>
         </div>
       </div>
     </div>

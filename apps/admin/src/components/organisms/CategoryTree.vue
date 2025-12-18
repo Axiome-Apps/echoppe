@@ -80,35 +80,50 @@ function handleRootDrop(e: DragEvent) {
     <!-- Header -->
     <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-medium text-gray-700">Arborescence des categories</h3>
+        <h3 class="text-sm font-medium text-gray-700">
+          Arborescence des categories
+        </h3>
         <span class="text-xs text-gray-500">Glissez pour reorganiser</span>
       </div>
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="p-8 text-center text-gray-500">
+    <div
+      v-if="loading"
+      class="p-8 text-center text-gray-500"
+    >
       Chargement...
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="categories.length === 0" class="p-12 text-center text-gray-400">
-      <p class="text-lg">Aucune categorie</p>
-      <p class="text-sm mt-2">Cliquez sur "Nouvelle categorie" pour commencer</p>
+    <div
+      v-else-if="categories.length === 0"
+      class="p-12 text-center text-gray-400"
+    >
+      <p class="text-lg">
+        Aucune categorie
+      </p>
+      <p class="text-sm mt-2">
+        Cliquez sur "Nouvelle categorie" pour commencer
+      </p>
     </div>
 
     <!-- Tree -->
-    <div v-else class="py-4">
+    <div
+      v-else
+      class="py-4"
+    >
       <!-- Root drop zone -->
       <div
-        @dragover="handleRootDragOver"
-        @dragleave="handleRootDragLeave"
-        @drop="handleRootDrop"
         :class="[
           'mx-4 mb-3 px-5 py-4 rounded-xl text-base text-gray-500 transition border-2 border-dashed',
           isRootDropTarget
             ? 'border-blue-400 bg-blue-50 text-blue-600'
             : 'border-transparent hover:border-gray-200'
         ]"
+        @dragover="handleRootDragOver"
+        @dragleave="handleRootDragLeave"
+        @drop="handleRootDrop"
       >
         Deposer ici pour mettre a la racine
       </div>

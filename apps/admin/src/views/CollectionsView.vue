@@ -103,26 +103,49 @@ function cancelDelete() {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Collections</h1>
-      <Button variant="primary" size="lg" @click="openCreate">
+      <h1 class="text-2xl font-bold text-gray-900">
+        Collections
+      </h1>
+      <Button
+        variant="primary"
+        size="lg"
+        @click="openCreate"
+      >
         Nouvelle collection
       </Button>
     </div>
 
-    <div v-if="loading" class="text-gray-500">Chargement...</div>
+    <div
+      v-if="loading"
+      class="text-gray-500"
+    >
+      Chargement...
+    </div>
 
-    <div v-else-if="collections.length === 0" class="text-gray-500">
+    <div
+      v-else-if="collections.length === 0"
+      class="text-gray-500"
+    >
       Aucune collection
     </div>
 
-    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
+    <div
+      v-else
+      class="bg-white rounded-lg shadow overflow-hidden"
+    >
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Nom</th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Description</th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Visible</th>
-            <th class="w-12"></th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
+              Nom
+            </th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
+              Description
+            </th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">
+              Visible
+            </th>
+            <th class="w-12" />
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
@@ -133,24 +156,44 @@ function cancelDelete() {
             @click="openEdit(coll)"
           >
             <td class="px-6 py-4">
-              <p class="font-medium text-gray-900">{{ coll.name }}</p>
-              <p class="text-sm text-gray-500">{{ coll.slug }}</p>
+              <p class="font-medium text-gray-900">
+                {{ coll.name }}
+              </p>
+              <p class="text-sm text-gray-500">
+                {{ coll.slug }}
+              </p>
             </td>
             <td class="px-6 py-4 text-sm text-gray-600">
               {{ coll.description || '-' }}
             </td>
             <td class="px-6 py-4">
-              <span v-if="coll.isVisible" class="text-green-600">Oui</span>
-              <span v-else class="text-gray-400">Non</span>
+              <span
+                v-if="coll.isVisible"
+                class="text-green-600"
+              >Oui</span>
+              <span
+                v-else
+                class="text-gray-400"
+              >Non</span>
             </td>
             <td class="px-6 py-4">
               <button
-                @click.stop="confirmDelete(coll)"
                 class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                 title="Supprimer"
+                @click.stop="confirmDelete(coll)"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             </td>
@@ -171,7 +214,10 @@ function cancelDelete() {
             {{ editing ? 'Modifier la collection' : 'Nouvelle collection' }}
           </h2>
 
-          <form @submit.prevent="save" class="space-y-4">
+          <form
+            class="space-y-4"
+            @submit.prevent="save"
+          >
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
               <input
@@ -198,7 +244,7 @@ function cancelDelete() {
                 v-model="form.description"
                 rows="3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              ></textarea>
+              />
             </div>
 
             <div>
@@ -208,19 +254,31 @@ function cancelDelete() {
 
             <div class="flex items-center">
               <input
+                id="isVisible"
                 v-model="form.isVisible"
                 type="checkbox"
-                id="isVisible"
                 class="w-4 h-4 rounded border-gray-300"
               />
-              <label for="isVisible" class="ml-2 text-sm text-gray-700">Visible</label>
+              <label
+                for="isVisible"
+                class="ml-2 text-sm text-gray-700"
+              >Visible</label>
             </div>
 
             <div class="flex justify-end gap-3 pt-4">
-              <Button variant="secondary" size="lg" @click="showForm = false">
+              <Button
+                variant="secondary"
+                size="lg"
+                @click="showForm = false"
+              >
                 Annuler
               </Button>
-              <Button variant="primary" size="lg" :loading="saving" type="submit">
+              <Button
+                variant="primary"
+                size="lg"
+                :loading="saving"
+                type="submit"
+              >
                 {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
               </Button>
             </div>

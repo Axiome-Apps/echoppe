@@ -37,7 +37,6 @@ const sizeClasses: Record<string, string> = {
 
 <template>
   <button
-    @click="$emit('click', $event)"
     :disabled="disabled || loading"
     :class="[
       'rounded-lg border font-medium transition cursor-pointer inline-flex items-center justify-center gap-2',
@@ -45,8 +44,12 @@ const sizeClasses: Record<string, string> = {
       sizeClasses[size],
       (disabled || loading) && 'opacity-50 cursor-not-allowed'
     ]"
+    @click="$emit('click', $event)"
   >
-    <SpinnerIcon v-if="loading" size="sm" />
+    <SpinnerIcon
+      v-if="loading"
+      size="sm"
+    />
     <slot />
   </button>
 </template>

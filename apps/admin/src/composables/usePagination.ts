@@ -19,7 +19,7 @@ export interface UsePaginationOptions {
 }
 
 export function usePagination<T>(
-  fetchFn: (page: number, limit: number) => Promise<PaginatedResponse<T>>,
+  fetchFn: (_page: number, _limit: number) => Promise<PaginatedResponse<T>>,
   options: UsePaginationOptions = {}
 ) {
   const { defaultLimit = 20, syncWithUrl = true } = options;

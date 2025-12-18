@@ -41,10 +41,18 @@ const emit = defineEmits<{
         </div>
 
         <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
-          <Button variant="secondary" size="lg" @click="emit('cancel')">
+          <Button
+            variant="secondary"
+            size="lg"
+            @click="emit('cancel')"
+          >
             {{ cancelLabel || 'Annuler' }}
           </Button>
-          <Button variant="danger" size="lg" @click="emit('confirm')">
+          <Button
+            variant="danger"
+            size="lg"
+            @click="emit('confirm')"
+          >
             {{ confirmLabel || 'Confirmer' }}
           </Button>
         </div>

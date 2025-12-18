@@ -33,15 +33,15 @@ const props = withDefaults(
     filterable?: boolean;
     selectable?: boolean;
     addColumnEnabled?: boolean;
-    onRowClick?: (row: TData) => void;
+    onRowClick?: (_row: TData) => void;
     addLabel?: string;
     emptyMessage?: string;
     showAdd?: boolean;
     batchActions?: BatchAction[];
-    onBatchAction?: (actionId: string) => void;
+    onBatchAction?: (_actionId: string) => void;
     reorderable?: boolean;
-    rowId?: (row: TData) => string;
-    onReorder?: (draggedId: string, targetId: string, position: FlatDropPosition) => void;
+    rowId?: (_row: TData) => string;
+    onReorder?: (_draggedId: string, _targetId: string, _position: FlatDropPosition) => void;
   }>(),
   {
     loading: false,
@@ -50,11 +50,15 @@ const props = withDefaults(
     filterable: true,
     selectable: true,
     addColumnEnabled: true,
+    onRowClick: undefined,
     addLabel: 'Ajouter',
     emptyMessage: 'Aucun element',
     showAdd: true,
     batchActions: () => [],
+    onBatchAction: undefined,
     reorderable: false,
+    rowId: undefined,
+    onReorder: undefined,
   }
 );
 
@@ -273,7 +277,8 @@ function handleHideColumn(columnId: string) {
 
 // Show column
 function handleShowColumn(columnId: string) {
-  const { [columnId]: _, ...rest } = columnVisibility.value;
+  const { [columnId]: _removed, ...rest } = columnVisibility.value;
+  void _removed; // Intentionally unused - removing property from object
   columnVisibility.value = rest;
 }
 
@@ -304,6 +309,7 @@ function handleBatchAction(actionId: string) {
 <template>
   <div class="w-full">
     <DataTableHeader
+      v-model="globalFilter"
       :total-items="data.length"
       :selected-count="Object.keys(rowSelection).length"
       :searchable="searchable"
@@ -312,23 +318,36 @@ function handleBatchAction(actionId: string) {
       :show-add="showAdd"
       :add-label="addLabel"
       :batch-actions="batchActions"
-      v-model="globalFilter"
       @add="emit('add')"
       @batch-action="handleBatchAction"
       @clear-selection="clearSelection"
     />
 
     <div class="bg-white rounded-lg shadow overflow-visible">
-      <div v-if="loading" class="p-8 text-center text-gray-500">
-        <SpinnerIcon size="lg" class="mx-auto text-blue-600" />
-        <p class="mt-2">Chargement...</p>
+      <div
+        v-if="loading"
+        class="p-8 text-center text-gray-500"
+      >
+        <SpinnerIcon
+          size="lg"
+          class="mx-auto text-blue-600"
+        />
+        <p class="mt-2">
+          Chargement...
+        </p>
       </div>
 
-      <div v-else-if="table.getRowModel().rows.length === 0" class="p-8 text-center text-gray-500">
+      <div
+        v-else-if="table.getRowModel().rows.length === 0"
+        class="p-8 text-center text-gray-500"
+      >
         {{ emptyMessage }}
       </div>
 
-      <table v-else class="w-full">
+      <table
+        v-else
+        class="w-full"
+      >
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
             <!-- Selection header -->
@@ -365,9 +384,18 @@ function handleBatchAction(actionId: string) {
                 </span>
 
                 <!-- Sort indicator - always visible when sorted -->
-                <span v-if="getColumnSort(header.id)" class="text-blue-600">
-                  <ChevronUpIcon v-if="getColumnSort(header.id) === 'asc'" size="sm" />
-                  <ChevronDownIcon v-else size="sm" />
+                <span
+                  v-if="getColumnSort(header.id)"
+                  class="text-blue-600"
+                >
+                  <ChevronUpIcon
+                    v-if="getColumnSort(header.id) === 'asc'"
+                    size="sm"
+                  />
+                  <ChevronDownIcon
+                    v-else
+                    size="sm"
+                  />
                 </span>
 
                 <!-- Sort hint on hover (when not sorted) -->
@@ -384,17 +412,20 @@ function handleBatchAction(actionId: string) {
                   :sortable="header.column.getCanSort()"
                   :hideable="header.column.getCanHide()"
                   :current-sort="getColumnSort(header.id)"
+                  class="opacity-0 group-hover:opacity-100 transition-opacity"
                   @sort-asc="handleSortAsc(header.id)"
                   @sort-desc="handleSortDesc(header.id)"
                   @clear-sort="handleClearSort"
                   @hide="handleHideColumn(header.id)"
-                  class="opacity-0 group-hover:opacity-100 transition-opacity"
                 />
               </div>
             </th>
 
             <!-- Add column header -->
-            <th v-if="addColumnEnabled" class="w-10 px-2 py-3">
+            <th
+              v-if="addColumnEnabled"
+              class="w-10 px-2 py-3"
+            >
               <AddColumnPopover
                 :hidden-columns="hiddenColumns"
                 @show="handleShowColumn"
@@ -403,7 +434,10 @@ function handleBatchAction(actionId: string) {
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-gray-200" :data-datatable-drop="isDragEnabled || undefined">
+        <tbody
+          class="divide-y divide-gray-200"
+          :data-datatable-drop="isDragEnabled || undefined"
+        >
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
@@ -455,7 +489,10 @@ function handleBatchAction(actionId: string) {
             </td>
 
             <!-- Empty cell for add column -->
-            <td v-if="addColumnEnabled" class="w-10" />
+            <td
+              v-if="addColumnEnabled"
+              class="w-10"
+            />
           </tr>
         </tbody>
       </table>

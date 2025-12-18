@@ -56,6 +56,15 @@ const mediaCache = ref<Map<string, Media>>(new Map());
 const loading = ref(true);
 const saving = ref(false);
 
+// Dirty state tracking
+const initialFormState = ref<typeof form.value | null>(null);
+
+const hasChanges = computed(() => {
+  if (!initialFormState.value) return false;
+  if (isNew.value && form.value.name.trim()) return true; // Nouveau produit avec un nom
+  return JSON.stringify(form.value) !== JSON.stringify(initialFormState.value);
+});
+
 // Modal state
 const showVariantModal = ref(false);
 const editingVariant = ref<Variant | null>(null);
@@ -135,7 +144,7 @@ async function loadProduct() {
   const { data } = await api.products({ id: productId.value }).get();
   if (data && 'id' in data) {
     product.value = data;
-    form.value = {
+    const formData = {
       name: data.name,
       slug: data.slug,
       description: data.description || '',
@@ -144,6 +153,9 @@ async function loadProduct() {
       collection: '',
       status: data.status,
     };
+    form.value = formData;
+    // Store initial state for dirty checking
+    initialFormState.value = { ...formData };
     // Load variants with their option values
     if ('variants' in data && Array.isArray(data.variants)) {
       variants.value = data.variants;
@@ -208,6 +220,11 @@ async function onVariantSaved() {
 
 function updateOptions(newOptions: Option[]) {
   options.value = newOptions;
+}
+
+// Handle media changes from ProductMediaGallery - reload media from API
+async function handleMediaChange() {
+  await loadProductMedia();
 }
 
 // Status badge variant
@@ -425,6 +442,8 @@ onMounted(async () => {
   } else {
     form.value.category = categories.value[0]?.id || '';
     form.value.taxRate = taxRates.value.find(t => t.isDefault)?.id || taxRates.value[0]?.id || '';
+    // Store initial state for new product
+    initialFormState.value = { ...form.value };
   }
 
   loading.value = false;
@@ -477,31 +496,57 @@ function goBack() {
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
         <button
-          @click="goBack"
           class="p-2 hover:bg-gray-100 rounded-lg transition"
+          @click="goBack"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
         <h1 class="text-2xl font-bold text-gray-900">
           {{ isNew ? 'Nouveau produit' : form.name || 'Produit' }}
         </h1>
       </div>
-      <Button variant="primary" size="lg" :loading="saving" @click="save">
+      <Button
+        variant="primary"
+        size="lg"
+        :loading="saving"
+        :disabled="!hasChanges || saving"
+        @click="save"
+      >
         {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
       </Button>
     </div>
 
-    <div v-if="loading" class="text-gray-500">Chargement...</div>
+    <div
+      v-if="loading"
+      class="text-gray-500"
+    >
+      Chargement...
+    </div>
 
     <!-- Main layout: 2 columns -->
-    <div v-else class="flex gap-6">
+    <div
+      v-else
+      class="flex gap-6"
+    >
       <!-- Left: Main content -->
       <div class="flex-1 min-w-0 space-y-6">
         <!-- Product info card -->
         <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="font-medium text-gray-900 mb-4">Informations principales</h3>
+          <h3 class="font-medium text-gray-900 mb-4">
+            Informations principales
+          </h3>
           <div class="space-y-4">
             <div>
               <Label required>Nom du produit</Label>
@@ -527,18 +572,29 @@ function goBack() {
         </div>
 
         <!-- Media section (only for existing products) -->
-        <div v-if="!isNew" class="bg-white rounded-lg shadow p-6">
+        <div
+          v-if="!isNew"
+          class="bg-white rounded-lg shadow p-6"
+        >
           <ProductMediaGallery
             v-if="productId"
             :product-id="productId"
             :variants="variants"
+            :product-media="productMedia"
+            :media-cache="mediaCache"
+            @media-change="handleMediaChange"
           />
         </div>
 
         <!-- Variants section (only for existing products) -->
-        <div v-if="!isNew" class="bg-white rounded-lg shadow p-6">
+        <div
+          v-if="!isNew"
+          class="bg-white rounded-lg shadow p-6"
+        >
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-medium text-gray-900">Variantes ({{ variants.length }})</h3>
+            <h3 class="font-medium text-gray-900">
+              Variantes ({{ variants.length }})
+            </h3>
           </div>
           <DataTable
             :data="variantsData"
@@ -561,7 +617,9 @@ function goBack() {
       <div class="w-80 flex-shrink-0 space-y-6">
         <!-- Status card -->
         <div class="bg-white rounded-lg shadow p-5">
-          <h3 class="font-semibold text-gray-900 mb-4">Publication</h3>
+          <h3 class="font-semibold text-gray-900 mb-4">
+            Publication
+          </h3>
           <div>
             <Label>Statut</Label>
             <Select
@@ -573,7 +631,9 @@ function goBack() {
 
         <!-- Organization card -->
         <div class="bg-white rounded-lg shadow p-5">
-          <h3 class="font-semibold text-gray-900 mb-4">Organisation</h3>
+          <h3 class="font-semibold text-gray-900 mb-4">
+            Organisation
+          </h3>
           <div class="space-y-4">
             <div>
               <Label required>Catégorie</Label>
@@ -595,7 +655,9 @@ function goBack() {
 
         <!-- Tax card -->
         <div class="bg-white rounded-lg shadow p-5">
-          <h3 class="font-semibold text-gray-900 mb-4">Fiscalité</h3>
+          <h3 class="font-semibold text-gray-900 mb-4">
+            Fiscalité
+          </h3>
           <div>
             <Label required>Taux de TVA</Label>
             <Select
@@ -606,8 +668,13 @@ function goBack() {
         </div>
 
         <!-- Metadata card (only for existing products) -->
-        <div v-if="!isNew" class="bg-white rounded-lg shadow p-5">
-          <h3 class="font-semibold text-gray-900 mb-4">Informations</h3>
+        <div
+          v-if="!isNew"
+          class="bg-white rounded-lg shadow p-5"
+        >
+          <h3 class="font-semibold text-gray-900 mb-4">
+            Informations
+          </h3>
           <div class="space-y-4">
             <div>
               <Label>Slug</Label>
@@ -618,11 +685,15 @@ function goBack() {
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <span class="text-sm text-gray-500">Créé le</span>
-                <div class="text-sm text-gray-700">{{ dateCreated }}</div>
+                <div class="text-sm text-gray-700">
+                  {{ dateCreated }}
+                </div>
               </div>
               <div>
                 <span class="text-sm text-gray-500">Modifié le</span>
-                <div class="text-sm text-gray-700">{{ dateUpdated }}</div>
+                <div class="text-sm text-gray-700">
+                  {{ dateUpdated }}
+                </div>
               </div>
             </div>
           </div>

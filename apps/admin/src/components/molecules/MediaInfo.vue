@@ -10,24 +10,47 @@ defineProps<{
 <template>
   <dl class="space-y-2 text-xs">
     <div class="flex justify-between">
-      <dt class="text-gray-500">ID</dt>
-      <dd class="font-mono text-gray-700 select-all">{{ media.id }}</dd>
+      <dt class="text-gray-500">
+        ID
+      </dt>
+      <dd class="font-mono text-gray-700 select-all">
+        {{ media.id }}
+      </dd>
     </div>
     <div class="flex justify-between">
-      <dt class="text-gray-500">Fichier</dt>
-      <dd class="text-gray-700 truncate ml-4 max-w-32">{{ media.filenameOriginal }}</dd>
+      <dt class="text-gray-500">
+        Fichier
+      </dt>
+      <dd class="text-gray-700 truncate ml-4 max-w-32">
+        {{ media.filenameOriginal }}
+      </dd>
     </div>
     <div class="flex justify-between">
-      <dt class="text-gray-500">Type</dt>
-      <dd class="text-gray-700">{{ media.mimeType }}</dd>
+      <dt class="text-gray-500">
+        Type
+      </dt>
+      <dd class="text-gray-700">
+        {{ media.mimeType }}
+      </dd>
     </div>
     <div class="flex justify-between">
-      <dt class="text-gray-500">Taille</dt>
-      <dd class="text-gray-700">{{ formatSize(media.size) }}</dd>
+      <dt class="text-gray-500">
+        Taille
+      </dt>
+      <dd class="text-gray-700">
+        {{ formatSize(media.size) }}
+      </dd>
     </div>
-    <div v-if="media.width && media.height" class="flex justify-between">
-      <dt class="text-gray-500">Dimensions</dt>
-      <dd class="text-gray-700">{{ media.width }} x {{ media.height }}</dd>
+    <div
+      v-if="media.width && media.height"
+      class="flex justify-between"
+    >
+      <dt class="text-gray-500">
+        Dimensions
+      </dt>
+      <dd class="text-gray-700">
+        {{ media.width }} x {{ media.height }}
+      </dd>
     </div>
   </dl>
 </template>

@@ -14,16 +14,16 @@ defineEmits<{
 <template>
   <div class="flex border border-gray-300 rounded-lg overflow-hidden">
     <button
-      @click="$emit('update:modelValue', 'grid')"
       :class="['p-1.5', modelValue === 'grid' ? 'bg-gray-100' : 'hover:bg-gray-50']"
       title="Vue grille"
+      @click="$emit('update:modelValue', 'grid')"
     >
       <GridIcon size="sm" />
     </button>
     <button
-      @click="$emit('update:modelValue', 'list')"
       :class="['p-1.5', modelValue === 'list' ? 'bg-gray-100' : 'hover:bg-gray-50']"
       title="Vue liste"
+      @click="$emit('update:modelValue', 'list')"
     >
       <ListIcon size="sm" />
     </button>

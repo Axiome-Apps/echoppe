@@ -30,8 +30,9 @@ export default [
       'no-console': 'warn',
       'no-debugger': 'warn',
       'no-undef': 'off', // TS handles this
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'unused-imports/no-unused-imports': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'vue/multi-word-component-names': 'off',
       'vue/html-self-closing': ['error', {
         html: { void: 'always', normal: 'always', component: 'always' },

@@ -19,6 +19,7 @@ const props = withDefaults(
     createLabel?: string;
   }>(),
   {
+    placeholder: undefined,
     disabled: false,
     size: 'md',
     creatable: true,
@@ -137,13 +138,13 @@ const sizeClasses = {
   <div class="relative">
     <!-- Trigger -->
     <div
-      @click="open"
       :class="[
         'w-full border border-gray-300 rounded bg-white flex items-center justify-between cursor-pointer transition',
         sizeClasses[size],
         disabled && 'bg-gray-100 cursor-not-allowed opacity-60',
         isOpen && 'ring-2 ring-blue-500 border-transparent',
       ]"
+      @click="open"
     >
       <span :class="modelValue ? 'text-gray-900' : 'text-gray-400'">
         {{ modelValue ? displayValue : placeholder }}
@@ -152,8 +153,8 @@ const sizeClasses = {
         <button
           v-if="modelValue && !disabled"
           type="button"
-          @click="clear"
           class="p-0.5 text-gray-400 hover:text-gray-600"
+          @click="clear"
         >
           <CloseIcon class="w-3.5 h-3.5" />
         </button>
@@ -175,9 +176,9 @@ const sizeClasses = {
           v-model="search"
           type="text"
           :placeholder="placeholder ?? 'Rechercher...'"
+          class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           @keydown="handleKeydown"
           @blur="close"
-          class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
@@ -186,7 +187,6 @@ const sizeClasses = {
         <li
           v-for="(option, index) in filteredOptions"
           :key="option.value"
-          @mousedown.prevent="selectOption(option)"
           :class="[
             'px-3 py-2 cursor-pointer text-sm',
             highlightedIndex === index
@@ -194,6 +194,7 @@ const sizeClasses = {
               : 'hover:bg-gray-50',
             option.value === modelValue && 'font-medium',
           ]"
+          @mousedown.prevent="selectOption(option)"
         >
           {{ option.label }}
         </li>
@@ -201,13 +202,13 @@ const sizeClasses = {
         <!-- Create option -->
         <li
           v-if="showCreateOption"
-          @mousedown.prevent="createNew"
           :class="[
             'px-3 py-2 cursor-pointer text-sm flex items-center gap-2',
             highlightedIndex === filteredOptions.length
               ? 'bg-blue-50 text-blue-700'
               : 'hover:bg-gray-50 text-gray-600',
           ]"
+          @mousedown.prevent="createNew"
         >
           <span class="text-blue-600 font-medium">+</span>
           {{ createLabel }} "{{ search.trim() }}"
@@ -224,6 +225,10 @@ const sizeClasses = {
     </div>
 
     <!-- Backdrop -->
-    <div v-if="isOpen" class="fixed inset-0 z-40" @click="closeImmediate" />
+    <div
+      v-if="isOpen"
+      class="fixed inset-0 z-40"
+      @click="closeImmediate"
+    />
   </div>
 </template>

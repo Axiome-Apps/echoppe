@@ -8,6 +8,7 @@ withDefaults(
     size?: 'sm' | 'md' | 'lg';
   }>(),
   {
+    placeholder: undefined,
     disabled: false,
     rows: 3,
     size: 'md',
@@ -28,7 +29,6 @@ const sizeClasses = {
 <template>
   <textarea
     :value="modelValue"
-    @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
     :placeholder="placeholder"
     :disabled="disabled"
     :rows="rows"
@@ -37,5 +37,6 @@ const sizeClasses = {
       sizeClasses[size],
       disabled && 'bg-gray-100 cursor-not-allowed opacity-60'
     ]"
+    @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
   />
 </template>
