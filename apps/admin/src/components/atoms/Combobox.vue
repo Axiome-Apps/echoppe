@@ -61,21 +61,34 @@ function open() {
   nextTick(() => inputRef.value?.focus());
 }
 
+let closeTimeout: ReturnType<typeof setTimeout> | null = null;
+
 function close() {
+  // Delay close to allow click events to fire first
+  closeTimeout = setTimeout(() => {
+    isOpen.value = false;
+    search.value = '';
+  }, 150);
+}
+
+function closeImmediate() {
+  if (closeTimeout) clearTimeout(closeTimeout);
   isOpen.value = false;
   search.value = '';
 }
 
 function selectOption(option: ComboboxOption) {
+  if (closeTimeout) clearTimeout(closeTimeout);
   emit('update:modelValue', option.value);
-  close();
+  closeImmediate();
 }
 
 function createNew() {
+  if (closeTimeout) clearTimeout(closeTimeout);
   const value = search.value.trim();
   if (!value) return;
   emit('create', value);
-  close();
+  closeImmediate();
 }
 
 function clear(e: Event) {
@@ -104,7 +117,7 @@ function handleKeydown(e: KeyboardEvent) {
       }
       break;
     case 'Escape':
-      close();
+      closeImmediate();
       break;
   }
 }
@@ -211,6 +224,6 @@ const sizeClasses = {
     </div>
 
     <!-- Backdrop -->
-    <div v-if="isOpen" class="fixed inset-0 z-40" @click="close" />
+    <div v-if="isOpen" class="fixed inset-0 z-40" @click="closeImmediate" />
   </div>
 </template>

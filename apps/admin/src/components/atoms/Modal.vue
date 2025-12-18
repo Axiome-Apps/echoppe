@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import CloseIcon from './icons/CloseIcon.vue';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     title?: string;
-    size?: 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+    tall?: boolean;
   }>(),
   {
     size: 'sm',
+    tall: false,
   }
 );
 
@@ -20,6 +22,7 @@ const sizeClasses: Record<string, string> = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-3xl',
+  '2xl': 'max-w-5xl',
 };
 </script>
 
@@ -28,8 +31,8 @@ const sizeClasses: Record<string, string> = {
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
     @click.self="$emit('close')"
   >
-    <div :class="['bg-white rounded-lg shadow-xl w-full mx-4 max-h-[90vh] overflow-auto', sizeClasses[size]]">
-      <div v-if="title || $slots.header" class="flex items-start justify-between p-5 pb-0">
+    <div :class="['bg-white rounded-lg shadow-xl w-full mx-4 max-h-[90vh] flex flex-col', sizeClasses[size], tall && 'min-h-[80vh]']">
+      <div v-if="title || $slots.header" class="flex items-start justify-between p-5 pb-0 shrink-0">
         <slot name="header">
           <h2 class="text-lg font-semibold">{{ title }}</h2>
         </slot>
@@ -40,10 +43,10 @@ const sizeClasses: Record<string, string> = {
           <CloseIcon />
         </button>
       </div>
-      <div class="p-5">
+      <div class="p-5 flex-1 overflow-auto">
         <slot />
       </div>
-      <div v-if="$slots.footer" class="px-5 pb-5">
+      <div v-if="$slots.footer" class="px-5 pb-5 shrink-0 border-t border-gray-100 pt-4">
         <slot name="footer" />
       </div>
     </div>

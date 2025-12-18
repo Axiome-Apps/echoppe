@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia';
-import { db, product, variant, option, optionValue, productMedia, eq, and, count } from '@echoppe/core';
+import { db, product, variant, option, optionValue, variantOptionValue, productOption, productMedia, eq, and, count, ilike } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { authPlugin } from '../plugins/auth';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
@@ -159,17 +159,36 @@ export const productsRoutes = new Elysia({ prefix: '/products' })
       const [found] = await db.select().from(product).where(eq(product.id, params.id));
       if (!found) return status(404, { message: 'Product not found' });
 
-      const variants = await db.select().from(variant).where(eq(variant.product, params.id));
-      const options = await db.select().from(option).where(eq(option.product, params.id));
+      const variants = await db.select().from(variant).where(eq(variant.product, params.id)).orderBy(variant.sortOrder);
 
+      // Get options for this product via junction table
+      const productOptions = await db
+        .select({
+          option: option,
+          sortOrder: productOption.sortOrder,
+        })
+        .from(productOption)
+        .innerJoin(option, eq(productOption.option, option.id))
+        .where(eq(productOption.product, params.id))
+        .orderBy(productOption.sortOrder);
+
+      // Load option values for each option
       const optionsWithValues = await Promise.all(
-        options.map(async (opt) => {
-          const values = await db.select().from(optionValue).where(eq(optionValue.option, opt.id));
-          return { ...opt, values };
+        productOptions.map(async (po) => {
+          const values = await db.select().from(optionValue).where(eq(optionValue.option, po.option.id)).orderBy(optionValue.sortOrder);
+          return { ...po.option, sortOrder: po.sortOrder, values };
         })
       );
 
-      return { ...found, variants, options: optionsWithValues };
+      // Load variant option values for each variant
+      const variantsWithOptions = await Promise.all(
+        variants.map(async (v) => {
+          const optionValues = await db.select().from(variantOptionValue).where(eq(variantOptionValue.variant, v.id));
+          return { ...v, optionValues: optionValues.map(ov => ov.optionValue) };
+        })
+      );
+
+      return { ...found, variants: variantsWithOptions, options: optionsWithValues };
     },
     { params: productParams }
   )
@@ -342,6 +361,38 @@ export const productsRoutes = new Elysia({ prefix: '/products' })
     { auth: true, params: variantParams }
   )
 
+  // PUT /products/:id/variants/:variantId/options - Set variant option values (replaces all)
+  .put(
+    '/:id/variants/:variantId/options',
+    async ({ params, body, status }) => {
+      const [variantExists] = await db
+        .select()
+        .from(variant)
+        .where(and(eq(variant.id, params.variantId), eq(variant.product, params.id)));
+      if (!variantExists) return status(404, { message: 'Variant not found' });
+
+      // Delete existing option values for this variant
+      await db.delete(variantOptionValue).where(eq(variantOptionValue.variant, params.variantId));
+
+      // Insert new option values
+      if (body.optionValueIds.length > 0) {
+        await db.insert(variantOptionValue).values(
+          body.optionValueIds.map((optionValueId: string) => ({
+            variant: params.variantId,
+            optionValue: optionValueId,
+          }))
+        );
+      }
+
+      return { success: true };
+    },
+    {
+      auth: true,
+      params: variantParams,
+      body: t.Object({ optionValueIds: t.Array(t.String({ format: 'uuid' })) }),
+    }
+  )
+
   // === MEDIA ===
 
   // GET /products/:id/media
@@ -438,24 +489,53 @@ export const productsRoutes = new Elysia({ prefix: '/products' })
     { auth: true, params: mediaParams }
   )
 
-  // === OPTIONS ===
+  // === OPTIONS (globales) ===
 
-  // POST /products/:id/options
+  // GET /options - Liste toutes les options globales
+  .get(
+    '/options',
+    async () => {
+      const options = await db.select().from(option).orderBy(option.name);
+      return options;
+    },
+    { auth: true }
+  )
+
+  // POST /products/:id/options - Associe une option au produit (crée l'option si elle n'existe pas)
   .post(
     '/:id/options',
     async ({ params, body, status }) => {
       const [productExists] = await db.select().from(product).where(eq(product.id, params.id));
       if (!productExists) return status(404, { message: 'Product not found' });
 
-      const [created] = await db
-        .insert(option)
-        .values({
-          product: params.id,
-          name: body.name,
-          sortOrder: body.sortOrder ?? 0,
-        })
-        .returning();
-      return created;
+      // Cherche ou crée l'option globale (case-insensitive)
+      let opt = await db.select().from(option).where(ilike(option.name, body.name)).then(r => r[0]);
+
+      if (!opt) {
+        [opt] = await db
+          .insert(option)
+          .values({ name: body.name })
+          .returning();
+      }
+
+      // Vérifie si l'association existe déjà
+      const [existing] = await db
+        .select()
+        .from(productOption)
+        .where(and(eq(productOption.product, params.id), eq(productOption.option, opt.id)));
+
+      if (existing) {
+        return status(409, { message: 'Option already associated with this product' });
+      }
+
+      // Crée l'association produit-option
+      await db.insert(productOption).values({
+        product: params.id,
+        option: opt.id,
+        sortOrder: body.sortOrder ?? 0,
+      });
+
+      return opt;
     },
     { auth: true, params: productParams, body: optionBody }
   )
@@ -466,6 +546,16 @@ export const productsRoutes = new Elysia({ prefix: '/products' })
     async ({ params, body, status }) => {
       const [optionExists] = await db.select().from(option).where(eq(option.id, params.optionId));
       if (!optionExists) return status(404, { message: 'Option not found' });
+
+      // Vérifie si la valeur existe déjà (case-insensitive)
+      const [existing] = await db
+        .select()
+        .from(optionValue)
+        .where(and(eq(optionValue.option, params.optionId), ilike(optionValue.value, body.value)));
+
+      if (existing) {
+        return existing; // Retourne la valeur existante au lieu d'erreur
+      }
 
       const [created] = await db
         .insert(optionValue)

@@ -92,23 +92,50 @@ export const productMedia = pgTable(
   ],
 );
 
-export const option = pgTable('option', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  product: uuid('product')
-    .notNull()
-    .references(() => product.id),
-  name: varchar('name', { length: 50 }).notNull(), // Color, Size...
-  sortOrder: integer('sort_order').notNull().default(0),
-});
+// Options globales (Couleur, Taille, Matière...)
+export const option = pgTable(
+  'option',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 50 }).notNull(), // Color, Size...
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => [
+    // Unique case-insensitive sur le nom (évite couleur/Couleur/COULEUR)
+    uniqueIndex('option_name_unique_ci').on(sql`lower(${table.name})`),
+  ],
+);
 
-export const optionValue = pgTable('option_value', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  option: uuid('option')
-    .notNull()
-    .references(() => option.id),
-  value: varchar('value', { length: 100 }).notNull(), // Red, M, XL...
-  sortOrder: integer('sort_order').notNull().default(0),
-});
+// Junction: quelles options un produit utilise
+export const productOption = pgTable(
+  'product_option',
+  {
+    product: uuid('product')
+      .notNull()
+      .references(() => product.id, { onDelete: 'cascade' }),
+    option: uuid('option')
+      .notNull()
+      .references(() => option.id, { onDelete: 'cascade' }),
+    sortOrder: integer('sort_order').notNull().default(0), // Position de l'option pour ce produit
+  },
+  (table) => [primaryKey({ columns: [table.product, table.option] })],
+);
+
+export const optionValue = pgTable(
+  'option_value',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    option: uuid('option')
+      .notNull()
+      .references(() => option.id, { onDelete: 'cascade' }),
+    value: varchar('value', { length: 100 }).notNull(), // Red, M, XL...
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => [
+    // Unique case-insensitive par option (évite rouge/Rouge dans la même option)
+    uniqueIndex('option_value_unique_ci').on(table.option, sql`lower(${table.value})`),
+  ],
+);
 
 export const variant = pgTable('variant', {
   id: uuid('id').primaryKey().defaultRandom(),

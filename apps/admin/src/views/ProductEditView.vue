@@ -20,8 +20,10 @@ type Product = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>
 type Category = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>[number];
 type TaxRate = NonNullable<Awaited<ReturnType<typeof api['tax-rates']['get']>>['data']>[number];
 type Collection = NonNullable<Awaited<ReturnType<typeof api.collections.get>>['data']>['data'][number];
-type VariantResponse = Awaited<ReturnType<ReturnType<typeof api.products>['variants']['get']>>;
-type Variant = NonNullable<Extract<VariantResponse['data'], unknown[]>>[number];
+// Type pour une variante avec ses optionValues (retourné par GET /products/:id)
+type ProductDetailResponse = Awaited<ReturnType<ReturnType<typeof api.products>['get']>>;
+type ProductDetail = Extract<NonNullable<ProductDetailResponse['data']>, { variants: unknown[] }>;
+type Variant = ProductDetail['variants'][number];
 type Option = {
   id: string;
   name: string;
@@ -132,6 +134,10 @@ async function loadProduct() {
       collection: '',
       status: data.status,
     };
+    // Load variants with their option values
+    if ('variants' in data && Array.isArray(data.variants)) {
+      variants.value = data.variants;
+    }
     // Load options with values
     if ('options' in data && Array.isArray(data.options)) {
       options.value = data.options;
@@ -139,12 +145,6 @@ async function loadProduct() {
   }
 }
 
-async function loadVariants() {
-  if (!productId.value) return;
-
-  const { data } = await api.products({ id: productId.value }).variants.get();
-  if (data && Array.isArray(data)) variants.value = data;
-}
 
 // Variant modal functions
 function openVariantModal(variant?: Variant) {
@@ -157,13 +157,9 @@ function closeVariantModal() {
   editingVariant.value = null;
 }
 
-function onVariantSaved(variant: Variant) {
-  const index = variants.value.findIndex((v) => v.id === variant.id);
-  if (index !== -1) {
-    variants.value[index] = variant;
-  } else {
-    variants.value.push(variant);
-  }
+async function onVariantSaved() {
+  // Reload pour avoir les données fraîches avec optionValues
+  await loadProduct();
   closeVariantModal();
 }
 
@@ -238,7 +234,7 @@ async function handleVariantReorder(draggedId: string, targetId: string, positio
   );
 
   // Reload pour avoir les données fraîches
-  await loadVariants();
+  await loadProduct();
 }
 
 const variantSortable = useSortable({
@@ -251,7 +247,7 @@ onMounted(async () => {
   await Promise.all([loadCategories(), loadTaxRates(), loadCollections()]);
 
   if (!isNew.value) {
-    await Promise.all([loadProduct(), loadVariants()]);
+    await loadProduct();
   } else {
     form.value.category = categories.value[0]?.id || '';
     form.value.taxRate = taxRates.value.find(t => t.isDefault)?.id || taxRates.value[0]?.id || '';
@@ -572,9 +568,9 @@ function goBack() {
       :product-id="productId"
       :variant="editingVariant"
       :options="options"
-      @close="closeVariantModal"
-      @saved="onVariantSaved"
-      @update:options="updateOptions"
+      :on-close="closeVariantModal"
+      :on-saved="onVariantSaved"
+      :on-options-change="updateOptions"
     />
   </div>
 </template>
