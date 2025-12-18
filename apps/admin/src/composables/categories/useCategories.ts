@@ -1,6 +1,8 @@
 import { ref, computed } from 'vue';
 import { api } from '@/lib/api';
-import type { Category, CategoryNode, DragState, CategoryOrderUpdate, CategoryFormData } from './types';
+import { useSortable } from '@/composables/sortable';
+import type { TreeDropPosition } from '@/composables/sortable';
+import type { Category, CategoryNode, CategoryOrderUpdate, CategoryFormData } from './types';
 
 export function useCategories() {
   // ---------------------------------------------------------------------------
@@ -8,11 +10,6 @@ export function useCategories() {
   // ---------------------------------------------------------------------------
   const categories = ref<Category[]>([]);
   const loading = ref(true);
-  const dragState = ref<DragState>({
-    draggedId: null,
-    dropTargetId: null,
-    dropPosition: null,
-  });
 
   // ---------------------------------------------------------------------------
   // COMPUTED - TREE
@@ -113,7 +110,7 @@ export function useCategories() {
   function calculateNewOrder(
     draggedId: string,
     targetId: string,
-    position: 'before' | 'inside' | 'after'
+    position: TreeDropPosition
   ): CategoryOrderUpdate[] {
     const dragged = categories.value.find(c => c.id === draggedId);
     const target = categories.value.find(c => c.id === targetId);
@@ -155,13 +152,27 @@ export function useCategories() {
   }
 
   // ---------------------------------------------------------------------------
-  // DRAG & DROP - HANDLERS
+  // DRAG & DROP - SORTABLE COMPOSABLE
   // ---------------------------------------------------------------------------
-  function handleDragStart(e: DragEvent, categoryId: string) {
-    dragState.value.draggedId = categoryId;
-    e.dataTransfer!.effectAllowed = 'move';
-    e.dataTransfer!.setData('text/plain', JSON.stringify({ type: 'category', id: categoryId }));
+  async function handleReorder(draggedId: string, targetId: string, position: TreeDropPosition) {
+    const updates = calculateNewOrder(draggedId, targetId, position);
+    if (updates.length > 0) {
+      await batchUpdateOrder(updates);
+    }
+  }
 
+  const sortable = useSortable({
+    treeMode: true,
+    dropZoneAttr: 'data-category-drop',
+    onReorder: handleReorder,
+    isValidDrop,
+  });
+
+  // Custom drag start avec ghost personnalisé
+  function handleDragStart(e: DragEvent, categoryId: string) {
+    sortable.handleDragStart(e, categoryId);
+
+    // Ghost personnalisé
     const category = categories.value.find(c => c.id === categoryId);
     const ghost = document.createElement('div');
     ghost.className = 'bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium shadow-lg';
@@ -172,58 +183,14 @@ export function useCategories() {
     setTimeout(() => document.body.removeChild(ghost), 0);
   }
 
-  function handleDragEnd() {
-    dragState.value = { draggedId: null, dropTargetId: null, dropPosition: null };
-  }
-
-  function handleDragOver(e: DragEvent, targetId: string, position: 'before' | 'inside' | 'after') {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!dragState.value.draggedId) return;
-    if (!isValidDrop(dragState.value.draggedId, targetId)) {
-      e.dataTransfer!.dropEffect = 'none';
-      return;
-    }
-
-    e.dataTransfer!.dropEffect = 'move';
-    dragState.value.dropTargetId = targetId;
-    dragState.value.dropPosition = position;
-  }
-
-  function handleDragLeave(e: DragEvent) {
-    const relatedTarget = e.relatedTarget as HTMLElement;
-    if (!relatedTarget?.closest('[data-category-drop]')) {
-      dragState.value.dropTargetId = null;
-      dragState.value.dropPosition = null;
-    }
-  }
-
-  async function handleDrop(e: DragEvent, targetId: string, position: 'before' | 'inside' | 'after') {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const draggedId = dragState.value.draggedId;
-    if (!draggedId || !isValidDrop(draggedId, targetId)) {
-      handleDragEnd();
-      return;
-    }
-
-    const updates = calculateNewOrder(draggedId, targetId, position);
-    if (updates.length > 0) {
-      await batchUpdateOrder(updates);
-    }
-    handleDragEnd();
-  }
-
   // Drop à la racine (déplacer en tant que catégorie de premier niveau)
   async function handleRootDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
 
-    const draggedId = dragState.value.draggedId;
+    const draggedId = sortable.draggedId.value;
     if (!draggedId) {
-      handleDragEnd();
+      sortable.resetState();
       return;
     }
 
@@ -234,7 +201,7 @@ export function useCategories() {
     const maxOrder = rootCategories.length > 0 ? rootCategories[rootCategories.length - 1].sortOrder + 1 : 0;
 
     await batchUpdateOrder([{ id: draggedId, parent: null, sortOrder: maxOrder }]);
-    handleDragEnd();
+    sortable.resetState();
   }
 
   // ---------------------------------------------------------------------------
@@ -244,7 +211,7 @@ export function useCategories() {
     // State
     categories,
     loading,
-    dragState,
+    dragState: sortable.dragState,
 
     // Computed
     categoryTree,
@@ -262,12 +229,17 @@ export function useCategories() {
     deleteCategory,
     batchUpdateOrder,
 
-    // Drag & Drop
+    // Drag & Drop (from sortable)
     handleDragStart,
-    handleDragEnd,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop,
+    handleDragEnd: sortable.handleDragEnd,
+    handleDragOver: sortable.handleDragOver,
+    handleDragLeave: sortable.handleDragLeave,
+    handleDrop: sortable.handleDrop,
     handleRootDrop,
+
+    // Sortable helpers
+    isItemDragging: sortable.isItemDragging,
+    isDropTarget: sortable.isDropTarget,
+    getItemDropPosition: sortable.getItemDropPosition,
   };
 }

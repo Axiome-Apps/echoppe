@@ -2,10 +2,18 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '@/lib/api';
+import { useSortable } from '@/composables/sortable';
+import type { FlatDropPosition } from '@/composables/sortable';
 import Button from '@/components/atoms/Button.vue';
 import Select from '@/components/atoms/Select.vue';
 import Label from '@/components/atoms/Label.vue';
+import Badge from '@/components/atoms/Badge.vue';
+import IconButton from '@/components/atoms/IconButton.vue';
+import GripIcon from '@/components/atoms/icons/GripIcon.vue';
+import TrashIcon from '@/components/atoms/icons/TrashIcon.vue';
+import PlusIcon from '@/components/atoms/icons/PlusIcon.vue';
 import ProductMediaGallery from '@/components/ProductMediaGallery.vue';
+import VariantModal from '@/components/VariantModal.vue';
 
 // Types inferes depuis Eden
 type Product = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>['data'][number];
@@ -14,6 +22,11 @@ type TaxRate = NonNullable<Awaited<ReturnType<typeof api['tax-rates']['get']>>['
 type Collection = NonNullable<Awaited<ReturnType<typeof api.collections.get>>['data']>['data'][number];
 type VariantResponse = Awaited<ReturnType<ReturnType<typeof api.products>['variants']['get']>>;
 type Variant = NonNullable<Extract<VariantResponse['data'], unknown[]>>[number];
+type Option = {
+  id: string;
+  name: string;
+  values: { id: string; value: string }[];
+};
 
 const route = useRoute();
 const router = useRouter();
@@ -26,9 +39,14 @@ const categories = ref<Category[]>([]);
 const taxRates = ref<TaxRate[]>([]);
 const collections = ref<Collection[]>([]);
 const variants = ref<Variant[]>([]);
+const options = ref<Option[]>([]);
 const loading = ref(true);
 const saving = ref(false);
 const activeTab = ref<'variants' | 'media'>('variants');
+
+// Modal state
+const showVariantModal = ref(false);
+const editingVariant = ref<Variant | null>(null);
 
 const form = ref({
   name: '',
@@ -38,29 +56,6 @@ const form = ref({
   taxRate: '',
   collection: '',
   status: 'draft' as 'draft' | 'published' | 'archived',
-});
-
-const newVariant = ref({
-  sku: '',
-  priceHt: '',
-  costPrice: '',
-  weight: '',
-  length: '',
-  width: '',
-  height: '',
-  quantity: 0,
-});
-
-const editingVariantId = ref<string | null>(null);
-const editVariantForm = ref({
-  sku: '',
-  priceHt: '',
-  costPrice: '',
-  weight: '',
-  length: '',
-  width: '',
-  height: '',
-  quantity: 0,
 });
 
 // Computed options for selects
@@ -137,6 +132,10 @@ async function loadProduct() {
       collection: '',
       status: data.status,
     };
+    // Load options with values
+    if ('options' in data && Array.isArray(data.options)) {
+      options.value = data.options;
+    }
   }
 }
 
@@ -146,6 +145,106 @@ async function loadVariants() {
   const { data } = await api.products({ id: productId.value }).variants.get();
   if (data && Array.isArray(data)) variants.value = data;
 }
+
+// Variant modal functions
+function openVariantModal(variant?: Variant) {
+  editingVariant.value = variant ?? null;
+  showVariantModal.value = true;
+}
+
+function closeVariantModal() {
+  showVariantModal.value = false;
+  editingVariant.value = null;
+}
+
+function onVariantSaved(variant: Variant) {
+  const index = variants.value.findIndex((v) => v.id === variant.id);
+  if (index !== -1) {
+    variants.value[index] = variant;
+  } else {
+    variants.value.push(variant);
+  }
+  closeVariantModal();
+}
+
+function updateOptions(newOptions: Option[]) {
+  options.value = newOptions;
+}
+
+// Status badge variant
+function getStatusBadge(status: string): 'success' | 'warning' | 'default' {
+  switch (status) {
+    case 'published':
+      return 'success';
+    case 'draft':
+      return 'warning';
+    default:
+      return 'default';
+  }
+}
+
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case 'published':
+      return 'Publié';
+    case 'draft':
+      return 'Brouillon';
+    case 'archived':
+      return 'Archivé';
+    default:
+      return status;
+  }
+}
+
+// Drag & drop for variants reorder
+async function handleVariantReorder(draggedId: string, targetId: string, position: FlatDropPosition) {
+  if (!productId.value) return;
+
+  // Calculer le nouvel ordre
+  const sortableItems = variants.value.map((v) => ({ id: v.id, sortOrder: v.sortOrder }));
+  const newOrder = variantSortable.calculateNewOrder(sortableItems, draggedId, targetId, position);
+
+  if (newOrder.length === 0) return;
+
+  // Mettre à jour en local d'abord pour un feedback immédiat
+  const reorderedVariants = [...variants.value].sort((a, b) => {
+    const aOrder = newOrder.find((o) => o.id === a.id)?.sortOrder ?? a.sortOrder;
+    const bOrder = newOrder.find((o) => o.id === b.id)?.sortOrder ?? b.sortOrder;
+    return aOrder - bOrder;
+  });
+  variants.value = reorderedVariants;
+
+  // Mettre à jour l'API
+  await Promise.all(
+    newOrder.map(({ id, sortOrder }) => {
+      const v = variants.value.find((variant) => variant.id === id)!;
+      return api.products({ id: productId.value! }).variants({ variantId: id }).put({
+        priceHt: parseFloat(v.priceHt),
+        sortOrder,
+        sku: v.sku ?? undefined,
+        barcode: v.barcode ?? undefined,
+        compareAtPriceHt: v.compareAtPriceHt ? parseFloat(v.compareAtPriceHt) : undefined,
+        costPrice: v.costPrice ? parseFloat(v.costPrice) : undefined,
+        weight: v.weight ? parseFloat(v.weight) : undefined,
+        length: v.length ? parseFloat(v.length) : undefined,
+        width: v.width ? parseFloat(v.width) : undefined,
+        height: v.height ? parseFloat(v.height) : undefined,
+        isDefault: v.isDefault,
+        status: v.status,
+        quantity: v.quantity,
+        lowStockThreshold: v.lowStockThreshold ?? undefined,
+      });
+    })
+  );
+
+  // Reload pour avoir les données fraîches
+  await loadVariants();
+}
+
+const variantSortable = useSortable({
+  dropZoneAttr: 'data-variant-drop',
+  onReorder: handleVariantReorder,
+});
 
 onMounted(async () => {
   loading.value = true;
@@ -185,69 +284,6 @@ async function save() {
     }
   } finally {
     saving.value = false;
-  }
-}
-
-async function addVariant() {
-  if (!productId.value) return;
-
-  const payload = {
-    sku: newVariant.value.sku || undefined,
-    priceHt: parseFloat(newVariant.value.priceHt) || 0,
-    costPrice: newVariant.value.costPrice ? parseFloat(newVariant.value.costPrice) : undefined,
-    weight: newVariant.value.weight ? parseFloat(newVariant.value.weight) : undefined,
-    length: newVariant.value.length ? parseFloat(newVariant.value.length) : undefined,
-    width: newVariant.value.width ? parseFloat(newVariant.value.width) : undefined,
-    height: newVariant.value.height ? parseFloat(newVariant.value.height) : undefined,
-    quantity: newVariant.value.quantity,
-  };
-
-  const { data } = await api.products({ id: productId.value }).variants.post(payload);
-
-  if (data && 'id' in data) {
-    variants.value.push(data);
-    newVariant.value = { sku: '', priceHt: '', costPrice: '', weight: '', length: '', width: '', height: '', quantity: 0 };
-  }
-}
-
-function startEditVariant(v: Variant) {
-  editingVariantId.value = v.id;
-  editVariantForm.value = {
-    sku: v.sku || '',
-    priceHt: String(v.priceHt),
-    costPrice: v.costPrice ? String(v.costPrice) : '',
-    weight: v.weight ? String(v.weight) : '',
-    length: v.length ? String(v.length) : '',
-    width: v.width ? String(v.width) : '',
-    height: v.height ? String(v.height) : '',
-    quantity: v.quantity,
-  };
-}
-
-function cancelEditVariant() {
-  editingVariantId.value = null;
-}
-
-async function updateVariant() {
-  if (!productId.value || !editingVariantId.value) return;
-
-  const payload = {
-    sku: editVariantForm.value.sku || undefined,
-    priceHt: parseFloat(editVariantForm.value.priceHt) || 0,
-    costPrice: editVariantForm.value.costPrice ? parseFloat(editVariantForm.value.costPrice) : undefined,
-    weight: editVariantForm.value.weight ? parseFloat(editVariantForm.value.weight) : undefined,
-    length: editVariantForm.value.length ? parseFloat(editVariantForm.value.length) : undefined,
-    width: editVariantForm.value.width ? parseFloat(editVariantForm.value.width) : undefined,
-    height: editVariantForm.value.height ? parseFloat(editVariantForm.value.height) : undefined,
-    quantity: editVariantForm.value.quantity,
-  };
-
-  const { data } = await api.products({ id: productId.value }).variants({ variantId: editingVariantId.value }).put(payload);
-
-  if (data && 'id' in data) {
-    const index = variants.value.findIndex((v) => v.id === editingVariantId.value);
-    if (index !== -1) variants.value[index] = data;
-    editingVariantId.value = null;
   }
 }
 
@@ -336,144 +372,108 @@ function goBack() {
 
           <div class="p-6">
             <!-- Variants Tab -->
-            <div v-if="activeTab === 'variants'" class="space-y-6">
-              <!-- Existing variants -->
-              <div v-if="variants.length > 0" class="space-y-3">
-                <div
-                  v-for="v in variants"
-                  :key="v.id"
-                  class="p-4 border border-gray-200 rounded-lg"
-                >
-                  <!-- View mode -->
-                  <template v-if="editingVariantId !== v.id">
-                    <div class="flex items-start justify-between">
-                      <div class="grid grid-cols-4 gap-4 text-sm flex-1">
-                        <div>
-                          <span class="text-gray-500">SKU:</span>
-                          <span class="ml-1 font-medium">{{ v.sku || '-' }}</span>
-                        </div>
-                        <div>
-                          <span class="text-gray-500">Prix HT:</span>
-                          <span class="ml-1 font-medium">{{ v.priceHt }} EUR</span>
-                        </div>
-                        <div>
-                          <span class="text-gray-500">Stock:</span>
-                          <span class="ml-1 font-medium">{{ v.quantity }}</span>
-                        </div>
-                        <div>
-                          <span class="text-gray-500">Poids:</span>
-                          <span class="ml-1 font-medium">{{ v.weight || '-' }} kg</span>
-                        </div>
-                        <div>
-                          <span class="text-gray-500">L:</span>
-                          <span class="ml-1 font-medium">{{ v.length || '-' }} cm</span>
-                        </div>
-                        <div>
-                          <span class="text-gray-500">l:</span>
-                          <span class="ml-1 font-medium">{{ v.width || '-' }} cm</span>
-                        </div>
-                        <div>
-                          <span class="text-gray-500">H:</span>
-                          <span class="ml-1 font-medium">{{ v.height || '-' }} cm</span>
-                        </div>
-                      </div>
-                      <div class="flex gap-2 ml-4">
-                        <button
-                          @click="startEditVariant(v)"
-                          class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition"
-                        >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
-                        <button
-                          @click="deleteVariant(v.id)"
-                          class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition"
-                        >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- Edit mode -->
-                  <template v-else>
-                    <div class="grid grid-cols-4 gap-3">
-                      <div>
-                        <label class="block text-xs text-gray-500 mb-1">SKU</label>
-                        <input v-model="editVariantForm.sku" type="text" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                      </div>
-                      <div>
-                        <label class="block text-xs text-gray-500 mb-1">Prix HT</label>
-                        <input v-model="editVariantForm.priceHt" type="number" step="0.01" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                      </div>
-                      <div>
-                        <label class="block text-xs text-gray-500 mb-1">Stock</label>
-                        <input v-model.number="editVariantForm.quantity" type="number" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                      </div>
-                      <div>
-                        <label class="block text-xs text-gray-500 mb-1">Poids (kg)</label>
-                        <input v-model="editVariantForm.weight" type="number" step="0.001" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                      </div>
-                      <div>
-                        <label class="block text-xs text-gray-500 mb-1">Longueur (cm)</label>
-                        <input v-model="editVariantForm.length" type="number" step="0.1" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                      </div>
-                      <div>
-                        <label class="block text-xs text-gray-500 mb-1">Largeur (cm)</label>
-                        <input v-model="editVariantForm.width" type="number" step="0.1" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                      </div>
-                      <div>
-                        <label class="block text-xs text-gray-500 mb-1">Hauteur (cm)</label>
-                        <input v-model="editVariantForm.height" type="number" step="0.1" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                      </div>
-                    </div>
-                    <div class="flex gap-2 mt-3">
-                      <Button variant="primary" size="sm" @click="updateVariant">Enregistrer</Button>
-                      <Button variant="ghost" size="sm" @click="cancelEditVariant">Annuler</Button>
-                    </div>
-                  </template>
-                </div>
+            <div v-if="activeTab === 'variants'" class="space-y-4">
+              <!-- Header with add button -->
+              <div class="flex justify-end">
+                <Button variant="primary" size="sm" @click="openVariantModal()">
+                  <PlusIcon class="w-4 h-4 mr-1" />
+                  Ajouter une variante
+                </Button>
               </div>
 
-              <!-- Add variant form -->
-              <div class="p-4 border border-dashed border-gray-300 rounded-lg">
-                <h4 class="font-medium mb-4">Ajouter une variante</h4>
-                <div class="grid grid-cols-4 gap-4">
-                  <div>
-                    <label class="block text-xs text-gray-500 mb-1">SKU</label>
-                    <input v-model="newVariant.sku" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-500 mb-1">Prix HT</label>
-                    <input v-model="newVariant.priceHt" type="number" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-500 mb-1">Stock</label>
-                    <input v-model.number="newVariant.quantity" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-500 mb-1">Poids (kg)</label>
-                    <input v-model="newVariant.weight" type="number" step="0.001" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-500 mb-1">Longueur (cm)</label>
-                    <input v-model="newVariant.length" type="number" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-500 mb-1">Largeur (cm)</label>
-                    <input v-model="newVariant.width" type="number" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-500 mb-1">Hauteur (cm)</label>
-                    <input v-model="newVariant.height" type="number" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                </div>
-                <div class="mt-4">
-                  <Button variant="secondary" @click="addVariant">Ajouter la variante</Button>
-                </div>
+              <!-- Variants list -->
+              <div v-if="variants.length > 0" class="border border-gray-200 rounded-lg overflow-hidden">
+                <table class="w-full">
+                  <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+                    <tr>
+                      <th class="w-10"></th>
+                      <th class="px-4 py-3 text-left font-medium">SKU</th>
+                      <th class="px-4 py-3 text-left font-medium">Prix HT</th>
+                      <th class="px-4 py-3 text-left font-medium">Stock</th>
+                      <th class="px-4 py-3 text-left font-medium">Statut</th>
+                      <th class="px-4 py-3 text-right font-medium w-16"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100" data-variant-drop>
+                    <tr
+                      v-for="v in variants"
+                      :key="v.id"
+                      :class="[
+                        'hover:bg-gray-50 cursor-pointer transition-colors relative group/row',
+                        variantSortable.isItemDragging(v.id) && 'opacity-40 bg-blue-50',
+                      ]"
+                      draggable="true"
+                      data-variant-drop
+                      @click="openVariantModal(v)"
+                      @dragstart="variantSortable.handleDragStart($event, v.id)"
+                      @dragover="variantSortable.handleDragOver($event, v.id)"
+                      @dragleave="variantSortable.handleDragLeave($event)"
+                      @drop="variantSortable.handleDrop($event, v.id)"
+                      @dragend="variantSortable.handleDragEnd"
+                    >
+                      <!-- Drop indicator line - before -->
+                      <td
+                        v-if="variantSortable.isDropTarget(v.id) && variantSortable.getItemDropPosition(v.id) === 'before'"
+                        colspan="6"
+                        class="absolute inset-x-0 top-0 h-0 p-0 border-none"
+                      >
+                        <div class="h-0.5 bg-blue-500 rounded-full mx-2" />
+                      </td>
+                      <!-- Drop indicator line - after -->
+                      <td
+                        v-if="variantSortable.isDropTarget(v.id) && variantSortable.getItemDropPosition(v.id) === 'after'"
+                        colspan="6"
+                        class="absolute inset-x-0 bottom-0 h-0 p-0 border-none"
+                      >
+                        <div class="h-0.5 bg-blue-500 rounded-full mx-2" />
+                      </td>
+                      <td class="pl-2 py-3" @click.stop data-variant-drop>
+                        <div class="cursor-grab text-gray-400 hover:text-gray-600">
+                          <GripIcon />
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 text-sm">
+                        <span class="font-mono text-gray-700">{{ v.sku || '-' }}</span>
+                      </td>
+                      <td class="px-4 py-3 text-sm font-medium">
+                        {{ v.priceHt }} €
+                      </td>
+                      <td class="px-4 py-3 text-sm">
+                        <span :class="v.quantity > 0 ? 'text-gray-900' : 'text-red-600 font-medium'">
+                          {{ v.quantity }}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3">
+                        <Badge :variant="getStatusBadge(v.status)" size="sm">
+                          {{ getStatusLabel(v.status) }}
+                        </Badge>
+                      </td>
+                      <td class="px-4 py-3 text-right" @click.stop>
+                        <IconButton
+                          variant="ghost"
+                          size="sm"
+                          title="Supprimer"
+                          class="text-gray-400 hover:text-red-600 hover:bg-red-50"
+                          @click="deleteVariant(v.id)"
+                        >
+                          <TrashIcon class="w-4 h-4" />
+                        </IconButton>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Empty state -->
+              <div
+                v-else
+                class="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg"
+              >
+                <p class="text-gray-500 mb-4">Aucune variante pour ce produit</p>
+                <Button variant="secondary" size="sm" @click="openVariantModal()">
+                  <PlusIcon class="w-4 h-4 mr-1" />
+                  Créer la première variante
+                </Button>
               </div>
             </div>
 
@@ -565,5 +565,16 @@ function goBack() {
         </div>
       </div>
     </div>
+
+    <!-- Variant Modal -->
+    <VariantModal
+      v-if="showVariantModal && productId"
+      :product-id="productId"
+      :variant="editingVariant"
+      :options="options"
+      @close="closeVariantModal"
+      @saved="onVariantSaved"
+      @update:options="updateOptions"
+    />
   </div>
 </template>
