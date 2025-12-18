@@ -19,7 +19,6 @@ const collectionToDelete = ref<Collection | null>(null);
 
 const form = ref({
   name: '',
-  slug: '',
   description: '',
   image: null as string | null,
   isVisible: true,
@@ -38,7 +37,6 @@ function openCreate() {
   editing.value = null;
   form.value = {
     name: '',
-    slug: '',
     description: '',
     image: null,
     isVisible: true,
@@ -50,7 +48,6 @@ function openEdit(collection: Collection) {
   editing.value = collection;
   form.value = {
     name: collection.name,
-    slug: collection.slug,
     description: collection.description || '',
     image: collection.image,
     isVisible: collection.isVisible,
@@ -58,21 +55,11 @@ function openEdit(collection: Collection) {
   showForm.value = true;
 }
 
-function generateSlug() {
-  form.value.slug = form.value.name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
-
 async function save() {
   saving.value = true;
 
   const payload = {
     name: form.value.name,
-    slug: form.value.slug,
     description: form.value.description || undefined,
     image: form.value.image || undefined,
     isVisible: form.value.isVisible,
@@ -186,18 +173,17 @@ function cancelDelete() {
                 v-model="form.name"
                 type="text"
                 required
-                @blur="!editing && generateSlug()"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
-            <div>
+            <div v-if="editing">
               <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
               <input
-                v-model="form.slug"
+                :value="editing.slug"
                 type="text"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                disabled
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
               />
             </div>
 

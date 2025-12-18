@@ -1,11 +1,28 @@
 import { Elysia, t } from 'elysia';
 import { db, category, eq, count } from '@echoppe/core';
+import { slugify } from '@echoppe/shared';
 import { authPlugin } from '../plugins/auth';
 import { paginationQuery, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 
-const categoryBody = t.Object({
+const batchOrderBody = t.Array(
+  t.Object({
+    id: t.String({ format: 'uuid' }),
+    parent: t.Nullable(t.String({ format: 'uuid' })),
+    sortOrder: t.Number(),
+  })
+);
+
+const categoryCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),
-  slug: t.String({ minLength: 1, maxLength: 100 }),
+  description: t.Optional(t.String()),
+  parent: t.Optional(t.String({ format: 'uuid' })),
+  image: t.Optional(t.String({ format: 'uuid' })),
+  sortOrder: t.Optional(t.Number({ default: 0 })),
+  isVisible: t.Optional(t.Boolean({ default: true })),
+});
+
+const categoryUpdateBody = t.Object({
+  name: t.String({ minLength: 1, maxLength: 100 }),
   description: t.Optional(t.String()),
   parent: t.Optional(t.String({ format: 'uuid' })),
   image: t.Optional(t.String({ format: 'uuid' })),
@@ -51,7 +68,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories' })
 
   // === PROTECTED ROUTES (Admin) ===
 
-  // POST /categories - Create
+  // POST /categories - Create (slug auto-generated)
   .post(
     '/',
     async ({ body }) => {
@@ -59,7 +76,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories' })
         .insert(category)
         .values({
           name: body.name,
-          slug: body.slug,
+          slug: slugify(body.name),
           description: body.description,
           parent: body.parent,
           image: body.image,
@@ -69,10 +86,10 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories' })
         .returning();
       return created;
     },
-    { auth: true, body: categoryBody }
+    { auth: true, body: categoryCreateBody }
   )
 
-  // PUT /categories/:id - Update
+  // PUT /categories/:id - Update (slug immutable)
   .put(
     '/:id',
     async ({ params, body, status }) => {
@@ -80,7 +97,6 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories' })
         .update(category)
         .set({
           name: body.name,
-          slug: body.slug,
           description: body.description,
           parent: body.parent,
           image: body.image,
@@ -92,7 +108,27 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories' })
       if (!updated) return status(404, { message: 'Category not found' });
       return updated;
     },
-    { auth: true, params: categoryParams, body: categoryBody }
+    { auth: true, params: categoryParams, body: categoryUpdateBody }
+  )
+
+  // PATCH /categories/batch/order - Batch update parent and sortOrder (drag & drop)
+  .patch(
+    '/batch/order',
+    async ({ body }) => {
+      await db.transaction(async (tx) => {
+        for (const update of body) {
+          await tx
+            .update(category)
+            .set({
+              parent: update.parent,
+              sortOrder: update.sortOrder,
+            })
+            .where(eq(category.id, update.id));
+        }
+      });
+      return { success: true, count: body.length };
+    },
+    { auth: true, body: batchOrderBody }
   )
 
   // DELETE /categories/:id - Delete

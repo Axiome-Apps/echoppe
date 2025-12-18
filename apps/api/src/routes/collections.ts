@@ -1,11 +1,18 @@
 import { Elysia, t } from 'elysia';
 import { db, collection, eq, count } from '@echoppe/core';
+import { slugify } from '@echoppe/shared';
 import { authPlugin } from '../plugins/auth';
 import { paginationQuery, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 
-const collectionBody = t.Object({
+const collectionCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),
-  slug: t.String({ minLength: 1, maxLength: 100 }),
+  description: t.Optional(t.String()),
+  image: t.Optional(t.String({ format: 'uuid' })),
+  isVisible: t.Optional(t.Boolean({ default: true })),
+});
+
+const collectionUpdateBody = t.Object({
+  name: t.String({ minLength: 1, maxLength: 100 }),
   description: t.Optional(t.String()),
   image: t.Optional(t.String({ format: 'uuid' })),
   isVisible: t.Optional(t.Boolean({ default: true })),
@@ -49,7 +56,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections' })
 
   // === PROTECTED ROUTES (Admin) ===
 
-  // POST /collections - Create
+  // POST /collections - Create (slug auto-generated)
   .post(
     '/',
     async ({ body }) => {
@@ -57,7 +64,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections' })
         .insert(collection)
         .values({
           name: body.name,
-          slug: body.slug,
+          slug: slugify(body.name),
           description: body.description,
           image: body.image,
           isVisible: body.isVisible ?? true,
@@ -65,10 +72,10 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections' })
         .returning();
       return created;
     },
-    { auth: true, body: collectionBody }
+    { auth: true, body: collectionCreateBody }
   )
 
-  // PUT /collections/:id - Update
+  // PUT /collections/:id - Update (slug immutable)
   .put(
     '/:id',
     async ({ params, body, status }) => {
@@ -76,7 +83,6 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections' })
         .update(collection)
         .set({
           name: body.name,
-          slug: body.slug,
           description: body.description,
           image: body.image,
           isVisible: body.isVisible,
@@ -86,7 +92,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections' })
       if (!updated) return status(404, { message: 'Collection non trouvee' });
       return updated;
     },
-    { auth: true, params: collectionParams, body: collectionBody }
+    { auth: true, params: collectionParams, body: collectionUpdateBody }
   )
 
   // DELETE /collections/:id - Delete
