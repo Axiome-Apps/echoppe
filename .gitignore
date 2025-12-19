@@ -35,3 +35,6 @@ drizzle/meta/
 # Temporary
 tmp/
 .temp/
+
+# Images et fichierq
+/apps/api/uploads
