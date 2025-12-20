@@ -6,28 +6,35 @@ import type {
   PaymentResult,
   RefundResult,
 } from './types';
+import { getProviderCredentials, getProviderStatus } from './config';
 
 export class StripeAdapter implements PaymentAdapter {
   readonly provider = 'stripe' as const;
   private client: Stripe | null = null;
   private webhookSecret: string | null = null;
+  private initialized = false;
 
-  constructor() {
-    const secretKey = process.env.STRIPE_SECRET_KEY;
-    this.webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? null;
+  private async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
 
-    if (secretKey) {
-      this.client = new Stripe(secretKey);
+    const credentials = await getProviderCredentials('stripe');
+    if (credentials) {
+      this.client = new Stripe(credentials.secretKey);
+      this.webhookSecret = credentials.webhookSecret;
     }
+    this.initialized = true;
   }
 
-  isConfigured(): boolean {
-    return this.client !== null && this.webhookSecret !== null;
+  async isConfigured(): Promise<boolean> {
+    const status = await getProviderStatus('stripe');
+    return status.isConfigured && status.isEnabled;
   }
 
   async createCheckout(params: CheckoutParams): Promise<CheckoutSession> {
+    await this.ensureInitialized();
+
     if (!this.client) {
-      throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY.');
+      throw new Error('Stripe is not configured.');
     }
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
@@ -75,6 +82,8 @@ export class StripeAdapter implements PaymentAdapter {
   }
 
   async verifyWebhook(payload: string, signature: string): Promise<PaymentResult> {
+    await this.ensureInitialized();
+
     if (!this.client || !this.webhookSecret) {
       throw new Error('Stripe webhook is not configured.');
     }
@@ -85,7 +94,6 @@ export class StripeAdapter implements PaymentAdapter {
       this.webhookSecret,
     );
 
-    // Traiter les événements de paiement
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -132,6 +140,8 @@ export class StripeAdapter implements PaymentAdapter {
   }
 
   async refund(transactionId: string, amount?: number): Promise<RefundResult> {
+    await this.ensureInitialized();
+
     if (!this.client) {
       throw new Error('Stripe is not configured.');
     }
@@ -139,7 +149,7 @@ export class StripeAdapter implements PaymentAdapter {
     try {
       const refund = await this.client.refunds.create({
         payment_intent: transactionId,
-        amount, // undefined = remboursement total
+        amount,
       });
 
       return {

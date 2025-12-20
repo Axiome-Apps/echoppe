@@ -2,11 +2,15 @@ import {
   db,
   eq,
   getPaymentAdapter,
+  getProviderStatus,
+  isEncryptionConfigured,
   order,
   payment,
   paymentEvent,
+  resetPaymentAdapters,
+  saveProviderCredentials,
 } from '@echoppe/core';
-import type { PaymentProvider } from '@echoppe/core';
+import type { PaymentProvider, PayPalCredentials, StripeCredentials } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { authPlugin } from '../plugins/auth';
 
@@ -21,17 +25,39 @@ const uuidParam = t.Object({
   orderId: t.String({ format: 'uuid' }),
 });
 
+const stripeConfigBody = t.Object({
+  secretKey: t.String({ minLength: 1 }),
+  webhookSecret: t.String({ minLength: 1 }),
+  isEnabled: t.Optional(t.Boolean()),
+});
+
+const paypalConfigBody = t.Object({
+  clientId: t.String({ minLength: 1 }),
+  clientSecret: t.String({ minLength: 1 }),
+  mode: t.Union([t.Literal('sandbox'), t.Literal('live')]),
+  isEnabled: t.Optional(t.Boolean()),
+});
+
 const providerMeta: Record<
   PaymentProvider,
-  { name: string; description: string }
+  { name: string; description: string; fields: { key: string; label: string; type: string; placeholder?: string }[] }
 > = {
   stripe: {
     name: 'Stripe',
     description: 'Paiements par carte bancaire',
+    fields: [
+      { key: 'secretKey', label: 'Clé secrète', type: 'password', placeholder: 'sk_live_...' },
+      { key: 'webhookSecret', label: 'Secret webhook', type: 'password', placeholder: 'whsec_...' },
+    ],
   },
   paypal: {
     name: 'PayPal',
     description: 'Paiements via compte PayPal',
+    fields: [
+      { key: 'clientId', label: 'Client ID', type: 'text', placeholder: 'AX...' },
+      { key: 'clientSecret', label: 'Client Secret', type: 'password', placeholder: 'EL...' },
+      { key: 'mode', label: 'Mode', type: 'select', placeholder: 'sandbox' },
+    ],
   },
 };
 
@@ -41,19 +67,68 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments' })
   // GET /payments/providers - Liste des providers avec statut
   .get(
     '/providers',
-    () => {
+    async () => {
       const providers: PaymentProvider[] = ['stripe', 'paypal'];
+      const encryptionReady = isEncryptionConfigured();
 
-      return providers.map((id) => {
-        const adapter = getPaymentAdapter(id);
-        return {
-          id,
-          ...providerMeta[id],
-          isConfigured: adapter.isConfigured(),
-        };
-      });
+      const result = await Promise.all(
+        providers.map(async (id) => {
+          const status = await getProviderStatus(id);
+          return {
+            id,
+            ...providerMeta[id],
+            ...status,
+            encryptionReady,
+          };
+        }),
+      );
+
+      return result;
     },
     { auth: true },
+  )
+
+  // PUT /payments/providers/stripe - Configure Stripe
+  .put(
+    '/providers/stripe',
+    async ({ body, status }) => {
+      if (!isEncryptionConfigured()) {
+        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+      }
+
+      const credentials: StripeCredentials = {
+        secretKey: body.secretKey,
+        webhookSecret: body.webhookSecret,
+      };
+
+      await saveProviderCredentials('stripe', credentials, body.isEnabled ?? true);
+      resetPaymentAdapters();
+
+      return { success: true };
+    },
+    { auth: true, body: stripeConfigBody },
+  )
+
+  // PUT /payments/providers/paypal - Configure PayPal
+  .put(
+    '/providers/paypal',
+    async ({ body, status }) => {
+      if (!isEncryptionConfigured()) {
+        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+      }
+
+      const credentials: PayPalCredentials = {
+        clientId: body.clientId,
+        clientSecret: body.clientSecret,
+        mode: body.mode,
+      };
+
+      await saveProviderCredentials('paypal', credentials, body.isEnabled ?? true);
+      resetPaymentAdapters();
+
+      return { success: true };
+    },
+    { auth: true, body: paypalConfigBody },
   )
 
   // POST /payments/checkout - Créer une session de paiement
@@ -62,7 +137,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments' })
     async ({ body, status }) => {
       const adapter = getPaymentAdapter(body.provider);
 
-      if (!adapter.isConfigured()) {
+      if (!(await adapter.isConfigured())) {
         return status(400, { message: `Provider ${body.provider} non configuré` });
       }
 
@@ -262,7 +337,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments' })
       auth: true,
       params: uuidParam,
       body: t.Object({
-        amount: t.Optional(t.Number({ minimum: 0 })), // undefined = remboursement total
+        amount: t.Optional(t.Number({ minimum: 0 })),
       }),
     },
   );

@@ -1,11 +1,29 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { api } from '@/lib/api';
+import { useToast } from '@/composables/useToast';
+import Button from '@/components/atoms/Button.vue';
+import Modal from '@/components/atoms/Modal.vue';
 
 type Provider = NonNullable<Awaited<ReturnType<typeof api.payments.providers.get>>['data']>[number];
 
+const toast = useToast();
 const loading = ref(true);
 const providers = ref<Provider[]>([]);
+const saving = ref(false);
+
+// Modal state
+const showModal = ref(false);
+const editingProvider = ref<Provider | null>(null);
+
+// Form state
+const stripeForm = ref({ secretKey: '', webhookSecret: '' });
+const paypalForm = ref({ clientId: '', clientSecret: '', mode: 'sandbox' as 'sandbox' | 'live' });
+
+const apiBaseUrl = computed(() => {
+  const url = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  return url.replace(/\/$/, '');
+});
 
 async function loadProviders() {
   loading.value = true;
@@ -18,6 +36,43 @@ async function loadProviders() {
 
 onMounted(loadProviders);
 
+function openConfig(provider: Provider) {
+  editingProvider.value = provider;
+  // Reset forms
+  stripeForm.value = { secretKey: '', webhookSecret: '' };
+  paypalForm.value = { clientId: '', clientSecret: '', mode: 'sandbox' };
+  showModal.value = true;
+}
+
+async function saveConfig() {
+  if (!editingProvider.value) return;
+
+  saving.value = true;
+  try {
+    if (editingProvider.value.id === 'stripe') {
+      const { error } = await api.payments.providers.stripe.put(stripeForm.value);
+      if (error) {
+        toast.error('Erreur lors de la configuration');
+        return;
+      }
+    } else if (editingProvider.value.id === 'paypal') {
+      const { error } = await api.payments.providers.paypal.put(paypalForm.value);
+      if (error) {
+        toast.error('Erreur lors de la configuration');
+        return;
+      }
+    }
+
+    toast.success('Configuration enregistrée');
+    showModal.value = false;
+    await loadProviders();
+  } catch {
+    toast.error('Erreur lors de la configuration');
+  } finally {
+    saving.value = false;
+  }
+}
+
 function getProviderIcon(id: string) {
   switch (id) {
     case 'stripe':
@@ -27,6 +82,12 @@ function getProviderIcon(id: string) {
     default:
       return '';
   }
+}
+
+function copyWebhookUrl(provider: string) {
+  const url = `${apiBaseUrl.value}/payments/webhook/${provider}`;
+  navigator.clipboard.writeText(url);
+  toast.success('URL copiée');
 }
 </script>
 
@@ -38,6 +99,20 @@ function getProviderIcon(id: string) {
       </h1>
       <p class="text-gray-500 mt-1">
         Configurez les moyens de paiement de votre boutique
+      </p>
+    </div>
+
+    <!-- Encryption warning -->
+    <div
+      v-if="providers.length > 0 && !providers[0].encryptionReady"
+      class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+    >
+      <p class="text-sm text-red-800 font-medium">
+        Clé de chiffrement manquante
+      </p>
+      <p class="text-sm text-red-700 mt-1">
+        La variable <code class="bg-red-100 px-1 py-0.5 rounded">ENCRYPTION_KEY</code> n'est pas configurée.
+        Les credentials ne peuvent pas être sauvegardés de manière sécurisée.
       </p>
     </div>
 
@@ -63,12 +138,12 @@ function getProviderIcon(id: string) {
             <div
               :class="[
                 'w-12 h-12 rounded-lg flex items-center justify-center',
-                provider.isConfigured ? 'bg-gray-900' : 'bg-gray-100'
+                provider.isEnabled ? 'bg-gray-900' : 'bg-gray-100'
               ]"
             >
               <svg
                 class="w-6 h-6"
-                :class="provider.isConfigured ? 'text-white' : 'text-gray-400'"
+                :class="provider.isEnabled ? 'text-white' : 'text-gray-400'"
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
@@ -87,104 +162,261 @@ function getProviderIcon(id: string) {
             </div>
           </div>
 
-          <!-- Status -->
+          <!-- Status & Actions -->
           <div class="flex items-center gap-3">
             <span
               :class="[
                 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium',
-                provider.isConfigured
+                provider.isEnabled
                   ? 'bg-green-50 text-green-700'
-                  : 'bg-gray-100 text-gray-500'
+                  : provider.isConfigured
+                    ? 'bg-yellow-50 text-yellow-700'
+                    : 'bg-gray-100 text-gray-500'
               ]"
             >
               <span
                 :class="[
                   'w-2 h-2 rounded-full',
-                  provider.isConfigured ? 'bg-green-500' : 'bg-gray-400'
+                  provider.isEnabled ? 'bg-green-500' : provider.isConfigured ? 'bg-yellow-500' : 'bg-gray-400'
                 ]"
               />
-              {{ provider.isConfigured ? 'Actif' : 'Non configuré' }}
+              {{ provider.isEnabled ? 'Actif' : provider.isConfigured ? 'Configuré (inactif)' : 'Non configuré' }}
             </span>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              :disabled="!provider.encryptionReady"
+              @click="openConfig(provider)"
+            >
+              Configurer
+            </Button>
           </div>
         </div>
 
-        <!-- Configuration hint -->
+        <!-- Webhook URL (if configured) -->
         <div
-          v-if="!provider.isConfigured"
-          class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg"
-        >
-          <p class="text-sm text-amber-800">
-            <strong>Configuration requise</strong>
-          </p>
-          <p class="text-sm text-amber-700 mt-1">
-            <template v-if="provider.id === 'stripe'">
-              Ajoutez <code class="bg-amber-100 px-1 py-0.5 rounded">STRIPE_SECRET_KEY</code> et
-              <code class="bg-amber-100 px-1 py-0.5 rounded">STRIPE_WEBHOOK_SECRET</code>
-              dans vos variables d'environnement.
-            </template>
-            <template v-else-if="provider.id === 'paypal'">
-              Ajoutez <code class="bg-amber-100 px-1 py-0.5 rounded">PAYPAL_CLIENT_ID</code> et
-              <code class="bg-amber-100 px-1 py-0.5 rounded">PAYPAL_CLIENT_SECRET</code>
-              dans vos variables d'environnement.
-            </template>
-          </p>
-        </div>
-
-        <!-- Configured info -->
-        <div
-          v-else
+          v-if="provider.isConfigured"
           class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg"
         >
-          <div class="flex items-center gap-2 text-sm text-gray-600">
-            <svg
-              class="w-4 h-4 text-green-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <p class="text-sm font-medium text-gray-700 mb-2">
+            URL du webhook
+          </p>
+          <div class="flex items-center gap-2">
+            <code class="flex-1 text-sm bg-white px-3 py-2 rounded border border-gray-200 text-gray-600 overflow-x-auto">
+              {{ apiBaseUrl }}/payments/webhook/{{ provider.id }}
+            </code>
+            <Button
+              variant="secondary"
+              size="sm"
+              @click="copyWebhookUrl(provider.id)"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            Prêt à recevoir des paiements
+              Copier
+            </Button>
           </div>
           <p class="text-xs text-gray-500 mt-2">
             <template v-if="provider.id === 'stripe'">
-              Les webhooks doivent pointer vers <code class="bg-gray-100 px-1 py-0.5 rounded">/payments/webhook/stripe</code>
+              Ajoutez cette URL dans
+              <a
+                href="https://dashboard.stripe.com/webhooks"
+                target="_blank"
+                class="text-blue-600 hover:underline"
+              >Stripe Dashboard → Webhooks</a>
             </template>
             <template v-else-if="provider.id === 'paypal'">
-              Les webhooks doivent pointer vers <code class="bg-gray-100 px-1 py-0.5 rounded">/payments/webhook/paypal</code>
+              Ajoutez cette URL dans
+              <a
+                href="https://developer.paypal.com/dashboard/applications"
+                target="_blank"
+                class="text-blue-600 hover:underline"
+              >PayPal Developer → Webhooks</a>
             </template>
           </p>
         </div>
       </div>
     </div>
 
-    <!-- Help section -->
-    <div class="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-      <h3 class="font-semibold text-blue-900">
-        Comment configurer les paiements ?
-      </h3>
-      <ol class="mt-3 space-y-2 text-sm text-blue-800">
-        <li>
-          <strong>1.</strong> Créez un compte sur le service de paiement (Stripe ou PayPal)
-        </li>
-        <li>
-          <strong>2.</strong> Récupérez vos clés API depuis le dashboard du service
-        </li>
-        <li>
-          <strong>3.</strong> Ajoutez les clés dans le fichier <code class="bg-blue-100 px-1 py-0.5 rounded">.env</code> de l'API
-        </li>
-        <li>
-          <strong>4.</strong> Configurez les webhooks dans le dashboard du service
-        </li>
-        <li>
-          <strong>5.</strong> Redémarrez l'API pour appliquer les changements
-        </li>
-      </ol>
-    </div>
+    <!-- Configuration Modal -->
+    <Modal
+      v-if="showModal && editingProvider"
+      :title="`Configurer ${editingProvider.name}`"
+      size="md"
+      @close="showModal = false"
+    >
+      <div class="space-y-6">
+        <!-- Stripe Form -->
+        <template v-if="editingProvider.id === 'stripe'">
+          <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-sm text-blue-800">
+              <strong>Étape 1 :</strong> Créez un compte Stripe ou connectez-vous
+            </p>
+            <a
+              href="https://dashboard.stripe.com/register"
+              target="_blank"
+              class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline mt-1"
+            >
+              Créer un compte Stripe
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </a>
+          </div>
+
+          <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-sm text-blue-800">
+              <strong>Étape 2 :</strong> Récupérez vos clés API
+            </p>
+            <a
+              href="https://dashboard.stripe.com/apikeys"
+              target="_blank"
+              class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline mt-1"
+            >
+              Ouvrir les clés API Stripe
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </a>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Clé secrète
+            </label>
+            <input
+              v-model="stripeForm.secretKey"
+              type="password"
+              placeholder="sk_live_..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              Commence par sk_live_ (production) ou sk_test_ (test)
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Secret du webhook
+            </label>
+            <input
+              v-model="stripeForm.webhookSecret"
+              type="password"
+              placeholder="whsec_..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              Créez un webhook dans Stripe et copiez le secret ici
+            </p>
+          </div>
+        </template>
+
+        <!-- PayPal Form -->
+        <template v-else-if="editingProvider.id === 'paypal'">
+          <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-sm text-blue-800">
+              <strong>Étape 1 :</strong> Créez une application PayPal
+            </p>
+            <a
+              href="https://developer.paypal.com/dashboard/applications/live"
+              target="_blank"
+              class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline mt-1"
+            >
+              Ouvrir PayPal Developer
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </a>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Client ID
+            </label>
+            <input
+              v-model="paypalForm.clientId"
+              type="text"
+              placeholder="AX..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Client Secret
+            </label>
+            <input
+              v-model="paypalForm.clientSecret"
+              type="password"
+              placeholder="EL..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Mode
+            </label>
+            <select
+              v-model="paypalForm.mode"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="sandbox">
+                Sandbox (test)
+              </option>
+              <option value="live">
+                Live (production)
+              </option>
+            </select>
+          </div>
+        </template>
+      </div>
+
+      <template #footer>
+        <Button
+          variant="secondary"
+          size="lg"
+          @click="showModal = false"
+        >
+          Annuler
+        </Button>
+        <Button
+          variant="primary"
+          size="lg"
+          :loading="saving"
+          @click="saveConfig"
+        >
+          Enregistrer
+        </Button>
+      </template>
+    </Modal>
   </div>
 </template>

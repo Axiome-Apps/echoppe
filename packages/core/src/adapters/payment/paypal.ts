@@ -7,33 +7,38 @@ import type {
   PaymentResult,
   RefundResult,
 } from './types';
+import { getProviderCredentials, getProviderStatus } from './config';
 
 export class PayPalAdapter implements PaymentAdapter {
   readonly provider = 'paypal' as const;
   private client: paypal.core.PayPalHttpClient | null = null;
+  private initialized = false;
 
-  constructor() {
-    const clientId = process.env.PAYPAL_CLIENT_ID;
-    const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-    const mode = process.env.PAYPAL_MODE ?? 'sandbox';
+  private async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
 
-    if (clientId && clientSecret) {
+    const credentials = await getProviderCredentials('paypal');
+    if (credentials) {
       const environment =
-        mode === 'live'
-          ? new paypal.core.LiveEnvironment(clientId, clientSecret)
-          : new paypal.core.SandboxEnvironment(clientId, clientSecret);
+        credentials.mode === 'live'
+          ? new paypal.core.LiveEnvironment(credentials.clientId, credentials.clientSecret)
+          : new paypal.core.SandboxEnvironment(credentials.clientId, credentials.clientSecret);
 
       this.client = new paypal.core.PayPalHttpClient(environment);
     }
+    this.initialized = true;
   }
 
-  isConfigured(): boolean {
-    return this.client !== null;
+  async isConfigured(): Promise<boolean> {
+    const status = await getProviderStatus('paypal');
+    return status.isConfigured && status.isEnabled;
   }
 
   async createCheckout(params: CheckoutParams): Promise<CheckoutSession> {
+    await this.ensureInitialized();
+
     if (!this.client) {
-      throw new Error('PayPal is not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.');
+      throw new Error('PayPal is not configured.');
     }
 
     const request = new paypal.orders.OrdersCreateRequest();
@@ -100,16 +105,13 @@ export class PayPalAdapter implements PaymentAdapter {
   }
 
   async verifyWebhook(payload: string, _signature: string): Promise<PaymentResult> {
+    await this.ensureInitialized();
+
     if (!this.client) {
       throw new Error('PayPal is not configured.');
     }
 
-    // Parse le payload
     const event = JSON.parse(payload);
-
-    // En production, il faudrait vérifier la signature avec l'API PayPal
-    // Pour simplifier, on fait confiance au payload si le webhook_id correspond
-    // Une vraie implémentation utiliserait /v1/notifications/verify-webhook-signature
 
     switch (event.event_type) {
       case 'CHECKOUT.ORDER.APPROVED':
@@ -164,6 +166,8 @@ export class PayPalAdapter implements PaymentAdapter {
   }
 
   async refund(transactionId: string, amount?: number): Promise<RefundResult> {
+    await this.ensureInitialized();
+
     if (!this.client) {
       throw new Error('PayPal is not configured.');
     }
@@ -174,7 +178,7 @@ export class PayPalAdapter implements PaymentAdapter {
       if (amount) {
         request.requestBody({
           amount: {
-            currency_code: 'EUR', // TODO: rendre dynamique
+            currency_code: 'EUR',
             value: (amount / 100).toFixed(2),
           },
         });

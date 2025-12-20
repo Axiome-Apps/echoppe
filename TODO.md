@@ -56,6 +56,7 @@
 - [ ] Logs d'audit
 
 ### Docker / Déploiement
+- [ ] Auto-génération ENCRYPTION_KEY au premier lancement
 - [ ] Publier les images sur Docker Hub ou ghcr.io
 - [ ] GitHub Actions pour build/push automatique à chaque tag
 - [ ] Compose de distribution (images pré-construites)

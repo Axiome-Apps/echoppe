@@ -12,9 +12,19 @@ export type {
 export { StripeAdapter } from './stripe';
 export { PayPalAdapter } from './paypal';
 
+export {
+  getProviderCredentials,
+  getProviderStatus,
+  saveProviderCredentials,
+  setProviderEnabled,
+  type PayPalCredentials,
+  type StripeCredentials,
+} from './config';
+
 import type { PaymentAdapter, PaymentProvider } from './types';
 import { StripeAdapter } from './stripe';
 import { PayPalAdapter } from './paypal';
+import { getProviderStatus } from './config';
 
 // Singleton instances (lazy-initialized)
 let stripeAdapter: StripeAdapter | null = null;
@@ -43,20 +53,26 @@ export function getPaymentAdapter(provider: PaymentProvider): PaymentAdapter {
 }
 
 /**
- * Retourne la liste des providers configurés et disponibles
+ * Retourne la liste des providers configurés et activés
  */
-export function getAvailablePaymentProviders(): PaymentProvider[] {
-  const providers: PaymentProvider[] = [];
+export async function getAvailablePaymentProviders(): Promise<PaymentProvider[]> {
+  const providers: PaymentProvider[] = ['stripe', 'paypal'];
+  const available: PaymentProvider[] = [];
 
-  const stripe = getPaymentAdapter('stripe');
-  if (stripe.isConfigured()) {
-    providers.push('stripe');
+  for (const provider of providers) {
+    const status = await getProviderStatus(provider);
+    if (status.isConfigured && status.isEnabled) {
+      available.push(provider);
+    }
   }
 
-  const paypal = getPaymentAdapter('paypal');
-  if (paypal.isConfigured()) {
-    providers.push('paypal');
-  }
+  return available;
+}
 
-  return providers;
+/**
+ * Réinitialise les adapters (utile après mise à jour des credentials)
+ */
+export function resetPaymentAdapters(): void {
+  stripeAdapter = null;
+  paypalAdapter = null;
 }

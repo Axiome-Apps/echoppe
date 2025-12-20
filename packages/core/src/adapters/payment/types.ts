@@ -58,7 +58,7 @@ export interface PaymentAdapter {
   refund(transactionId: string, amount?: number): Promise<RefundResult>;
 
   /**
-   * Vérifie si l'adapter est configuré (credentials présents)
+   * Vérifie si l'adapter est configuré (credentials présents et activé)
    */
-  isConfigured(): boolean;
+  isConfigured(): Promise<boolean>;
 }

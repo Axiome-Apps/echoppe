@@ -1,6 +1,16 @@
-import { decimal, jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, decimal, jsonb, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { paymentProviderEnum, paymentStatusEnum } from './enums';
 import { order } from './orders';
+
+// Configuration des providers de paiement (credentials chiffrés)
+export const paymentProviderConfig = pgTable('payment_provider_config', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  provider: paymentProviderEnum('provider').unique().notNull(),
+  isEnabled: boolean('is_enabled').notNull().default(false),
+  credentials: text('credentials'), // Chiffré AES-256-GCM (JSON stringifié puis chiffré)
+  dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
+  dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const payment = pgTable('payment', {
   id: uuid('id').primaryKey().defaultRandom(),
