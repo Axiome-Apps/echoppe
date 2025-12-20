@@ -4,6 +4,7 @@ import {
   taxRate,
   role,
   user,
+  company,
   category,
   product,
   variant,
@@ -90,6 +91,37 @@ async function seed() {
     .onConflictDoNothing()
     .returning();
   console.log(`    ✓ ${countries.length} countries`);
+
+  // === COMPANY (Shop Settings) ===
+  console.log('  → Company settings...');
+  const [france] = await db.select().from(country).where(eq(country.code, 'FR'));
+
+  if (france) {
+    const [existingCompany] = await db.select().from(company).limit(1);
+    if (!existingCompany) {
+      await db.insert(company).values({
+        shopName: 'Ma Boutique Artisanale',
+        publicEmail: 'contact@maboutique.fr',
+        publicPhone: '01 23 45 67 89',
+        legalName: 'Ma Boutique Artisanale SASU',
+        legalForm: 'SASU',
+        siren: '123456789',
+        siret: '12345678900001',
+        tvaIntra: 'FR12345678901',
+        rcsCity: 'Paris',
+        shareCapital: '1000.00',
+        street: '123 Rue de la Création',
+        postalCode: '75001',
+        city: 'Paris',
+        country: france.id,
+        documentPrefix: 'REC',
+        invoicePrefix: 'FA',
+      });
+      console.log('    ✓ Company settings created');
+    } else {
+      console.log('    ⊘ Company settings already exist');
+    }
+  }
 
   // === TAX RATES ===
   console.log('  → Tax rates...');
