@@ -17,5 +17,35 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: echoppe-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
+      ADMIN_URL: http://localhost:3000
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: echoppe-admin
+    restart: unless-stopped
+    ports:
+      - '3000:80'
+    depends_on:
+      - api
+
 volumes:
   echoppe-data:

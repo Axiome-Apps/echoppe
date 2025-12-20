@@ -7,11 +7,9 @@
 - [x] PostgreSQL + Drizzle ORM (35 tables, 12 enums)
 - [x] Auth Admin (sessions + cookies HTTP-only)
 - [x] CRUD Categories
-- [x] CRUD Products
+- [x] CRUD Products (variantes, options, médias)
 - [x] CRUD Collections
 - [x] Upload & gestion médias
-- [ ] Permissions RBAC
-- [ ] Validation Zod sur toutes les routes
 
 ### Dashboard
 - [x] Setup Vue 3 + Vite + Tailwind 4
@@ -19,30 +17,53 @@
 - [x] Login + Layout admin
 - [x] Pages produits/catégories/collections
 - [x] Médiathèque (upload, dossiers, drag & drop)
-- [ ] CRUD complet produits (variantes, options, prix)
-- [ ] Paramètres boutique
+- [ ] Refactor ProductEditView (splitter en composants)
 
 ---
 
 ## V1
 
-### Intégrations
-- [ ] Payment Adapters (Stripe, PayPal)
-- [ ] Shipping Adapters (Colissimo, Mondial Relay)
-- [ ] Invoice Adapters (Pennylane)
+### Paramètres & Users
+- [ ] Paramètres boutique (API + Admin) - infos légales, devise, TVA
+- [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
 
-### Features
-- [ ] Auth Customer
+### Stock
+- [ ] Mouvements de stock (API + Admin)
+- [ ] Alertes rupture / seuil bas
+
+### Adapters (abstractions services tiers)
+- [ ] Interface PaymentAdapter + implémentations (Stripe, PayPal)
+- [ ] Interface ShippingAdapter + implémentations (Colissimo, Mondial Relay)
+- [ ] Interface InvoiceAdapter + implémentation (Pennylane)
+
+### Commandes
+- [ ] Commandes (API + Admin) - création, statuts, historique
+- [ ] Liaison stock/paiement/livraison
+
+### Auth & Permissions
+- [ ] Auth Customer (inscription, login, profil)
+- [ ] Permissions RBAC (middleware + admin)
+
+### Front Store
+- [ ] Pages vitrine (accueil, catégories, produits)
+- [ ] Panier + Checkout
+- [ ] Espace client (commandes, adresses)
+
+### Autres
 - [ ] Webhooks
 - [ ] Notifications email
 - [ ] Export/Import CSV
 - [ ] Logs d'audit
 
+### Docker / Déploiement
+- [ ] Publier les images sur Docker Hub ou ghcr.io
+- [ ] GitHub Actions pour build/push automatique à chaque tag
+- [ ] Compose de distribution (images pré-construites)
+
 ---
 
 ## V2
 
-- [ ] Front Store (headless ou templates)
-- [ ] Panier + Checkout
 - [ ] Multi-langue
-- [ ] SEO
+- [ ] SEO avancé
+- [ ] Analytics intégrés

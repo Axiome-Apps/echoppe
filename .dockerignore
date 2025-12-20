@@ -1,0 +1,45 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+**/dist
+**/.turbo
+
+# Dev files
+**/.env
+**/.env.local
+**/.env.*.local
+
+# IDE
+.idea
+.vscode
+**/*.swp
+**/*.swo
+
+# Git
+.git
+.gitignore
+
+# Docker
+**/Dockerfile
+**/*.dockerfile
+docker-compose*.yml
+compose*.yaml
+
+# Misc
+**/*.log
+**/*.md
+**/LICENSE
+.dockerignore
+
+# Test & coverage
+**/coverage
+**/.nyc_output
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (volume monté)
+uploads
