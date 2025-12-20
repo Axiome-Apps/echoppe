@@ -28,8 +28,8 @@
 - [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
 
 ### Stock
-- [ ] Mouvements de stock (API + Admin)
-- [ ] Alertes rupture / seuil bas
+- [x] Mouvements de stock (API + Admin)
+- [x] Alertes rupture / seuil bas
 
 ### Adapters (abstractions services tiers)
 - [ ] Interface PaymentAdapter + implémentations (Stripe, PayPal)
