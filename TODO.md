@@ -32,7 +32,7 @@
 - [x] Alertes rupture / seuil bas
 
 ### Adapters (abstractions services tiers)
-- [ ] Interface PaymentAdapter + implémentations (Stripe, PayPal)
+- [x] Interface PaymentAdapter + implémentations (Stripe, PayPal)
 - [ ] Interface ShippingAdapter + implémentations (Colissimo, Mondial Relay)
 - [ ] Interface InvoiceAdapter + implémentation (Pennylane)
 
