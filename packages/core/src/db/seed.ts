@@ -14,6 +14,7 @@ import {
   productOption,
   optionValue,
   variantOptionValue,
+  stockMove,
 } from './schema';
 import { eq } from 'drizzle-orm';
 import { mkdir } from 'fs/promises';
@@ -537,6 +538,41 @@ async function seed() {
     }
   }
   console.log(`    ✓ ${variantCount} variants`);
+
+  // === STOCK MOVES ===
+  console.log('  → Stock moves (initial restock)...');
+
+  // Create initial restock movements for all variants
+  const allVariants = await db
+    .select({
+      id: variant.id,
+      sku: variant.sku,
+      quantity: variant.quantity,
+      productName: product.name,
+    })
+    .from(variant)
+    .innerJoin(product, eq(variant.product, product.id));
+
+  let stockMoveCount = 0;
+  for (const v of allVariants) {
+    if (v.quantity <= 0) continue;
+
+    const label = v.sku ? `${v.productName} — ${v.sku}` : v.productName;
+
+    await db
+      .insert(stockMove)
+      .values({
+        variant: v.id,
+        label,
+        quantity: v.quantity,
+        type: 'restock',
+        note: 'Stock initial',
+      })
+      .onConflictDoNothing();
+
+    stockMoveCount++;
+  }
+  console.log(`    ✓ ${stockMoveCount} stock moves`);
 
   // === PRODUCT IMAGES ===
   console.log('  → Product images (downloading from Picsum)...');
