@@ -1,7 +1,6 @@
 import {
   db,
   eq,
-  getAvailablePaymentProviders,
   getPaymentAdapter,
   order,
   payment,
@@ -22,14 +21,37 @@ const uuidParam = t.Object({
   orderId: t.String({ format: 'uuid' }),
 });
 
+const providerMeta: Record<
+  PaymentProvider,
+  { name: string; description: string }
+> = {
+  stripe: {
+    name: 'Stripe',
+    description: 'Paiements par carte bancaire',
+  },
+  paypal: {
+    name: 'PayPal',
+    description: 'Paiements via compte PayPal',
+  },
+};
+
 export const paymentsRoutes = new Elysia({ prefix: '/payments' })
   .use(authPlugin)
 
-  // GET /payments/providers - Liste des providers disponibles
+  // GET /payments/providers - Liste des providers avec statut
   .get(
     '/providers',
     () => {
-      return getAvailablePaymentProviders();
+      const providers: PaymentProvider[] = ['stripe', 'paypal'];
+
+      return providers.map((id) => {
+        const adapter = getPaymentAdapter(id);
+        return {
+          id,
+          ...providerMeta[id],
+          isConfigured: adapter.isConfigured(),
+        };
+      });
     },
     { auth: true },
   )
