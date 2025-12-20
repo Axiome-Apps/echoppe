@@ -9,6 +9,7 @@ import { taxRatesRoutes } from './routes/tax-rates';
 import { assetsRoutes } from './routes/assets';
 import { settingsRoutes } from './routes/settings';
 import { stockRoutes } from './routes/stock';
+import { paymentsRoutes } from './routes/payments';
 
 const port = process.env.API_PORT ?? 8000;
 
@@ -36,6 +37,7 @@ const app = new Elysia()
   .use(assetsRoutes)
   .use(settingsRoutes)
   .use(stockRoutes)
+  .use(paymentsRoutes)
   .listen(port);
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);

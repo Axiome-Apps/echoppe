@@ -2,17 +2,6 @@ import { db, desc, eq, product, sql, stockMove, variant } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { authPlugin } from '../plugins/auth';
 
-const stockMoveSchema = t.Object({
-  id: t.String(),
-  variant: t.Nullable(t.String()),
-  label: t.String(),
-  quantity: t.Number(),
-  type: t.String(),
-  reference: t.Nullable(t.String()),
-  note: t.Nullable(t.String()),
-  dateCreated: t.Date(),
-});
-
 const stockMoveCreateBody = t.Object({
   variant: t.String({ format: 'uuid' }),
   quantity: t.Number(),

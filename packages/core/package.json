@@ -20,8 +20,10 @@
   },
   "dependencies": {
     "@echoppe/shared": "workspace:*",
+    "@paypal/checkout-server-sdk": "^1.0.3",
     "drizzle-orm": "^0.45.1",
     "postgres": "^3.4.7",
+    "stripe": "^20.1.0",
     "zod": "^4.2.1"
   },
   "devDependencies": {
