@@ -68,3 +68,4 @@
 - [ ] Multi-langue
 - [ ] SEO avancé
 - [ ] Analytics intégrés
+- [ ] Doc pas-à-pas webhooks Stripe/PayPal (screenshots)
