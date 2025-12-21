@@ -210,9 +210,12 @@ const emit = defineEmits<{
 // === IMPORTS ===
 import { ref, watch, onMounted } from 'vue';
 import { useFeature } from '@/composables/feature';
-import { Button, Modal } from '@/components/atoms';
-import { Breadcrumb, SearchInput } from '@/components/molecules';
-import { FeatureSidebar, FeatureGrid } from '@/components/organisms';
+import Button from '@/components/atoms/Button.vue';
+import Modal from '@/components/atoms/Modal.vue';
+import Breadcrumb from '@/components/molecules/Breadcrumb.vue';
+import SearchInput from '@/components/molecules/SearchInput.vue';
+import FeatureSidebar from '@/components/organisms/FeatureSidebar.vue';
+import FeatureGrid from '@/components/organisms/FeatureGrid.vue';
 
 // === UI STATE (local à la vue) ===
 const viewMode = ref<ViewMode>('grid');
@@ -254,14 +257,26 @@ function handleNavigate(id: string | null) {
 
 ---
 
-## 7. Barrel Exports
+## 7. Imports
+
+### Composants Vue - Imports directs (OBLIGATOIRE)
+
+**Pas de barrel files pour les composants Vue.** Toujours utiliser les imports directs :
 
 ```typescript
-// components/atoms/index.ts
-export { default as Button } from './Button.vue';
-export { default as Modal } from './Modal.vue';
-export { default as Checkbox } from './Checkbox.vue';
+// ❌ INTERDIT
+import { Button, Modal } from '@/components/atoms';
 
+// ✅ CORRECT
+import Button from '@/components/atoms/Button.vue';
+import Modal from '@/components/atoms/Modal.vue';
+```
+
+### Composables - Barrel exports OK
+
+Les composables et types peuvent utiliser des barrel files :
+
+```typescript
 // composables/media/index.ts
 export * from './types';
 export { useMedia, getMediaUrl, isImage, formatSize, formatDate } from './useMedia';
@@ -270,7 +285,6 @@ export { useMedia, getMediaUrl, isImage, formatSize, formatDate } from './useMed
 Usage :
 
 ```typescript
-import { Button, Modal } from '@/components/atoms';
 import { type Media, useMedia, formatSize } from '@/composables/media';
 ```
 

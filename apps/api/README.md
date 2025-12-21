@@ -8,13 +8,21 @@ Backend Elysia pour le e-commerce.
 src/
 ├── index.ts          # Entry point, monte les routes
 ├── plugins/
-│   └── auth.ts       # Auth plugin (sessions, guards)
+│   └── auth.ts       # Auth plugin (sessions, macro)
 └── routes/
     ├── auth.ts       # /auth (login, logout, me)
     ├── categories.ts # /categories
     ├── collections.ts# /collections
     ├── media.ts      # /media (upload, folders)
-    └── products.ts   # /products
+    ├── products.ts   # /products (variantes, options, médias)
+    ├── tax-rates.ts  # /tax-rates
+    ├── assets.ts     # /assets (servir fichiers)
+    ├── settings.ts   # /settings (paramètres boutique)
+    ├── stock.ts      # /stock (mouvements, alertes)
+    ├── orders.ts     # /orders (commandes, factures)
+    ├── payments.ts   # /payments (Stripe, PayPal)
+    ├── shipping.ts   # /shipping (Colissimo, MondialRelay, Sendcloud)
+    └── pagination.ts # Utilitaire pagination
 ```
 
 ## Ajouter une route
@@ -79,7 +87,14 @@ bun run dev          # Lance API + Admin
 | POST | /auth/logout | Logout |
 | GET | /auth/me | User courant |
 | GET/POST/PUT/DELETE | /categories | CRUD catégories |
-| GET/POST/PUT/DELETE | /products | CRUD produits |
+| GET/POST/PUT/PATCH/DELETE | /products | CRUD produits + variantes + options |
 | GET/POST/PUT/DELETE | /collections | CRUD collections |
-| GET/POST/PUT/DELETE | /media | CRUD médias |
-| POST | /media/upload | Upload fichier |
+| GET/POST/PUT/DELETE | /media | CRUD médias + dossiers |
+| POST | /media/upload | Upload fichier(s) |
+| GET | /tax-rates | Liste taux TVA |
+| GET | /assets/:id | Servir fichier uploadé |
+| GET/PUT | /settings | Paramètres boutique |
+| GET/POST | /stock | Mouvements de stock + alertes |
+| GET/PATCH | /orders | Commandes + statuts + factures |
+| GET/PUT/POST | /payments | Configuration + checkout + webhooks |
+| GET/PUT/POST | /shipping | Configuration + tarifs + étiquettes |

@@ -105,6 +105,7 @@ L'API utilise un système de **session + cookie HTTP-only** (pas de JWT).
 | `GET` | `/categories/:id` | Non | Récupérer une |
 | `POST` | `/categories` | Oui | Créer |
 | `PUT` | `/categories/:id` | Oui | Mettre à jour |
+| `PATCH` | `/categories/batch/order` | Oui | Réordonner (drag & drop) |
 | `DELETE` | `/categories/:id` | Oui | Supprimer |
 
 #### Schéma de création/mise à jour
@@ -364,6 +365,83 @@ Lecture seule, utilisé pour les formulaires produits.
 Sert les fichiers uploadés avec :
 - `Content-Type` depuis la base de données
 - `Cache-Control: public, max-age=31536000` (1 an)
+
+---
+
+### Settings (`/settings`)
+
+| Méthode | Endpoint | Auth | Description |
+|---------|----------|------|-------------|
+| `GET` | `/settings` | Oui | Récupérer paramètres boutique |
+| `GET` | `/settings/countries` | Oui | Liste pays (pour select) |
+| `PUT` | `/settings` | Oui | Créer/modifier paramètres (upsert) |
+
+Paramètres : infos boutique, mentions légales (SIREN, SIRET, TVA intra), adresse, préfixes documents.
+
+---
+
+### Stock (`/stock`)
+
+| Méthode | Endpoint | Auth | Description |
+|---------|----------|------|-------------|
+| `GET` | `/stock` | Oui | Liste mouvements avec pagination |
+| `GET` | `/stock/alerts` | Oui | Variantes sous seuil de stock |
+| `GET` | `/stock/variants` | Oui | Liste variantes (pour modal ajustement) |
+| `POST` | `/stock` | Oui | Créer mouvement et MAJ quantité |
+
+Types de mouvement : `restock`, `adjustment`
+
+---
+
+### Orders (`/orders`)
+
+| Méthode | Endpoint | Auth | Description |
+|---------|----------|------|-------------|
+| `GET` | `/orders` | Oui | Liste avec filtres (statut, dates, montant, recherche) |
+| `GET` | `/orders/:id` | Oui | Détail avec items, paiement, expédition |
+| `GET` | `/orders/stats` | Oui | Statistiques par statut |
+| `PATCH` | `/orders/:id/status` | Oui | Changer statut (MAJ stock auto) |
+| `PATCH` | `/orders/:id/notes` | Oui | Modifier notes internes/client |
+| `GET` | `/orders/:id/invoices` | Oui | Liste factures de la commande |
+| `POST` | `/orders/:id/invoice` | Oui | Générer facture PDF |
+| `GET` | `/orders/:id/invoices/:invoiceId/pdf` | Oui | Télécharger PDF |
+
+Statuts : `pending`, `confirmed`, `processing`, `shipped`, `delivered`, `cancelled`, `refunded`
+
+Gestion stock automatique : pending→confirmed décrémente, cancelled/refunded incrémente.
+
+---
+
+### Payments (`/payments`)
+
+| Méthode | Endpoint | Auth | Description |
+|---------|----------|------|-------------|
+| `GET` | `/payments/providers` | Oui | Liste providers avec statut |
+| `PUT` | `/payments/providers/stripe` | Oui | Configurer Stripe |
+| `PUT` | `/payments/providers/paypal` | Oui | Configurer PayPal |
+| `POST` | `/payments/checkout` | Non | Créer session paiement |
+| `GET` | `/payments/:orderId` | Oui | Statut paiement |
+| `POST` | `/payments/webhook/stripe` | Non | Webhook Stripe |
+| `POST` | `/payments/webhook/paypal` | Non | Webhook PayPal |
+| `POST` | `/payments/:orderId/refund` | Oui | Rembourser |
+
+Providers : `stripe`, `paypal`
+
+---
+
+### Shipping (`/shipping`)
+
+| Méthode | Endpoint | Auth | Description |
+|---------|----------|------|-------------|
+| `GET` | `/shipping/providers` | Oui | Liste providers avec statut |
+| `PUT` | `/shipping/providers/colissimo` | Oui | Configurer Colissimo |
+| `PUT` | `/shipping/providers/mondialrelay` | Oui | Configurer Mondial Relay |
+| `PUT` | `/shipping/providers/sendcloud` | Oui | Configurer Sendcloud |
+| `POST` | `/shipping/rates` | Oui | Calculer tarifs |
+| `POST` | `/shipping/labels` | Oui | Créer étiquette |
+| `GET` | `/shipping/tracking/:trackingNumber` | Oui | Événements suivi |
+
+Providers : `colissimo`, `mondialrelay`, `sendcloud`
 
 ---
 

@@ -7,14 +7,25 @@ Interface d'administration Vue 3.
 ```
 src/
 ├── components/
-│   ├── atoms/        # Button, Checkbox, Modal, Thumbnail...
-│   ├── molecules/    # Breadcrumb, SearchInput, ContextMenu...
-│   └── organisms/    # FolderSidebar, MediaGrid, DataTable...
+│   ├── atoms/           # 33 composants (Button, Modal, Input, icons/...)
+│   ├── molecules/       # 15 composants (Breadcrumb, SearchInput, Pagination...)
+│   └── organisms/       # 19 composants (MediaGrid, DataTable/, product/...)
 ├── composables/
-│   └── media/        # useMedia (state + actions médiathèque)
+│   ├── media/           # useMedia (dossiers, upload, sélection)
+│   ├── product/         # useProductData, useProductForm, useProductVariants
+│   ├── categories/      # useCategories (arbre, drag & drop)
+│   ├── sortable/        # useSortable (tri drag & drop)
+│   ├── useAuth.ts       # Authentification
+│   ├── useToast.ts      # Notifications
+│   ├── usePagination.ts # Pagination avec URL sync
+│   └── useModalStack.ts # Z-index modales empilées
+├── layouts/
+│   └── AdminLayout.vue  # Layout principal avec sidebar
 ├── lib/
-│   └── api.ts        # Eden client type-safe
-├── views/            # Pages (ProductsView, MediaView...)
+│   └── api.ts           # Eden client type-safe
+├── views/               # 16 pages
+├── router/
+│   └── index.ts         # Routes avec auth guards
 ├── App.vue
 └── main.ts
 ```
@@ -25,20 +36,45 @@ Utiliser `@/` pour tous les imports :
 
 ```typescript
 import { api } from '@/lib/api';
-import { Button, Modal } from '@/components/atoms';
+import Button from '@/components/atoms/Button.vue';
+import Modal from '@/components/atoms/Modal.vue';
 import { useMedia } from '@/composables/media';
 ```
 
 ## Atomic Design
 
 ### Atoms
-Composants de base réutilisables : `Button`, `Checkbox`, `Modal`, `Thumbnail`, `IconButton`
+Composants de base : `Button`, `IconButton`, `Modal`, `Input`, `Select`, `Checkbox`, `Combobox`, `Badge`, `RichTextEditor`, `Thumbnail`, + 23 icônes SVG dans `icons/`
 
 ### Molecules
-Combinaisons d'atoms : `Breadcrumb`, `SearchInput`, `ContextMenu`, `FolderTreeItem`
+Compositions d'atoms : `Breadcrumb`, `SearchInput`, `Pagination`, `ContextMenu`, `FolderTreeItem`, `CategoryTreeItem`, `FolderModal`, `MediaInfo`, `MediaPreview`, `ViewToggle`, `GridSizeToggle`, `FormField`, `SidebarNavItem`, `SidebarNavSection`, `SidebarUserMenu`
 
 ### Organisms
-Sections complètes : `FolderSidebar`, `MediaGrid`, `MediaList`, `MediaDetailModal`
+Sections UI complètes :
+- **Media** : `FolderSidebar`, `MediaGrid`, `MediaList`, `MediaDetailModal`, `MediaBrowserModal`
+- **Data** : `DataTable/` (avec `DataTableHeader`, `ColumnMenu`, `AddColumnPopover`)
+- **Product** : `product/ProductHeader`, `ProductInfoCard`, `ProductSidebar`, `ProductVariantsCard`
+- **Categories** : `CategoryTree`, `CategoryFormModal`
+- **Layout** : `SidebarNav`, `ToastContainer`
+
+## Views
+
+| Page | Description |
+|------|-------------|
+| `DashboardView` | Accueil admin |
+| `ProductsView` | Liste produits |
+| `ProductEditView` | Édition produit |
+| `CategoriesView` | Gestion catégories |
+| `CollectionsView` | Gestion collections |
+| `MediaView` | Médiathèque |
+| `StockView` | Mouvements de stock |
+| `OrdersView` | Liste commandes |
+| `OrderDetailView` | Détail commande + factures |
+| `PaymentsView` | Config Stripe/PayPal |
+| `ShippingView` | Config transporteurs |
+| `SettingsView` | Paramètres boutique |
+| `ProfileView` | Profil utilisateur |
+| `LoginView` | Authentification |
 
 ## Composables
 
