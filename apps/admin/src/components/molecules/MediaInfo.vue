@@ -27,6 +27,14 @@ defineProps<{
     </div>
     <div class="flex justify-between">
       <dt class="text-gray-500">
+        Disque
+      </dt>
+      <dd class="font-mono text-gray-700 select-all text-[10px]">
+        {{ media.filenameDisk }}
+      </dd>
+    </div>
+    <div class="flex justify-between">
+      <dt class="text-gray-500">
         Type
       </dt>
       <dd class="text-gray-700">

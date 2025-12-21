@@ -9,6 +9,7 @@ import {
   product,
   variant,
   media,
+  folder,
   productMedia,
   option,
   productOption,
@@ -46,7 +47,8 @@ async function createMedia(
   seed: string,
   title: string,
   width = 800,
-  height = 800
+  height = 800,
+  folderId: string | null = null
 ): Promise<string | null> {
   try {
     const { buffer, size } = await downloadPlaceholder(width, height, seed);
@@ -57,6 +59,7 @@ async function createMedia(
     const [mediaRecord] = await db
       .insert(media)
       .values({
+        folder: folderId,
         filenameDisk,
         filenameOriginal: `${seed}.jpg`,
         title,
@@ -79,6 +82,27 @@ async function seed() {
 
   // Ensure uploads directory exists
   await mkdir(UPLOAD_DIR, { recursive: true });
+
+  // === MEDIA FOLDER ===
+  console.log('  → Media folders...');
+  let productsFolderId: string | null = null;
+
+  const [existingProductsFolder] = await db
+    .select()
+    .from(folder)
+    .where(eq(folder.name, 'Produits'));
+
+  if (existingProductsFolder) {
+    productsFolderId = existingProductsFolder.id;
+    console.log('    ⊘ Folder "Produits" already exists');
+  } else {
+    const [createdFolder] = await db
+      .insert(folder)
+      .values({ name: 'Produits' })
+      .returning();
+    productsFolderId = createdFolder.id;
+    console.log('    ✓ Folder "Produits" created');
+  }
 
   // === COUNTRIES ===
   console.log('  → Countries...');
@@ -660,7 +684,7 @@ async function seed() {
     const prod = productMap.get(img.productSlug);
     if (!prod) continue;
 
-    const mediaId = await createMedia(img.seed, img.title);
+    const mediaId = await createMedia(img.seed, img.title, 800, 800, productsFolderId);
     if (!mediaId) continue;
 
     const variantId = img.forVariantSku ? variantMap.get(img.forVariantSku) : null;
