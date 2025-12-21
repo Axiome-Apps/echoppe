@@ -93,15 +93,6 @@ function copyWebhookUrl(provider: string) {
 
 <template>
   <div>
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">
-        Paiements
-      </h1>
-      <p class="text-gray-500 mt-1">
-        Configurez les moyens de paiement de votre boutique
-      </p>
-    </div>
-
     <!-- Encryption warning -->
     <div
       v-if="providers.length > 0 && !providers[0].encryptionReady"

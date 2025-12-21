@@ -31,19 +31,14 @@ const router = createRouter({
           component: () => import('../views/ProductEditView.vue'),
         },
         {
-          path: 'categories',
-          name: 'categories',
-          component: () => import('../views/CategoriesView.vue'),
+          path: 'taxonomie',
+          name: 'taxonomy',
+          component: () => import('../views/TaxonomyView.vue'),
         },
         {
           path: 'medias',
           name: 'media',
           component: () => import('../views/MediaView.vue'),
-        },
-        {
-          path: 'collections',
-          name: 'collections',
-          component: () => import('../views/CollectionsView.vue'),
         },
         {
           path: 'stock',
@@ -61,14 +56,9 @@ const router = createRouter({
           component: () => import('../views/OrderDetailView.vue'),
         },
         {
-          path: 'expeditions',
-          name: 'shipping',
-          component: () => import('../views/ShippingView.vue'),
-        },
-        {
-          path: 'paiements',
-          name: 'payments',
-          component: () => import('../views/PaymentsView.vue'),
+          path: 'prestataires',
+          name: 'providers',
+          component: () => import('../views/ProvidersView.vue'),
         },
         {
           path: 'profil',
