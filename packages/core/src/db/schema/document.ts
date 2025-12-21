@@ -1,4 +1,4 @@
-import { boolean, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { decimal, jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { documentTypeEnum, invoiceStatusEnum, invoiceTypeEnum } from './enums';
 import { media } from './media';
 import { order } from './orders';
@@ -14,26 +14,23 @@ export const orderDocument = pgTable('order_document', {
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const invoiceProvider = pgTable('invoice_provider', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: varchar('name', { length: 50 }).notNull(), // Indy, Pennylane...
-  type: varchar('type', { length: 50 }).notNull(), // indy, pennylane...
-  isEnabled: boolean('is_enabled').notNull().default(false),
-});
-
 export const invoice = pgTable('invoice', {
   id: uuid('id').primaryKey().defaultRandom(),
   order: uuid('order')
     .notNull()
     .references(() => order.id),
-  provider: uuid('provider')
-    .notNull()
-    .references(() => invoiceProvider.id),
   type: invoiceTypeEnum('type').notNull(),
   number: varchar('number', { length: 20 }).notNull(), // FA-2025-00001
   status: invoiceStatusEnum('status').notNull().default('pending'),
-  providerInvoiceId: varchar('provider_invoice_id', { length: 255 }),
-  pdfUrl: varchar('pdf_url', { length: 500 }),
-  dateIssued: timestamp('date_issued', { withTimezone: true }),
+  pdf: uuid('pdf').references(() => media.id),
+  // Snapshot légal au moment de l'émission
+  sellerSnapshot: jsonb('seller_snapshot').notNull(), // Company info figée
+  buyerSnapshot: jsonb('buyer_snapshot').notNull(), // Customer info figée
+  totalHt: decimal('total_ht', { precision: 10, scale: 2 }).notNull(),
+  totalTax: decimal('total_tax', { precision: 10, scale: 2 }).notNull(),
+  totalTtc: decimal('total_ttc', { precision: 10, scale: 2 }).notNull(),
+  taxExemptMention: varchar('tax_exempt_mention', { length: 255 }), // Art. 293 B...
+  dateIssued: timestamp('date_issued', { withTimezone: true }).notNull().defaultNow(),
+  dateDue: timestamp('date_due', { withTimezone: true }), // Échéance paiement
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
 });

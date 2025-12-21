@@ -14,3 +14,6 @@ export * from './adapters/shipping';
 
 // Utils
 export { encrypt, decrypt, isEncryptionConfigured, generateEncryptionKey } from './utils/crypto';
+
+// Invoice service
+export * from './services/invoice';

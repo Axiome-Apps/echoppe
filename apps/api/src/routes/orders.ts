@@ -16,9 +16,18 @@ import {
   shippingProvider,
   stockMove,
   variant,
+  invoice,
+  media,
+  generateInvoice,
+  getInvoicesByOrder,
+  regenerateInvoicePdf,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { authPlugin } from '../plugins/auth';
+import { randomUUID } from 'crypto';
+import { join } from 'path';
+
+const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
 
 const paginationQuery = t.Object({
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
@@ -344,6 +353,146 @@ export const ordersRoutes = new Elysia({ prefix: '/orders' })
       };
     },
     { auth: true },
+  )
+
+  // === INVOICES ===
+
+  // GET /orders/:id/invoices - Liste des factures d'une commande
+  .get(
+    '/:id/invoices',
+    async ({ params, status }) => {
+      const [existing] = await db
+        .select({ id: order.id })
+        .from(order)
+        .where(eq(order.id, params.id));
+
+      if (!existing) {
+        return status(404, { message: 'Commande introuvable' });
+      }
+
+      const invoices = await getInvoicesByOrder(params.id);
+
+      return invoices.map((inv) => ({
+        id: inv.id,
+        type: inv.type,
+        number: inv.number,
+        status: inv.status,
+        totalHt: inv.totalHt,
+        totalTax: inv.totalTax,
+        totalTtc: inv.totalTtc,
+        dateIssued: inv.dateIssued,
+        dateDue: inv.dateDue,
+        hasPdf: !!inv.pdf,
+      }));
+    },
+    { auth: true, params: uuidParam },
+  )
+
+  // POST /orders/:id/invoice - Générer une facture
+  .post(
+    '/:id/invoice',
+    async ({ params, body, status }) => {
+      // Vérifier que la commande existe
+      const [existing] = await db
+        .select({ id: order.id, orderNumber: order.orderNumber })
+        .from(order)
+        .where(eq(order.id, params.id));
+
+      if (!existing) {
+        return status(404, { message: 'Commande introuvable' });
+      }
+
+      // Générer la facture
+      const result = await generateInvoice(params.id, {
+        type: body?.type ?? 'invoice',
+        dateDue: body?.dateDue ? new Date(body.dateDue) : undefined,
+      });
+
+      // Sauvegarder le PDF dans le dossier uploads
+      const filenameDisk = `${randomUUID()}.pdf`;
+      const filePath = join(UPLOAD_DIR, filenameDisk);
+      await Bun.write(filePath, result.pdfBuffer);
+
+      // Créer l'entrée media
+      const [mediaEntry] = await db
+        .insert(media)
+        .values({
+          filenameDisk,
+          filenameOriginal: `${result.number}.pdf`,
+          title: `Facture ${result.number}`,
+          mimeType: 'application/pdf',
+          size: result.pdfBuffer.length,
+        })
+        .returning();
+
+      // Mettre à jour la facture avec le PDF
+      await db
+        .update(invoice)
+        .set({ pdf: mediaEntry.id })
+        .where(eq(invoice.id, result.invoiceId));
+
+      return {
+        id: result.invoiceId,
+        number: result.number,
+        pdfUrl: `/assets/${mediaEntry.id}`,
+      };
+    },
+    {
+      auth: true,
+      params: uuidParam,
+      body: t.Optional(
+        t.Object({
+          type: t.Optional(t.Union([t.Literal('invoice'), t.Literal('credit_note')])),
+          dateDue: t.Optional(t.String()),
+        }),
+      ),
+    },
+  )
+
+  // GET /orders/:id/invoices/:invoiceId/pdf - Télécharger le PDF d'une facture
+  .get(
+    '/:id/invoices/:invoiceId/pdf',
+    async ({ params, status, set }) => {
+      // Vérifier que la facture existe et appartient à cette commande
+      const [inv] = await db
+        .select()
+        .from(invoice)
+        .where(and(eq(invoice.id, params.invoiceId), eq(invoice.order, params.id)));
+
+      if (!inv) {
+        return status(404, { message: 'Facture introuvable' });
+      }
+
+      // Si un PDF est stocké, le servir
+      if (inv.pdf) {
+        const [mediaEntry] = await db.select().from(media).where(eq(media.id, inv.pdf));
+
+        if (mediaEntry) {
+          const filePath = join(UPLOAD_DIR, mediaEntry.filenameDisk);
+          const file = Bun.file(filePath);
+
+          if (await file.exists()) {
+            set.headers['Content-Type'] = 'application/pdf';
+            set.headers['Content-Disposition'] = `inline; filename="${inv.number}.pdf"`;
+            return file;
+          }
+        }
+      }
+
+      // Sinon, régénérer le PDF à la volée
+      const pdfBuffer = await regenerateInvoicePdf(params.invoiceId);
+
+      set.headers['Content-Type'] = 'application/pdf';
+      set.headers['Content-Disposition'] = `inline; filename="${inv.number}.pdf"`;
+      return new Response(new Uint8Array(pdfBuffer));
+    },
+    {
+      auth: true,
+      params: t.Object({
+        id: t.String({ format: 'uuid' }),
+        invoiceId: t.String({ format: 'uuid' }),
+      }),
+    },
   );
 
 // Helper: décrémente le stock quand commande confirmée

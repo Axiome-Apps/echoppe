@@ -33,7 +33,7 @@
 ### Adapters (abstractions services tiers)
 - [x] Interface PaymentAdapter + implémentations (Stripe, PayPal)
 - [x] Interface ShippingAdapter + implémentations (Colissimo, Mondial Relay, Sendcloud)
-- [ ] Interface InvoiceAdapter + implémentation (Pennylane)
+- [x] Génération factures PDF (Typst, stockage interne)
 
 ### Commandes
 - [x] Commandes (API + Admin) - création, statuts, historique
