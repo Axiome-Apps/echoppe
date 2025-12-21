@@ -33,6 +33,7 @@ const app = new Elysia()
           description: 'API e-commerce pour artisans français',
         },
         tags: [
+          { name: 'General', description: 'Informations générales' },
           { name: 'Auth', description: 'Authentification' },
           { name: 'Products', description: 'Gestion des produits' },
           { name: 'Categories', description: 'Gestion des catégories' },
@@ -51,12 +52,12 @@ const app = new Elysia()
   )
   .get('/', () => ({
     name: 'Échoppe API',
-    version: '0.0.1',
-  }))
+    version: '1.0.0',
+  }), { detail: { tags: ['General'], summary: 'Informations API' } })
   .get('/health', () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),
-  }))
+  }), { detail: { tags: ['General'], summary: 'Health check' } })
   .use(authRoutes)
   .use(categoriesRoutes)
   .use(productsRoutes)
