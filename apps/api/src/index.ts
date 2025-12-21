@@ -11,6 +11,7 @@ import { settingsRoutes } from './routes/settings';
 import { stockRoutes } from './routes/stock';
 import { paymentsRoutes } from './routes/payments';
 import { shippingRoutes } from './routes/shipping';
+import { ordersRoutes } from './routes/orders';
 
 const port = process.env.API_PORT ?? 8000;
 
@@ -40,6 +41,7 @@ const app = new Elysia()
   .use(stockRoutes)
   .use(paymentsRoutes)
   .use(shippingRoutes)
+  .use(ordersRoutes)
   .listen(port);
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);

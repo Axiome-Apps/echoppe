@@ -15,6 +15,12 @@ import {
   optionValue,
   variantOptionValue,
   stockMove,
+  customer,
+  shippingProvider,
+  order,
+  orderItem,
+  payment,
+  shipment,
 } from './schema';
 import { eq } from 'drizzle-orm';
 import { mkdir } from 'fs/promises';
@@ -670,6 +676,488 @@ async function seed() {
     process.stdout.write(`\r    ↻ ${imageCount}/${imagesToCreate.length} images...`);
   }
   console.log(`\r    ✓ ${imageCount} product images          `);
+
+  // === CUSTOMERS ===
+  console.log('  → Customers...');
+
+  const customersData = [
+    {
+      email: 'marie.dupont@email.fr',
+      firstName: 'Marie',
+      lastName: 'Dupont',
+      phone: '06 12 34 56 78',
+    },
+    {
+      email: 'jean.martin@email.fr',
+      firstName: 'Jean',
+      lastName: 'Martin',
+      phone: '06 98 76 54 32',
+    },
+    {
+      email: 'sophie.bernard@email.fr',
+      firstName: 'Sophie',
+      lastName: 'Bernard',
+      phone: '07 11 22 33 44',
+    },
+    {
+      email: 'lucas.petit@email.fr',
+      firstName: 'Lucas',
+      lastName: 'Petit',
+      phone: null,
+    },
+    {
+      email: 'emma.moreau@email.fr',
+      firstName: 'Emma',
+      lastName: 'Moreau',
+      phone: '06 55 66 77 88',
+    },
+  ];
+
+  const customerMap = new Map<string, string>();
+  let customerCount = 0;
+
+  for (const c of customersData) {
+    const passwordHash = await Bun.password.hash('client123', {
+      algorithm: 'argon2id',
+      memoryCost: 19456,
+      timeCost: 2,
+    });
+
+    const [created] = await db
+      .insert(customer)
+      .values({
+        email: c.email,
+        passwordHash,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        phone: c.phone,
+        emailVerified: true,
+      })
+      .onConflictDoNothing()
+      .returning();
+
+    if (created) {
+      customerMap.set(c.email, created.id);
+      customerCount++;
+    }
+  }
+
+  // Get existing customers if they weren't created
+  if (customerMap.size < customersData.length) {
+    const existingCustomers = await db.select().from(customer);
+    for (const c of existingCustomers) {
+      customerMap.set(c.email, c.id);
+    }
+  }
+  console.log(`    ✓ ${customerCount} customers`);
+
+  // === SHIPPING PROVIDERS ===
+  console.log('  → Shipping providers...');
+
+  const shippingProvidersData = [
+    { name: 'Colissimo', type: 'colissimo' },
+    { name: 'Mondial Relay', type: 'mondialrelay' },
+    { name: 'Sendcloud', type: 'sendcloud' },
+  ];
+
+  const shippingProviderMap = new Map<string, string>();
+  let providerCount = 0;
+
+  for (const sp of shippingProvidersData) {
+    const [created] = await db
+      .insert(shippingProvider)
+      .values(sp)
+      .onConflictDoNothing()
+      .returning();
+
+    if (created) {
+      shippingProviderMap.set(sp.type, created.id);
+      providerCount++;
+    }
+  }
+
+  // Get existing providers if they weren't created
+  if (shippingProviderMap.size < shippingProvidersData.length) {
+    const existingProviders = await db.select().from(shippingProvider);
+    for (const sp of existingProviders) {
+      shippingProviderMap.set(sp.type, sp.id);
+    }
+  }
+  console.log(`    ✓ ${providerCount} shipping providers`);
+
+  // === ORDERS ===
+  console.log('  → Orders...');
+
+  // Get all variants with their info for order items
+  const allVariantsForOrders = await db
+    .select({
+      id: variant.id,
+      sku: variant.sku,
+      priceHt: variant.priceHt,
+      productName: product.name,
+    })
+    .from(variant)
+    .innerJoin(product, eq(variant.product, product.id));
+
+  const variantBySku = new Map(allVariantsForOrders.map((v) => [v.sku, v]));
+
+  // Helper to generate order number
+  function generateOrderNumber(index: number): string {
+    const year = new Date().getFullYear();
+    const num = String(index + 1).padStart(5, '0');
+    return `CMD-${year}-${num}`;
+  }
+
+  // Helper to create address snapshot
+  function createAddressSnapshot(data: {
+    firstName: string;
+    lastName: string;
+    street: string;
+    postalCode: string;
+    city: string;
+    country: string;
+    company?: string;
+    phone?: string;
+  }) {
+    return {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      company: data.company || null,
+      street: data.street,
+      street2: null,
+      postalCode: data.postalCode,
+      city: data.city,
+      country: data.country,
+      phone: data.phone || null,
+    };
+  }
+
+  type OrderSeedData = {
+    customerEmail: string;
+    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    items: { sku: string; quantity: number }[];
+    shippingHt: string;
+    address: {
+      firstName: string;
+      lastName: string;
+      street: string;
+      postalCode: string;
+      city: string;
+      country: string;
+      company?: string;
+      phone?: string;
+    };
+    paymentStatus?: 'pending' | 'completed' | 'failed';
+    paymentProvider?: 'stripe' | 'paypal';
+    shipmentStatus?: 'pending' | 'label_created' | 'shipped' | 'in_transit' | 'delivered';
+    shipmentProvider?: 'colissimo' | 'mondialrelay' | 'sendcloud';
+    trackingNumber?: string;
+    daysAgo: number;
+  };
+
+  const ordersData: OrderSeedData[] = [
+    // Commande livrée - Marie
+    {
+      customerEmail: 'marie.dupont@email.fr',
+      status: 'delivered',
+      items: [
+        { sku: 'BOUCLE-LUNE-OR', quantity: 1 },
+        { sku: 'COLLIER-45', quantity: 1 },
+      ],
+      shippingHt: '5.00',
+      address: {
+        firstName: 'Marie',
+        lastName: 'Dupont',
+        street: '15 Rue des Lilas',
+        postalCode: '75011',
+        city: 'Paris',
+        country: 'France',
+        phone: '06 12 34 56 78',
+      },
+      paymentStatus: 'completed',
+      paymentProvider: 'stripe',
+      shipmentStatus: 'delivered',
+      shipmentProvider: 'colissimo',
+      trackingNumber: '6A12345678901',
+      daysAgo: 15,
+    },
+    // Commande expédiée - Jean
+    {
+      customerEmail: 'jean.martin@email.fr',
+      status: 'shipped',
+      items: [
+        { sku: 'BOL-BLEU-M', quantity: 2 },
+        { sku: 'MUG-BLANC', quantity: 4 },
+      ],
+      shippingHt: '8.50',
+      address: {
+        firstName: 'Jean',
+        lastName: 'Martin',
+        company: 'Martin & Fils',
+        street: '42 Avenue du Commerce',
+        postalCode: '69003',
+        city: 'Lyon',
+        country: 'France',
+        phone: '06 98 76 54 32',
+      },
+      paymentStatus: 'completed',
+      paymentProvider: 'paypal',
+      shipmentStatus: 'in_transit',
+      shipmentProvider: 'mondialrelay',
+      trackingNumber: 'MR123456789',
+      daysAgo: 3,
+    },
+    // Commande en traitement - Sophie
+    {
+      customerEmail: 'sophie.bernard@email.fr',
+      status: 'processing',
+      items: [
+        { sku: 'ECHARPE-ECRU', quantity: 1 },
+        { sku: 'COUSSIN-FLORAL', quantity: 2 },
+      ],
+      shippingHt: '6.00',
+      address: {
+        firstName: 'Sophie',
+        lastName: 'Bernard',
+        street: '8 Place de la République',
+        postalCode: '33000',
+        city: 'Bordeaux',
+        country: 'France',
+        phone: '07 11 22 33 44',
+      },
+      paymentStatus: 'completed',
+      paymentProvider: 'stripe',
+      shipmentStatus: 'label_created',
+      shipmentProvider: 'colissimo',
+      trackingNumber: '6A98765432101',
+      daysAgo: 1,
+    },
+    // Commande confirmée - Lucas
+    {
+      customerEmail: 'lucas.petit@email.fr',
+      status: 'confirmed',
+      items: [
+        { sku: 'BOUGIE-LAVANDE', quantity: 3 },
+        { sku: 'BOUGIE-CEDRE', quantity: 2 },
+        { sku: 'BOUGIE-VANILLE', quantity: 1 },
+      ],
+      shippingHt: '4.50',
+      address: {
+        firstName: 'Lucas',
+        lastName: 'Petit',
+        street: '27 Rue du Moulin',
+        postalCode: '31000',
+        city: 'Toulouse',
+        country: 'France',
+      },
+      paymentStatus: 'completed',
+      paymentProvider: 'stripe',
+      daysAgo: 0,
+    },
+    // Commande en attente - Emma
+    {
+      customerEmail: 'emma.moreau@email.fr',
+      status: 'pending',
+      items: [
+        { sku: 'BRAC-NAT-M', quantity: 1 },
+        { sku: 'VASE-TC-01', quantity: 1 },
+      ],
+      shippingHt: '5.50',
+      address: {
+        firstName: 'Emma',
+        lastName: 'Moreau',
+        street: '3 Impasse des Artisans',
+        postalCode: '44000',
+        city: 'Nantes',
+        country: 'France',
+        phone: '06 55 66 77 88',
+      },
+      paymentStatus: 'pending',
+      paymentProvider: 'stripe',
+      daysAgo: 0,
+    },
+    // Commande annulée - Marie (deuxième commande)
+    {
+      customerEmail: 'marie.dupont@email.fr',
+      status: 'cancelled',
+      items: [{ sku: 'BOUCLE-LUNE-ARG', quantity: 2 }],
+      shippingHt: '4.00',
+      address: {
+        firstName: 'Marie',
+        lastName: 'Dupont',
+        street: '15 Rue des Lilas',
+        postalCode: '75011',
+        city: 'Paris',
+        country: 'France',
+        phone: '06 12 34 56 78',
+      },
+      paymentStatus: 'completed',
+      paymentProvider: 'stripe',
+      daysAgo: 7,
+    },
+    // Grosse commande livrée - Jean (fidèle client)
+    {
+      customerEmail: 'jean.martin@email.fr',
+      status: 'delivered',
+      items: [
+        { sku: 'BOL-VERT-M', quantity: 6 },
+        { sku: 'BOL-TERRA-M', quantity: 6 },
+        { sku: 'MUG-GRIS', quantity: 8 },
+        { sku: 'MUG-BEIGE', quantity: 8 },
+      ],
+      shippingHt: '12.00',
+      address: {
+        firstName: 'Jean',
+        lastName: 'Martin',
+        company: 'Restaurant Le Terroir',
+        street: '42 Avenue du Commerce',
+        postalCode: '69003',
+        city: 'Lyon',
+        country: 'France',
+        phone: '06 98 76 54 32',
+      },
+      paymentStatus: 'completed',
+      paymentProvider: 'stripe',
+      shipmentStatus: 'delivered',
+      shipmentProvider: 'sendcloud',
+      trackingNumber: 'SC987654321FR',
+      daysAgo: 30,
+    },
+  ];
+
+  const TAX_RATE = 20; // 20% TVA
+  let orderCount = 0;
+
+  for (let i = 0; i < ordersData.length; i++) {
+    const orderData = ordersData[i];
+    const customerId = customerMap.get(orderData.customerEmail);
+    if (!customerId) continue;
+
+    // Calculate totals
+    let subtotalHt = 0;
+    const orderItems: {
+      variantId: string | null;
+      label: string;
+      quantity: number;
+      unitPriceHt: number;
+      taxRate: number;
+      totalHt: number;
+      totalTtc: number;
+    }[] = [];
+
+    for (const item of orderData.items) {
+      const v = variantBySku.get(item.sku);
+      if (!v) continue;
+
+      const unitPriceHt = parseFloat(v.priceHt);
+      const totalHt = unitPriceHt * item.quantity;
+      const totalTtc = totalHt * (1 + TAX_RATE / 100);
+
+      subtotalHt += totalHt;
+      orderItems.push({
+        variantId: v.id,
+        label: v.sku ? `${v.productName} — ${v.sku}` : v.productName,
+        quantity: item.quantity,
+        unitPriceHt,
+        taxRate: TAX_RATE,
+        totalHt,
+        totalTtc,
+      });
+    }
+
+    const shippingHt = parseFloat(orderData.shippingHt);
+    const totalHt = subtotalHt + shippingHt;
+    const totalTax = totalHt * (TAX_RATE / 100);
+    const totalTtc = totalHt + totalTax;
+
+    const addressSnapshot = createAddressSnapshot(orderData.address);
+    const orderDate = new Date();
+    orderDate.setDate(orderDate.getDate() - orderData.daysAgo);
+
+    const [createdOrder] = await db
+      .insert(order)
+      .values({
+        orderNumber: generateOrderNumber(i),
+        customer: customerId,
+        status: orderData.status,
+        shippingAddress: addressSnapshot,
+        billingAddress: addressSnapshot,
+        subtotalHt: subtotalHt.toFixed(2),
+        shippingHt: shippingHt.toFixed(2),
+        discountHt: '0.00',
+        totalHt: totalHt.toFixed(2),
+        totalTax: totalTax.toFixed(2),
+        totalTtc: totalTtc.toFixed(2),
+        dateCreated: orderDate,
+        dateUpdated: orderDate,
+      })
+      .onConflictDoNothing()
+      .returning();
+
+    if (!createdOrder) continue;
+    orderCount++;
+
+    // Insert order items
+    for (const item of orderItems) {
+      await db.insert(orderItem).values({
+        order: createdOrder.id,
+        variant: item.variantId,
+        label: item.label,
+        quantity: item.quantity,
+        unitPriceHt: item.unitPriceHt.toFixed(2),
+        taxRate: item.taxRate.toFixed(2),
+        totalHt: item.totalHt.toFixed(2),
+        totalTtc: item.totalTtc.toFixed(2),
+      });
+    }
+
+    // Insert payment if specified
+    if (orderData.paymentProvider) {
+      await db.insert(payment).values({
+        order: createdOrder.id,
+        provider: orderData.paymentProvider,
+        status: orderData.paymentStatus || 'pending',
+        amount: totalTtc.toFixed(2),
+        providerTransactionId:
+          orderData.paymentStatus === 'completed'
+            ? `pi_${randomUUID().replace(/-/g, '').slice(0, 24)}`
+            : null,
+        dateCreated: orderDate,
+        dateUpdated: orderDate,
+      });
+    }
+
+    // Insert shipment if specified
+    if (orderData.shipmentProvider && orderData.shipmentStatus) {
+      const providerId = shippingProviderMap.get(orderData.shipmentProvider);
+      if (providerId) {
+        const shippedAt =
+          orderData.shipmentStatus !== 'pending' && orderData.shipmentStatus !== 'label_created'
+            ? new Date(orderDate.getTime() + 24 * 60 * 60 * 1000) // +1 day
+            : null;
+        const deliveredAt =
+          orderData.shipmentStatus === 'delivered'
+            ? new Date(orderDate.getTime() + 4 * 24 * 60 * 60 * 1000) // +4 days
+            : null;
+
+        await db.insert(shipment).values({
+          order: createdOrder.id,
+          provider: providerId,
+          status: orderData.shipmentStatus,
+          trackingNumber: orderData.trackingNumber || null,
+          trackingUrl: orderData.trackingNumber
+            ? `https://tracking.example.com/${orderData.trackingNumber}`
+            : null,
+          weight: '0.500',
+          shippedAt,
+          deliveredAt,
+          dateCreated: orderDate,
+          dateUpdated: orderDate,
+        });
+      }
+    }
+  }
+  console.log(`    ✓ ${orderCount} orders with items, payments and shipments`);
 
   // === DEFAULT ADMIN USER ===
   console.log('  → Default admin user...');
