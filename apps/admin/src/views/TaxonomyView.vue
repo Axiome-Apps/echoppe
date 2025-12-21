@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import CategoriesView from '@/views/CategoriesView.vue';
 import CollectionsView from '@/views/CollectionsView.vue';
@@ -25,7 +25,7 @@ const activeTab = computed<TabId>({
 <template>
   <div>
     <h1 class="text-2xl font-bold text-gray-900 mb-6">
-      Taxonomie
+      Organisation
     </h1>
 
     <!-- Tabs -->
