@@ -1,4 +1,5 @@
 import { cors } from '@elysiajs/cors';
+import { swagger } from '@elysiajs/swagger';
 import { Elysia } from 'elysia';
 import { authRoutes } from './routes/auth';
 import { categoriesRoutes } from './routes/categories';
@@ -20,6 +21,30 @@ const app = new Elysia()
     cors({
       origin: process.env.ADMIN_URL || 'http://localhost:3000',
       credentials: true,
+    })
+  )
+  .use(
+    swagger({
+      path: '/docs',
+      documentation: {
+        info: {
+          title: 'Échoppe API',
+          version: '1.0.0',
+          description: 'API e-commerce pour artisans français',
+        },
+        tags: [
+          { name: 'auth', description: 'Authentification' },
+          { name: 'products', description: 'Gestion des produits' },
+          { name: 'categories', description: 'Gestion des catégories' },
+          { name: 'collections', description: 'Gestion des collections' },
+          { name: 'media', description: 'Médiathèque' },
+          { name: 'orders', description: 'Commandes' },
+          { name: 'stock', description: 'Gestion du stock' },
+          { name: 'payments', description: 'Paiements' },
+          { name: 'shipping', description: 'Livraison' },
+          { name: 'settings', description: 'Paramètres' },
+        ],
+      },
     })
   )
   .get('/', () => ({
