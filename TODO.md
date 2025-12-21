@@ -50,7 +50,7 @@
 
 ### Autres
 - [ ] Webhooks
-- [ ] Notifications email
+- [ ] Notifications email (confirmation commande, expédition, facture client)
 - [ ] Export/Import CSV
 - [ ] Logs d'audit
 

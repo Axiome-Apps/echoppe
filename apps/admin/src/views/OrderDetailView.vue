@@ -11,6 +11,19 @@ import Modal from '@/components/atoms/Modal.vue';
 type OrderDetailResponse = Awaited<ReturnType<ReturnType<typeof api.orders>['get']>>;
 type OrderDetail = NonNullable<OrderDetailResponse['data']>;
 
+interface Invoice {
+  id: string;
+  type: string;
+  number: string;
+  status: string;
+  totalHt: string;
+  totalTax: string;
+  totalTtc: string;
+  dateIssued: string;
+  dateDue: string | null;
+  hasPdf: boolean;
+}
+
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
@@ -18,6 +31,10 @@ const toast = useToast();
 const order = ref<OrderDetail | null>(null);
 const loading = ref(true);
 const saving = ref(false);
+
+// Invoices
+const invoices = ref<Invoice[]>([]);
+const invoiceLoading = ref(false);
 
 // Status change modal
 const showStatusModal = ref(false);
@@ -45,7 +62,54 @@ async function loadOrder() {
   }
 }
 
-onMounted(loadOrder);
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+async function loadInvoices() {
+  try {
+    const res = await fetch(`${API_URL}/orders/${orderId.value}/invoices`, {
+      credentials: 'include',
+    });
+    if (res.ok) {
+      invoices.value = await res.json();
+    }
+  } catch {
+    // Silently fail - invoices are optional
+  }
+}
+
+async function createInvoice() {
+  invoiceLoading.value = true;
+  try {
+    const res = await fetch(`${API_URL}/orders/${orderId.value}/invoice`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (res.ok) {
+      const data = await res.json();
+      toast.success(`Facture ${data.number} créée`);
+      await loadInvoices();
+      // Télécharger automatiquement après création
+      downloadInvoice(data.id);
+    } else {
+      throw new Error('Failed to create invoice');
+    }
+  } catch {
+    toast.error('Erreur lors de la création de la facture');
+  } finally {
+    invoiceLoading.value = false;
+  }
+}
+
+function downloadInvoice(invoiceId: string) {
+  // Ouvrir le PDF dans un nouvel onglet (l'API gère la régénération si fichier manquant)
+  const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/orders/${orderId.value}/invoices/${invoiceId}/pdf`;
+  window.open(url, '_blank');
+}
+
+onMounted(() => {
+  loadOrder();
+  loadInvoices();
+});
 
 type StatusVariant = 'success' | 'warning' | 'default' | 'error' | 'info';
 
@@ -325,6 +389,29 @@ function getShipmentStatusLabel(status: string) {
           Actions
         </h3>
         <div class="space-y-2">
+          <!-- Invoice -->
+          <Button
+            v-if="invoices.length === 0"
+            variant="primary"
+            size="sm"
+            class="w-full"
+            :loading="invoiceLoading"
+            @click="createInvoice"
+          >
+            Créer la facture
+          </Button>
+          <Button
+            v-for="inv in invoices"
+            :key="inv.id"
+            variant="secondary"
+            size="sm"
+            class="w-full"
+            @click="downloadInvoice(inv.id)"
+          >
+            Télécharger {{ inv.number }}
+          </Button>
+
+          <!-- Status changes -->
           <Button
             v-for="status in availableStatuses"
             :key="status"
@@ -335,7 +422,7 @@ function getShipmentStatusLabel(status: string) {
           >
             {{ getStatusConfig(status).label }}
           </Button>
-          <p v-if="availableStatuses.length === 0" class="text-sm text-gray-500 text-center py-2">
+          <p v-if="availableStatuses.length === 0 && invoices.length > 0" class="text-sm text-gray-500 text-center py-2">
             Aucune action disponible
           </p>
         </div>
@@ -434,6 +521,7 @@ function getShipmentStatusLabel(status: string) {
           Non expédiée
         </p>
       </div>
+
     </div>
   </div>
 
