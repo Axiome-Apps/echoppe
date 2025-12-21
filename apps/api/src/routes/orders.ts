@@ -274,6 +274,11 @@ export const ordersRoutes = new Elysia({ prefix: '/orders' })
         await incrementStock(params.id);
       }
 
+      // Handle stock increment when refunded (return from customer)
+      if (newStatus === 'refunded' && previousStatus === 'delivered') {
+        await incrementStock(params.id, 'Commande remboursée');
+      }
+
       return { success: true, previousStatus, newStatus };
     },
     { auth: true, params: uuidParam, body: statusBody },
@@ -365,8 +370,8 @@ async function decrementStock(orderId: string) {
   }
 }
 
-// Helper: incrémente le stock quand commande annulée
-async function incrementStock(orderId: string) {
+// Helper: incrémente le stock quand commande annulée ou remboursée
+async function incrementStock(orderId: string, note = 'Commande annulée') {
   const items = await db.select().from(orderItem).where(eq(orderItem.order, orderId));
 
   for (const item of items) {
@@ -379,7 +384,7 @@ async function incrementStock(orderId: string) {
       quantity: item.quantity,
       type: 'return',
       reference: orderId,
-      note: 'Commande annulée',
+      note,
     });
 
     // Update variant quantity

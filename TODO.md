@@ -38,7 +38,7 @@
 
 ### Commandes
 - [x] Commandes (API + Admin) - création, statuts, historique
-- [ ] Liaison stock/paiement/livraison
+- [x] Liaison stock/paiement/livraison
 
 ### Auth & Permissions
 - [ ] Auth Customer (inscription, login, profil)
