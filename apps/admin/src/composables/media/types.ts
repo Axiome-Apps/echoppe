@@ -24,3 +24,4 @@ export type ViewMode = 'grid' | 'list';
 export type GridSize = 'small' | 'medium' | 'large';
 export type SortBy = 'date' | 'name' | 'size';
 export type SortOrder = 'desc' | 'asc';
+export type MediaType = 'all' | 'images' | 'pdf' | 'documents';

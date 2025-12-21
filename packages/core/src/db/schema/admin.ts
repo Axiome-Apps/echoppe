@@ -59,7 +59,7 @@ export const auditLog = pgTable('audit_log', {
 export const company = pgTable('company', {
   id: uuid('id').primaryKey().defaultRandom(),
   shopName: varchar('shop_name', { length: 255 }).notNull(),
-  logo: uuid('logo').references(() => media.id),
+  logo: uuid('logo').references(() => media.id, { onDelete: 'set null' }),
   publicEmail: varchar('public_email', { length: 255 }).notNull(),
   publicPhone: varchar('public_phone', { length: 20 }),
   legalName: varchar('legal_name', { length: 255 }).notNull(),

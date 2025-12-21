@@ -11,7 +11,7 @@ export const customer = pgTable('customer', {
   firstName: varchar('first_name', { length: 100 }).notNull(),
   lastName: varchar('last_name', { length: 100 }).notNull(),
   phone: varchar('phone', { length: 20 }),
-  avatar: uuid('avatar').references(() => media.id),
+  avatar: uuid('avatar').references(() => media.id, { onDelete: 'set null' }),
   emailVerified: boolean('email_verified').notNull().default(false),
   marketingOptin: boolean('marketing_optin').notNull().default(false),
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),

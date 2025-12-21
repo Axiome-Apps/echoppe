@@ -1,6 +1,6 @@
 import { ref, computed, type Ref } from 'vue';
 import { api } from '@/lib/api';
-import type { Folder, FolderNode, Media, SortBy, SortOrder } from './types';
+import type { Folder, FolderNode, Media, SortBy, SortOrder, MediaType } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -14,6 +14,10 @@ export function getMediaUrl(item: Media): string {
 
 export function isImage(item: Media): boolean {
   return item.mimeType.startsWith('image/');
+}
+
+export function isPdf(item: Media): boolean {
+  return item.mimeType === 'application/pdf';
 }
 
 export function formatSize(bytes: number): string {
@@ -40,7 +44,8 @@ export function formatDate(dateStr: string | Date): string {
 export function useMedia(
   searchQuery: Ref<string>,
   sortBy: Ref<SortBy>,
-  sortOrder: Ref<SortOrder>
+  sortOrder: Ref<SortOrder>,
+  mediaType: Ref<MediaType> = ref('all')
 ) {
   // ---------------------------------------------------------------------------
   // STATE
@@ -149,6 +154,10 @@ export function useMedia(
       query.search = searchQuery.value;
       query.all = 'true';
     }
+    if (mediaType.value !== 'all') {
+      query.type = mediaType.value;
+      query.all = 'true';
+    }
     const { data } = await api.media.get({ query });
     if (data?.data) mediaItems.value = data.data;
     loading.value = false;
@@ -168,14 +177,34 @@ export function useMedia(
     return mediaItems.value[index];
   }
 
-  async function deleteMedia(id: string) {
-    await api.media({ id }).delete();
-    await loadMedia();
+  async function deleteMedia(id: string): Promise<boolean> {
+    try {
+      const { error } = await api.media({ id }).delete();
+      if (error) {
+        console.error('Erreur suppression média:', error);
+        return false;
+      }
+      await loadMedia();
+      return true;
+    } catch (err) {
+      console.error('Erreur suppression média:', err);
+      return false;
+    }
   }
 
-  async function deleteMediaBatch(ids: string[]) {
-    await api.media.batch.delete({ ids });
-    await loadMedia();
+  async function deleteMediaBatch(ids: string[]): Promise<boolean> {
+    try {
+      const { error } = await api.media.batch.delete({ ids });
+      if (error) {
+        console.error('Erreur suppression médias:', error);
+        return false;
+      }
+      await loadMedia();
+      return true;
+    } catch (err) {
+      console.error('Erreur suppression médias:', err);
+      return false;
+    }
   }
 
   async function moveMediaBatch(ids: string[], folder: string | null) {

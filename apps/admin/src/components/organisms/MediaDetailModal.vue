@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import type { Media } from '@/composables/media';
 import { getMediaUrl } from '@/composables/media';
 import Button from '@/components/atoms/Button.vue';
+import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import CloseIcon from '@/components/atoms/icons/CloseIcon.vue';
 import FormField from '@/components/molecules/FormField.vue';
 import MediaPreview from '@/components/molecules/MediaPreview.vue';
@@ -25,6 +26,7 @@ const editForm = ref({
 });
 
 const isSaving = ref(false);
+const showDeleteConfirm = ref(false);
 
 watch(
   () => props.media,
@@ -45,8 +47,12 @@ async function handleSave() {
 }
 
 function handleDelete() {
-  if (!confirm('Supprimer ce fichier ?')) return;
+  showDeleteConfirm.value = true;
+}
+
+function confirmDelete() {
   emit('delete', props.media.id);
+  showDeleteConfirm.value = false;
 }
 </script>
 
@@ -129,5 +135,14 @@ function handleDelete() {
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      :open="showDeleteConfirm"
+      title="Supprimer le fichier"
+      message="Supprimer ce fichier ? Cette action est irréversible."
+      confirm-label="Supprimer"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>

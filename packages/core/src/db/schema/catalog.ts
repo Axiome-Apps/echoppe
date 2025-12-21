@@ -22,7 +22,7 @@ export const category = pgTable('category', {
   name: varchar('name', { length: 100 }).notNull(),
   slug: varchar('slug', { length: 100 }).unique().notNull(),
   description: text('description'),
-  image: uuid('image').references(() => media.id),
+  image: uuid('image').references(() => media.id, { onDelete: 'set null' }),
   sortOrder: integer('sort_order').notNull().default(0),
   isVisible: boolean('is_visible').notNull().default(true),
 });
@@ -32,7 +32,7 @@ export const collection = pgTable('collection', {
   name: varchar('name', { length: 100 }).notNull(),
   slug: varchar('slug', { length: 100 }).unique().notNull(),
   description: text('description'),
-  image: uuid('image').references(() => media.id),
+  image: uuid('image').references(() => media.id, { onDelete: 'set null' }),
   isVisible: boolean('is_visible').notNull().default(true),
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -71,10 +71,10 @@ export const productMedia = pgTable(
   {
     product: uuid('product')
       .notNull()
-      .references(() => product.id),
+      .references(() => product.id, { onDelete: 'cascade' }),
     media: uuid('media')
       .notNull()
-      .references(() => media.id),
+      .references(() => media.id, { onDelete: 'cascade' }),
     sortOrder: integer('sort_order').notNull().default(0),
     isFeatured: boolean('is_featured').notNull().default(false),
     featuredForVariant: uuid('featured_for_variant').references((): AnyPgColumn => variant.id),

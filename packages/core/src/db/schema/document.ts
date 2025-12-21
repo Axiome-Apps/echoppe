@@ -10,7 +10,7 @@ export const orderDocument = pgTable('order_document', {
     .references(() => order.id),
   type: documentTypeEnum('type').notNull(),
   number: varchar('number', { length: 20 }).notNull(), // REC-2025-00001
-  pdf: uuid('pdf').references(() => media.id),
+  pdf: uuid('pdf').references(() => media.id, { onDelete: 'set null' }),
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -22,7 +22,7 @@ export const invoice = pgTable('invoice', {
   type: invoiceTypeEnum('type').notNull(),
   number: varchar('number', { length: 20 }).notNull(), // FA-2025-00001
   status: invoiceStatusEnum('status').notNull().default('pending'),
-  pdf: uuid('pdf').references(() => media.id),
+  pdf: uuid('pdf').references(() => media.id, { onDelete: 'set null' }),
   // Snapshot légal au moment de l'émission
   sellerSnapshot: jsonb('seller_snapshot').notNull(), // Company info figée
   buyerSnapshot: jsonb('buyer_snapshot').notNull(), // Customer info figée

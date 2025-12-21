@@ -1,31 +1,32 @@
 import {
+  and,
+  customer,
   db,
   desc,
   eq,
-  and,
-  gte,
-  lte,
-  like,
-  or,
-  sql,
-  order,
-  orderItem,
-  customer,
-  payment,
-  shipment,
-  shippingProvider,
-  stockMove,
-  variant,
-  invoice,
-  media,
+  folder,
   generateInvoice,
   getInvoicesByOrder,
+  gte,
+  invoice,
+  like,
+  lte,
+  media,
+  or,
+  order,
+  orderItem,
+  payment,
   regenerateInvoicePdf,
+  shipment,
+  shippingProvider,
+  sql,
+  stockMove,
+  variant,
 } from '@echoppe/core';
-import { Elysia, t } from 'elysia';
-import { authPlugin } from '../plugins/auth';
 import { randomUUID } from 'crypto';
+import { Elysia, t } from 'elysia';
 import { join } from 'path';
+import { authPlugin } from '../plugins/auth';
 
 const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
 
@@ -79,12 +80,14 @@ export const ordersRoutes = new Elysia({ prefix: '/orders' })
       if (query.status) {
         const statuses = query.status.split(',');
         if (statuses.length === 1) {
-          conditions.push(eq(order.status, statuses[0] as typeof order.status.enumValues[number]));
+          conditions.push(
+            eq(order.status, statuses[0] as (typeof order.status.enumValues)[number]),
+          );
         } else {
           conditions.push(
             or(
               ...statuses.map((s) =>
-                eq(order.status, s as typeof order.status.enumValues[number]),
+                eq(order.status, s as (typeof order.status.enumValues)[number]),
               ),
             ),
           );
@@ -206,16 +209,10 @@ export const ordersRoutes = new Elysia({ prefix: '/orders' })
       }
 
       // Get order items
-      const items = await db
-        .select()
-        .from(orderItem)
-        .where(eq(orderItem.order, params.id));
+      const items = await db.select().from(orderItem).where(eq(orderItem.order, params.id));
 
       // Get payment (if exists)
-      const [paymentData] = await db
-        .select()
-        .from(payment)
-        .where(eq(payment.order, params.id));
+      const [paymentData] = await db.select().from(payment).where(eq(payment.order, params.id));
 
       // Get shipment (if exists)
       const [shipmentData] = await db
@@ -413,10 +410,24 @@ export const ordersRoutes = new Elysia({ prefix: '/orders' })
       const filePath = join(UPLOAD_DIR, filenameDisk);
       await Bun.write(filePath, result.pdfBuffer);
 
-      // Créer l'entrée media
+      // Trouver ou créer le dossier "Factures"
+      let [invoicesFolder] = await db
+        .select({ id: folder.id })
+        .from(folder)
+        .where(eq(folder.name, 'Factures'));
+
+      if (!invoicesFolder) {
+        [invoicesFolder] = await db
+          .insert(folder)
+          .values({ name: 'Factures' })
+          .returning({ id: folder.id });
+      }
+
+      // Créer l'entrée media dans le dossier Factures
       const [mediaEntry] = await db
         .insert(media)
         .values({
+          folder: invoicesFolder.id,
           filenameDisk,
           filenameOriginal: `${result.number}.pdf`,
           title: `Facture ${result.number}`,
@@ -426,10 +437,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders' })
         .returning();
 
       // Mettre à jour la facture avec le PDF
-      await db
-        .update(invoice)
-        .set({ pdf: mediaEntry.id })
-        .where(eq(invoice.id, result.invoiceId));
+      await db.update(invoice).set({ pdf: mediaEntry.id }).where(eq(invoice.id, result.invoiceId));
 
       return {
         id: result.invoiceId,
@@ -479,8 +487,42 @@ export const ordersRoutes = new Elysia({ prefix: '/orders' })
         }
       }
 
-      // Sinon, régénérer le PDF à la volée
+      // Sinon, régénérer le PDF à la volée et le re-stocker
       const pdfBuffer = await regenerateInvoicePdf(params.invoiceId);
+
+      // Re-stocker dans la médiathèque
+      const filenameDisk = `${randomUUID()}.pdf`;
+      const filePath = join(UPLOAD_DIR, filenameDisk);
+      await Bun.write(filePath, pdfBuffer);
+
+      // Trouver ou créer le dossier "Factures"
+      let [invoicesFolder] = await db
+        .select({ id: folder.id })
+        .from(folder)
+        .where(eq(folder.name, 'Factures'));
+
+      if (!invoicesFolder) {
+        [invoicesFolder] = await db
+          .insert(folder)
+          .values({ name: 'Factures' })
+          .returning({ id: folder.id });
+      }
+
+      // Créer l'entrée media
+      const [mediaEntry] = await db
+        .insert(media)
+        .values({
+          folder: invoicesFolder.id,
+          filenameDisk,
+          filenameOriginal: `${inv.number}.pdf`,
+          title: `Facture ${inv.number}`,
+          mimeType: 'application/pdf',
+          size: pdfBuffer.length,
+        })
+        .returning();
+
+      // Mettre à jour la facture avec le nouveau PDF
+      await db.update(invoice).set({ pdf: mediaEntry.id }).where(eq(invoice.id, inv.id));
 
       set.headers['Content-Type'] = 'application/pdf';
       set.headers['Content-Disposition'] = `inline; filename="${inv.number}.pdf"`;

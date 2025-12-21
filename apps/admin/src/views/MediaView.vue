@@ -7,12 +7,14 @@ import {
   type GridSize,
   type SortBy,
   type SortOrder,
+  type MediaType,
   type ContextMenuState,
   useMedia,
   getMediaUrl,
 } from '@/composables/media';
 import Button from '@/components/atoms/Button.vue';
 import Modal from '@/components/atoms/Modal.vue';
+import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import ChevronDownIcon from '@/components/atoms/icons/ChevronDownIcon.vue';
 import ChevronUpIcon from '@/components/atoms/icons/ChevronUpIcon.vue';
 import ImageIcon from '@/components/atoms/icons/ImageIcon.vue';
@@ -33,6 +35,7 @@ const gridSize = ref<GridSize>('medium');
 const searchQuery = ref('');
 const sortBy = ref<SortBy>('date');
 const sortOrder = ref<SortOrder>('desc');
+const mediaType = ref<MediaType>('all');
 const searchInputRef = ref<InstanceType<typeof SearchInput> | null>(null);
 const uploading = ref(false);
 const dragOver = ref(false);
@@ -74,7 +77,7 @@ const {
   handleRootDragOver,
   handleRootDragLeave,
   handleFolderDrop,
-} = useMedia(searchQuery, sortBy, sortOrder);
+} = useMedia(searchQuery, sortBy, sortOrder, mediaType);
 
 // === MODALS ===
 const showDetail = ref<Media | null>(null);
@@ -91,6 +94,19 @@ const moveTargetFolder = ref<string | null>(null);
 
 // Context menu
 const contextMenu = ref<ContextMenuState | null>(null);
+
+// Confirm modal
+const confirmModal = ref<{
+  open: boolean;
+  title: string;
+  message: string;
+  action: (() => Promise<void>) | null;
+}>({
+  open: false,
+  title: '',
+  message: '',
+  action: null,
+});
 
 const contextMenuItems: ContextMenuItem[] = [
   { id: 'view', label: 'Voir les details' },
@@ -110,7 +126,7 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown);
 });
 
-watch([currentFolder, searchQuery, sortBy, sortOrder], () => {
+watch([currentFolder, searchQuery, sortBy, sortOrder, mediaType], () => {
   selectedItems.value.clear();
   loadMedia();
 });
@@ -222,11 +238,17 @@ async function handleSaveFolder() {
   showEditFolder.value = null;
 }
 
-async function handleDeleteFolder(id: string, event: Event) {
+function handleDeleteFolder(id: string, event: Event) {
   event.stopPropagation();
-  if (!confirm('Supprimer ce dossier ? Les fichiers seront deplaces vers le parent.')) return;
-  await deleteFolderApi(id);
-  await loadMedia();
+  confirmModal.value = {
+    open: true,
+    title: 'Supprimer le dossier',
+    message: 'Supprimer ce dossier ? Les fichiers seront déplacés vers le parent.',
+    action: async () => {
+      await deleteFolderApi(id);
+      await loadMedia();
+    },
+  };
 }
 
 // Media operations
@@ -243,12 +265,20 @@ async function handleMoveSelected() {
   selectedItems.value.clear();
 }
 
-async function handleDeleteSelected() {
+function handleDeleteSelected() {
   if (!selectedItems.value.size) return;
-  if (!confirm(`Supprimer ${selectedItems.value.size} fichier(s) ?`)) return;
-  await deleteMediaBatch(Array.from(selectedItems.value));
-  selectedItems.value.clear();
-  contextMenu.value = null;
+  const count = selectedItems.value.size;
+  const ids = Array.from(selectedItems.value);
+  confirmModal.value = {
+    open: true,
+    title: 'Supprimer les fichiers',
+    message: `Supprimer ${count} fichier(s) ? Cette action est irréversible.`,
+    action: async () => {
+      await deleteMediaBatch(ids);
+      selectedItems.value.clear();
+      contextMenu.value = null;
+    },
+  };
 }
 
 async function handleSaveDetail(data: { title: string; description: string; alt: string }) {
@@ -268,6 +298,17 @@ async function handleDeleteDetail(id: string) {
 
 function closeContextMenu() {
   contextMenu.value = null;
+}
+
+async function handleConfirmAction() {
+  if (confirmModal.value.action) {
+    await confirmModal.value.action();
+  }
+  confirmModal.value = { open: false, title: '', message: '', action: null };
+}
+
+function handleCancelConfirm() {
+  confirmModal.value = { open: false, title: '', message: '', action: null };
 }
 </script>
 
@@ -311,6 +352,25 @@ function closeContextMenu() {
             v-model="searchQuery"
             placeholder="Rechercher... (⌘K)"
           />
+
+          <!-- Type filter -->
+          <select
+            v-model="mediaType"
+            class="px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+          >
+            <option value="all">
+              Tous
+            </option>
+            <option value="images">
+              Images
+            </option>
+            <option value="pdf">
+              PDF
+            </option>
+            <option value="documents">
+              Documents
+            </option>
+          </select>
 
           <!-- Sort -->
           <select
@@ -684,5 +744,15 @@ function closeContextMenu() {
         </div>
       </template>
     </Modal>
+
+    <!-- Confirm Modal -->
+    <ConfirmModal
+      :open="confirmModal.open"
+      :title="confirmModal.title"
+      :message="confirmModal.message"
+      confirm-label="Supprimer"
+      @confirm="handleConfirmAction"
+      @cancel="handleCancelConfirm"
+    />
   </div>
 </template>

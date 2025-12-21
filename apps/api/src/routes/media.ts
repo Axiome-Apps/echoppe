@@ -1,10 +1,29 @@
-import { Elysia, t } from 'elysia';
-import { db, media, folder, eq, isNull, asc, desc, like, or, and, count, type SQL } from '@echoppe/core';
-import { authPlugin } from '../plugins/auth';
-import { paginatedResponse, getPaginationParams, buildPaginatedResponse, DEFAULT_LIMIT, MAX_LIMIT } from '../utils/pagination';
+import {
+  and,
+  asc,
+  count,
+  db,
+  desc,
+  eq,
+  folder,
+  isNull,
+  like,
+  media,
+  or,
+  type SQL,
+} from '@echoppe/core';
 import { randomUUID } from 'crypto';
-import { join } from 'path';
+import { Elysia, t } from 'elysia';
 import { mkdir, unlink } from 'fs/promises';
+import { join } from 'path';
+import { authPlugin } from '../plugins/auth';
+import {
+  buildPaginatedResponse,
+  DEFAULT_LIMIT,
+  getPaginationParams,
+  MAX_LIMIT,
+  paginatedResponse,
+} from '../utils/pagination';
 
 // Schema de réponse pour les médias
 const mediaSchema = t.Object({
@@ -57,6 +76,9 @@ const mediaQuery = t.Object({
   sort: t.Optional(t.String()),
   order: t.Optional(t.String()),
   all: t.Optional(t.String()),
+  type: t.Optional(
+    t.Union([t.Literal('images'), t.Literal('pdf'), t.Literal('documents'), t.Literal('all')]),
+  ),
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
   limit: t.Optional(t.Numeric({ minimum: 1, maximum: MAX_LIMIT, default: DEFAULT_LIMIT })),
 });
@@ -83,10 +105,14 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
   // === FOLDERS ===
 
   // GET /media/folders - List all folders (flat list for tree building)
-  .get('/folders', async () => {
-    const folders = await db.select().from(folder).orderBy(asc(folder.name));
-    return folders;
-  }, { auth: true, response: t.Array(folderSchema) })
+  .get(
+    '/folders',
+    async () => {
+      const folders = await db.select().from(folder).orderBy(asc(folder.name));
+      return folders;
+    },
+    { auth: true, response: t.Array(folderSchema) },
+  )
 
   // POST /media/folders - Create folder
   .post(
@@ -101,7 +127,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
         .returning();
       return created;
     },
-    { auth: true, body: folderBody }
+    { auth: true, body: folderBody },
   )
 
   // PUT /media/folders/:id - Update folder
@@ -117,7 +143,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
       if (!updated) return status(404, { message: 'Dossier non trouvé' });
       return updated;
     },
-    { auth: true, params: uuidParam, body: folderBody }
+    { auth: true, params: uuidParam, body: folderBody },
   )
 
   // DELETE /media/folders/:id - Delete folder
@@ -127,8 +153,14 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
       // Move child folders to parent
       const [currentFolder] = await db.select().from(folder).where(eq(folder.id, params.id));
       if (currentFolder) {
-        await db.update(folder).set({ parent: currentFolder.parent }).where(eq(folder.parent, params.id));
-        await db.update(media).set({ folder: currentFolder.parent }).where(eq(media.folder, params.id));
+        await db
+          .update(folder)
+          .set({ parent: currentFolder.parent })
+          .where(eq(folder.parent, params.id));
+        await db
+          .update(media)
+          .set({ folder: currentFolder.parent })
+          .where(eq(media.folder, params.id));
       }
 
       const [deleted] = await db.delete(folder).where(eq(folder.id, params.id)).returning();
@@ -136,7 +168,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
       if (!deleted) return status(404, { message: 'Dossier non trouvé' });
       return { success: true };
     },
-    { auth: true, params: uuidParam }
+    { auth: true, params: uuidParam },
   )
 
   // === MEDIA ===
@@ -145,7 +177,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
   .get(
     '/',
     async ({ query }) => {
-      const { folder: folderId, search, sort, order, all } = query;
+      const { folder: folderId, search, sort, order, all, type } = query;
       const { page, limit, offset } = getPaginationParams(query);
 
       // Build where conditions
@@ -163,15 +195,33 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
         const searchPattern = `%${search}%`;
         const searchCondition = or(
           like(media.title, searchPattern),
-          like(media.filenameOriginal, searchPattern)
+          like(media.filenameOriginal, searchPattern),
         );
         if (searchCondition) conditions.push(searchCondition);
       }
 
+      // Filter by type
+      if (type && type !== 'all') {
+        if (type === 'images') {
+          conditions.push(like(media.mimeType, 'image/%'));
+        } else if (type === 'pdf') {
+          conditions.push(eq(media.mimeType, 'application/pdf'));
+        } else if (type === 'documents') {
+          // Documents: PDF, Word, Excel, Text, etc.
+          const docCondition = or(
+            eq(media.mimeType, 'application/pdf'),
+            like(media.mimeType, 'application/msword%'),
+            like(media.mimeType, 'application/vnd.openxmlformats%'),
+            like(media.mimeType, 'application/vnd.ms-%'),
+            like(media.mimeType, 'text/%'),
+          );
+          if (docCondition) conditions.push(docCondition);
+        }
+      }
+
       // Sort
-      const sortField = sort === 'name' ? media.filenameOriginal
-                     : sort === 'size' ? media.size
-                     : media.dateCreated;
+      const sortField =
+        sort === 'name' ? media.filenameOriginal : sort === 'size' ? media.size : media.dateCreated;
       const sortOrder = order === 'asc' ? asc(sortField) : desc(sortField);
 
       // Build where clause
@@ -179,16 +229,25 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
 
       const [items, [{ total }]] = await Promise.all([
         whereClause
-          ? db.select().from(media).where(whereClause).orderBy(sortOrder).limit(limit).offset(offset)
+          ? db
+              .select()
+              .from(media)
+              .where(whereClause)
+              .orderBy(sortOrder)
+              .limit(limit)
+              .offset(offset)
           : db.select().from(media).orderBy(sortOrder).limit(limit).offset(offset),
         whereClause
-          ? db.select({ total: count(media.id) }).from(media).where(whereClause)
+          ? db
+              .select({ total: count(media.id) })
+              .from(media)
+              .where(whereClause)
           : db.select({ total: count(media.id) }).from(media),
       ]);
 
       return buildPaginatedResponse(items, total, page, limit);
     },
-    { auth: true, query: mediaQuery, response: paginatedResponse(mediaSchema) }
+    { auth: true, query: mediaQuery, response: paginatedResponse(mediaSchema) },
   )
 
   // GET /media/:id - Get single media
@@ -207,7 +266,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
         200: mediaSchema,
         404: t.Object({ message: t.String() }),
       },
-    }
+    },
   )
 
   // POST /media/upload - Upload file(s)
@@ -227,8 +286,8 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
         await Bun.write(filePath, file);
 
         // Get image dimensions if applicable
-        let width: number | null = null;
-        let height: number | null = null;
+        const width: number | null = null;
+        const height: number | null = null;
 
         // Insert into database
         const [created] = await db
@@ -250,7 +309,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
 
       return results.length === 1 ? results[0] : results;
     },
-    { auth: true, body: uploadBody }
+    { auth: true, body: uploadBody },
   )
 
   // PUT /media/:id - Update media metadata
@@ -272,7 +331,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
       if (!updated) return status(404, { message: 'Média non trouvé' });
       return updated;
     },
-    { auth: true, params: uuidParam, body: mediaUpdate }
+    { auth: true, params: uuidParam, body: mediaUpdate },
   )
 
   // PUT /media/batch/move - Move multiple media to folder
@@ -293,7 +352,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
 
       return { moved, count: moved.length };
     },
-    { auth: true, body: batchMoveBody }
+    { auth: true, body: batchMoveBody },
   )
 
   // DELETE /media/:id - Delete media
@@ -315,7 +374,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
 
       return { success: true };
     },
-    { auth: true, params: uuidParam }
+    { auth: true, params: uuidParam },
   )
 
   // DELETE /media/batch - Delete multiple media
@@ -340,5 +399,5 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
 
       return { deleted, count: deleted.length };
     },
-    { auth: true, body: batchDeleteBody }
+    { auth: true, body: batchDeleteBody },
   );
