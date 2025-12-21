@@ -17,7 +17,7 @@
 - [x] Login + Layout admin
 - [x] Pages produits/catégories/collections
 - [x] Médiathèque (upload, dossiers, drag & drop)
-- [ ] Refactor ProductEditView (splitter en composants)
+- [x] Refactor ProductEditView (splitter en composants)
 
 ---
 
@@ -37,7 +37,7 @@
 - [ ] Interface InvoiceAdapter + implémentation (Pennylane)
 
 ### Commandes
-- [ ] Commandes (API + Admin) - création, statuts, historique
+- [x] Commandes (API + Admin) - création, statuts, historique
 - [ ] Liaison stock/paiement/livraison
 
 ### Auth & Permissions
