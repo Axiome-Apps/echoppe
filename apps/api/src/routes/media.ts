@@ -86,6 +86,7 @@ const mediaQuery = t.Object({
 const uploadBody = t.Object({
   file: t.Union([t.File(), t.Array(t.File())]),
   folder: t.Optional(t.String({ format: 'uuid' })),
+  folderName: t.Optional(t.String({ maxLength: 100 })),
 });
 
 const batchMoveBody = t.Object({
@@ -274,7 +275,25 @@ export const mediaRoutes = new Elysia({ prefix: '/media' })
     '/upload',
     async ({ body }) => {
       const files = Array.isArray(body.file) ? body.file : [body.file];
-      const folderId = body.folder || null;
+      let folderId = body.folder || null;
+
+      // Si folderName est fourni et pas de folder, créer/trouver le dossier
+      if (body.folderName && !folderId) {
+        let [targetFolder] = await db
+          .select({ id: folder.id })
+          .from(folder)
+          .where(eq(folder.name, body.folderName));
+
+        if (!targetFolder) {
+          [targetFolder] = await db
+            .insert(folder)
+            .values({ name: body.folderName })
+            .returning({ id: folder.id });
+        }
+
+        folderId = targetFolder.id;
+      }
+
       const results = [];
 
       for (const file of files) {

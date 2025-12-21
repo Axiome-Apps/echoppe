@@ -212,14 +212,43 @@ export function useMedia(
     await loadMedia();
   }
 
-  async function uploadFiles(files: FileList, folder: string | null): Promise<void> {
+  interface UploadResult {
+    folderId: string | null;
+    mediaIds: string[];
+  }
+
+  async function uploadFiles(files: FileList, folder: string | null, folderName?: string): Promise<UploadResult> {
+    let targetFolderId = folder;
+    const mediaIds: string[] = [];
+
     for (const file of files) {
       const formData = new FormData();
       formData.append('file', file);
       if (folder) formData.append('folder', folder);
-      await fetch(`${API_URL}/media/upload`, { method: 'POST', body: formData, credentials: 'include' });
+      if (folderName && !folder) formData.append('folderName', folderName);
+
+      const response = await fetch(`${API_URL}/media/upload`, { method: 'POST', body: formData, credentials: 'include' });
+      const data = await response.json();
+
+      if (data?.id) {
+        mediaIds.push(data.id);
+      }
+      if (!targetFolderId && data?.folder) {
+        targetFolderId = data.folder;
+      }
     }
+
+    // Recharger dossiers et médias
+    await loadFolders();
+
+    // Naviguer vers le dossier cible
+    if (targetFolderId) {
+      currentFolder.value = targetFolderId;
+    }
+
     await loadMedia();
+
+    return { folderId: targetFolderId, mediaIds };
   }
 
   // ---------------------------------------------------------------------------

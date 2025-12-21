@@ -26,12 +26,14 @@ const props = withDefaults(
   defineProps<{
     title?: string;
     accept?: 'images' | 'all';
+    defaultUploadFolder?: string;
     onSelect?: (_media: Media) => void;
     onClose?: () => void;
   }>(),
   {
     title: 'Sélectionner un média',
     accept: 'images',
+    defaultUploadFolder: undefined,
     onSelect: undefined,
     onClose: undefined,
   }
@@ -115,7 +117,12 @@ async function handleDrop(e: DragEvent) {
   const files = e.dataTransfer?.files;
   if (!files?.length) return;
   uploading.value = true;
-  await uploadFiles(files, currentFolder.value);
+  const result = await uploadFiles(files, currentFolder.value, props.defaultUploadFolder);
+  // Présélectionner le premier média uploadé
+  if (result.mediaIds.length > 0) {
+    const uploadedMedia = mediaItems.value.find(m => m.id === result.mediaIds[0]);
+    if (uploadedMedia) selectedMedia.value = uploadedMedia;
+  }
   uploading.value = false;
 }
 
@@ -123,7 +130,12 @@ async function handleFileSelect(e: Event) {
   const input = e.target as HTMLInputElement;
   if (!input.files?.length) return;
   uploading.value = true;
-  await uploadFiles(input.files, currentFolder.value);
+  const result = await uploadFiles(input.files, currentFolder.value, props.defaultUploadFolder);
+  // Présélectionner le premier média uploadé
+  if (result.mediaIds.length > 0) {
+    const uploadedMedia = mediaItems.value.find(m => m.id === result.mediaIds[0]);
+    if (uploadedMedia) selectedMedia.value = uploadedMedia;
+  }
   uploading.value = false;
   input.value = '';
 }

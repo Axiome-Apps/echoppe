@@ -238,6 +238,7 @@ function getVariantLabel(variantId: string) {
       v-if="showPicker"
       title="Ajouter une image"
       accept="images"
+      default-upload-folder="Produits"
       :on-select="handleMediaSelect"
       :on-close="() => showPicker = false"
     />
