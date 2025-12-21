@@ -80,4 +80,5 @@ export const company = pgTable('company', {
   documentNextNumber: integer('document_next_number').notNull().default(1),
   invoicePrefix: varchar('invoice_prefix', { length: 10 }).notNull().default('FA'),
   invoiceNextNumber: integer('invoice_next_number').notNull().default(1),
+  taxExempt: boolean('tax_exempt').notNull().default(false),
 });

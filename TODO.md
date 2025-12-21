@@ -23,9 +23,8 @@
 
 ## V1
 
-### Paramètres & Users
-- [ ] Paramètres boutique (API + Admin) - infos légales, devise, TVA
-- [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
+### Paramètres
+- [x] Paramètres boutique (API + Admin) - infos légales, logo, TVA exonéré
 
 ### Stock
 - [x] Mouvements de stock (API + Admin)
@@ -65,6 +64,7 @@
 
 ## V2
 
+- [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
 - [ ] Multi-langue
 - [ ] SEO avancé
 - [ ] Analytics intégrés

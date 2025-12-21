@@ -106,8 +106,12 @@ async function seed() {
   if (france) {
     const [existingCompany] = await db.select().from(company).limit(1);
     if (!existingCompany) {
+      // Create logo media
+      const logoId = await createMedia('shop-logo', 'Logo boutique', 200, 200);
+
       await db.insert(company).values({
         shopName: 'Ma Boutique Artisanale',
+        logo: logoId,
         publicEmail: 'contact@maboutique.fr',
         publicPhone: '01 23 45 67 89',
         legalName: 'Ma Boutique Artisanale SASU',

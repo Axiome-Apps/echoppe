@@ -21,6 +21,7 @@ const settingsBody = t.Object({
   country: t.String({ format: 'uuid' }),
   documentPrefix: t.Optional(t.String({ minLength: 1, maxLength: 10 })),
   invoicePrefix: t.Optional(t.String({ minLength: 1, maxLength: 10 })),
+  taxExempt: t.Optional(t.Boolean()),
 });
 
 const countrySchema = t.Object({
@@ -77,6 +78,7 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
         country: body.country,
         documentPrefix: body.documentPrefix ?? 'REC',
         invoicePrefix: body.invoicePrefix ?? 'FA',
+        taxExempt: body.taxExempt ?? false,
       };
 
       if (existing) {

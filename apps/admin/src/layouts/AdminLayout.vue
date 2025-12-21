@@ -1,13 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
+import { api } from '@/lib/api';
 import type { NavigationConfig } from '@/types/navigation';
 import SidebarNav from '@/components/organisms/SidebarNav.vue';
 import SidebarUserMenu from '@/components/molecules/SidebarUserMenu.vue';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const router = useRouter();
 const auth = useAuth();
+
+type Settings = NonNullable<Awaited<ReturnType<typeof api.settings.get>>['data']>;
+const settings = ref<Settings | null>(null);
+
+const shopName = computed(() => settings.value?.shopName || 'Échoppe');
+const logoUrl = computed(() => settings.value?.logo ? `${API_URL}/assets/${settings.value.logo}` : null);
+
+onMounted(async () => {
+  const { data } = await api.settings.get();
+  if (data) settings.value = data;
+});
 
 async function handleLogout() {
   await auth.logout();
@@ -94,10 +108,38 @@ const badgeCounts = ref<Record<string, number>>({
   <div class="min-h-screen bg-gray-100">
     <!-- Sidebar -->
     <aside class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col">
-      <!-- Logo -->
-      <div class="flex items-center h-16 px-6 border-b border-gray-200 shrink-0">
-        <h1 class="text-xl font-bold text-gray-900">
-          Echoppe
+      <!-- Logo + Shop name -->
+      <div class="flex items-center gap-3 h-16 px-6 border-b border-gray-200 shrink-0">
+        <div
+          v-if="logoUrl"
+          class="w-8 h-8 rounded-lg overflow-hidden shrink-0"
+        >
+          <img
+            :src="logoUrl"
+            :alt="shopName"
+            class="w-full h-full object-cover"
+          />
+        </div>
+        <div
+          v-else
+          class="w-8 h-8 rounded-lg bg-gray-200 flex items-center justify-center shrink-0"
+        >
+          <svg
+            class="w-5 h-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            />
+          </svg>
+        </div>
+        <h1 class="text-lg font-semibold text-gray-900 truncate">
+          {{ shopName }}
         </h1>
       </div>
 

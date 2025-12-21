@@ -44,6 +44,7 @@ const form = ref({
   country: '',
   documentPrefix: 'REC',
   invoicePrefix: 'FA',
+  taxExempt: false,
 });
 
 const hasChanges = computed(() => {
@@ -84,6 +85,7 @@ async function loadSettings() {
       country: s.country,
       documentPrefix: s.documentPrefix,
       invoicePrefix: s.invoicePrefix,
+      taxExempt: s.taxExempt,
     };
     initialState.value = JSON.stringify(form.value);
   }
@@ -116,6 +118,7 @@ async function save() {
       country: form.value.country,
       documentPrefix: form.value.documentPrefix,
       invoicePrefix: form.value.invoicePrefix,
+      taxExempt: form.value.taxExempt,
     };
 
     const { error } = await api.settings.put(payload);
@@ -276,6 +279,39 @@ async function save() {
               type="text"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: TVA -->
+      <section class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">
+          TVA
+        </h2>
+        <div class="flex items-start gap-3">
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="form.taxExempt"
+            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            :class="form.taxExempt ? 'bg-blue-600' : 'bg-gray-200'"
+            @click="form.taxExempt = !form.taxExempt"
+          >
+            <span
+              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+              :class="form.taxExempt ? 'translate-x-5' : 'translate-x-0'"
+            />
+          </button>
+          <div>
+            <p class="text-sm font-medium text-gray-900">
+              Exonération de TVA
+            </p>
+            <p class="text-sm text-gray-500">
+              {{ form.taxExempt
+                ? 'Les produits sont créés avec une TVA à 0% par défaut (franchise en base de TVA).'
+                : 'Les produits sont créés avec une TVA à 20% par défaut.'
+              }}
+            </p>
           </div>
         </div>
       </section>
