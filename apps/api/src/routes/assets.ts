@@ -4,7 +4,7 @@ import { join } from 'path';
 
 const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
 
-export const assetsRoutes = new Elysia({ prefix: '/assets' })
+export const assetsRoutes = new Elysia({ prefix: '/assets', detail: { tags: ['Assets'] } })
   .get(
     '/:id',
     async ({ params, set }) => {

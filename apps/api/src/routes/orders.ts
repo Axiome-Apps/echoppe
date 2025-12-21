@@ -62,7 +62,7 @@ const uuidParam = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
-export const ordersRoutes = new Elysia({ prefix: '/orders' })
+export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Orders'] } })
   .use(authPlugin)
 
   // GET /orders - Liste paginée avec filtres

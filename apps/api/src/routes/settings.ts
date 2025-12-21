@@ -31,7 +31,7 @@ const countrySchema = t.Object({
   isShippingEnabled: t.Boolean(),
 });
 
-export const settingsRoutes = new Elysia({ prefix: '/settings' })
+export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: ['Settings'] } })
   .use(authPlugin)
 
   // GET /settings - Get company settings (singleton)

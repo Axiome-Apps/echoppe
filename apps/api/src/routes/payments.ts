@@ -61,7 +61,7 @@ const providerMeta: Record<
   },
 };
 
-export const paymentsRoutes = new Elysia({ prefix: '/payments' })
+export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: ['Payments'] } })
   .use(authPlugin)
 
   // GET /payments/providers - Liste des providers avec statut

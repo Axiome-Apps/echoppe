@@ -98,7 +98,7 @@ const batchDeleteBody = t.Object({
   ids: t.Array(t.String({ format: 'uuid' })),
 });
 
-export const mediaRoutes = new Elysia({ prefix: '/media' })
+export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Media'] } })
   .use(authPlugin)
 
   // === ALL ROUTES ARE PROTECTED (Admin only) ===

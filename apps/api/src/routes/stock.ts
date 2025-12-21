@@ -23,7 +23,7 @@ const paginationQuery = t.Object({
   limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100, default: 20 })),
 });
 
-export const stockRoutes = new Elysia({ prefix: '/stock' })
+export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stock'] } })
   .use(authPlugin)
 
   // GET /stock - List stock moves with pagination

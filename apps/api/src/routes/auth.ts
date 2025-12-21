@@ -41,7 +41,7 @@ function getExpiresAt(): Date {
   return date;
 }
 
-export const authRoutes = new Elysia({ prefix: '/auth' })
+export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth'] } })
   // POST /auth/login
   .post(
     '/login',

@@ -45,7 +45,7 @@ const categoryParams = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
-export const categoriesRoutes = new Elysia({ prefix: '/categories' })
+export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { tags: ['Categories'] } })
   .use(authPlugin)
 
   // === PUBLIC ROUTES ===

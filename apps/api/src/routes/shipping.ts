@@ -110,7 +110,7 @@ const providerMeta: Record<
   },
 };
 
-export const shippingRoutes = new Elysia({ prefix: '/shipping' })
+export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: ['Shipping'] } })
   .use(authPlugin)
 
   // GET /shipping/providers - Liste des providers avec statut

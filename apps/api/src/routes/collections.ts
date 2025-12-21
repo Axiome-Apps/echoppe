@@ -33,7 +33,7 @@ const collectionParams = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
-export const collectionsRoutes = new Elysia({ prefix: '/collections' })
+export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { tags: ['Collections'] } })
   .use(authPlugin)
 
   // === PUBLIC ROUTES ===

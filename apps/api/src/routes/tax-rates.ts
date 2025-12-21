@@ -8,7 +8,7 @@ const taxRateSchema = t.Object({
   isDefault: t.Boolean(),
 });
 
-export const taxRatesRoutes = new Elysia({ prefix: '/tax-rates' })
+export const taxRatesRoutes = new Elysia({ prefix: '/tax-rates', detail: { tags: ['Tax Rates'] } })
   // GET /tax-rates - List all (public for forms)
   .get('/', async () => {
     const rates = await db.select().from(taxRate);

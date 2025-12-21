@@ -131,7 +131,7 @@ const variantSchema = t.Object({
   lowStockThreshold: t.Nullable(t.Number()),
 });
 
-export const productsRoutes = new Elysia({ prefix: '/products' })
+export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: ['Products'] } })
   .use(authPlugin)
 
   // === PUBLIC ROUTES ===
