@@ -9,5 +9,8 @@ export type { SQL } from 'drizzle-orm';
 // Payment adapters
 export * from './adapters/payment';
 
+// Shipping adapters
+export * from './adapters/shipping';
+
 // Utils
 export { encrypt, decrypt, isEncryptionConfigured, generateEncryptionKey } from './utils/crypto';

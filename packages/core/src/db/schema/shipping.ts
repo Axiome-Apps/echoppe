@@ -1,6 +1,16 @@
-import { boolean, decimal, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { shipmentStatusEnum } from './enums';
+import { boolean, decimal, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { shipmentStatusEnum, shippingProviderTypeEnum } from './enums';
 import { order } from './orders';
+
+// Configuration des providers de livraison (credentials chiffrés)
+export const shippingProviderConfig = pgTable('shipping_provider_config', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  provider: shippingProviderTypeEnum('provider').unique().notNull(),
+  isEnabled: boolean('is_enabled').notNull().default(false),
+  credentials: text('credentials'), // Chiffré AES-256-GCM
+  dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
+  dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const shippingProvider = pgTable('shipping_provider', {
   id: uuid('id').primaryKey().defaultRandom(),

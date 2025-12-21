@@ -43,3 +43,8 @@ export const documentTypeEnum = pgEnum('document_type', ['receipt', 'credit_note
 export const invoiceTypeEnum = pgEnum('invoice_type', ['invoice', 'credit_note']);
 export const invoiceStatusEnum = pgEnum('invoice_status', ['pending', 'issued', 'cancelled']);
 export const roleScopeEnum = pgEnum('role_scope', ['admin', 'store']);
+export const shippingProviderTypeEnum = pgEnum('shipping_provider_type', [
+  'colissimo',
+  'mondialrelay',
+  'sendcloud',
+]);

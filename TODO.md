@@ -33,7 +33,7 @@
 
 ### Adapters (abstractions services tiers)
 - [x] Interface PaymentAdapter + implémentations (Stripe, PayPal)
-- [ ] Interface ShippingAdapter + implémentations (Colissimo, Mondial Relay)
+- [x] Interface ShippingAdapter + implémentations (Colissimo, Mondial Relay, Sendcloud)
 - [ ] Interface InvoiceAdapter + implémentation (Pennylane)
 
 ### Commandes
