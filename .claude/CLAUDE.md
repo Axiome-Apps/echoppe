@@ -4,6 +4,7 @@
 
 - **Runtime** : Bun (pas Node)
 - **Typage** : Strict, jamais `any` sans type guard
+- **Styling** : TailwindCSS (sauf animations/effets complexes)
 - **Langue** : Code/API en anglais, URLs frontend en français (`/produits`), UI en français
 
 ## API (Elysia)
