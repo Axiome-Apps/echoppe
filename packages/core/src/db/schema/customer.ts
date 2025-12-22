@@ -1,4 +1,4 @@
-import { boolean, pgTable, primaryKey, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, index, pgTable, primaryKey, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { variant } from './catalog';
 import { addressTypeEnum } from './enums';
 import { media } from './media';
@@ -52,4 +52,23 @@ export const wishlistItem = pgTable(
     dateAdded: timestamp('date_added', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [primaryKey({ columns: [table.customer, table.variant] })],
+);
+
+export const customerSession = pgTable(
+  'customer_session',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    token: varchar('token', { length: 64 }).unique().notNull(),
+    customer: uuid('customer')
+      .notNull()
+      .references(() => customer.id, { onDelete: 'cascade' }),
+    ipAddress: varchar('ip_address', { length: 45 }),
+    userAgent: text('user_agent'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('customer_session_customer_idx').on(table.customer),
+    index('customer_session_token_idx').on(table.token),
+  ],
 );

@@ -13,6 +13,7 @@ import { stockRoutes } from './routes/stock';
 import { paymentsRoutes } from './routes/payments';
 import { shippingRoutes } from './routes/shipping';
 import { ordersRoutes } from './routes/orders';
+import { customerAuthRoutes } from './routes/customer-auth';
 
 const port = process.env.API_PORT ?? 8000;
 
@@ -39,7 +40,8 @@ const app = new Elysia()
         },
         tags: [
           { name: 'General', description: 'Informations générales' },
-          { name: 'Auth', description: 'Authentification' },
+          { name: 'Auth', description: 'Authentification admin' },
+          { name: 'Customer Auth', description: 'Authentification client' },
           { name: 'Products', description: 'Gestion des produits' },
           { name: 'Categories', description: 'Gestion des catégories' },
           { name: 'Collections', description: 'Gestion des collections' },
@@ -64,6 +66,7 @@ const app = new Elysia()
     timestamp: new Date().toISOString(),
   }), { detail: { tags: ['General'], summary: 'Health check' } })
   .use(authRoutes)
+  .use(customerAuthRoutes)
   .use(categoriesRoutes)
   .use(productsRoutes)
   .use(mediaRoutes)
