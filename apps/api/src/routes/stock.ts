@@ -23,6 +23,33 @@ const paginationQuery = t.Object({
   limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100, default: 20 })),
 });
 
+// Schemas
+const errorSchema = t.Object({ message: t.String() });
+const stockMoveSchema = t.Object({
+  id: t.String(),
+  variant: t.String(),
+  label: t.String(),
+  quantity: t.Number(),
+  type: t.Union([t.Literal('restock'), t.Literal('adjustment'), t.Literal('sale'), t.Literal('cancel'), t.Literal('refund')]),
+  note: t.Nullable(t.String()),
+  dateCreated: t.Date(),
+});
+const stockVariantSchema = t.Object({
+  id: t.String(),
+  sku: t.Nullable(t.String()),
+  productName: t.String(),
+  quantity: t.Number(),
+});
+const paginatedStockSchema = t.Object({
+  data: t.Array(stockMoveSchema),
+  meta: t.Object({
+    page: t.Number(),
+    limit: t.Number(),
+    total: t.Number(),
+    totalPages: t.Number(),
+  }),
+});
+
 export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stock'] } })
   .use(authPlugin)
 
@@ -56,7 +83,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
         },
       };
     },
-    { auth: true, query: paginationQuery },
+    { auth: true, query: paginationQuery, response: { 200: paginatedStockSchema } },
   )
 
   // GET /stock/alerts - Variants below low stock threshold
@@ -101,7 +128,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
 
       return variants;
     },
-    { auth: true },
+    { auth: true, response: { 200: t.Array(stockVariantSchema) } },
   )
 
   // POST /stock - Create a stock move and update variant quantity
@@ -154,5 +181,9 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
 
       return move;
     },
-    { auth: true, body: stockMoveCreateBody },
+    {
+      auth: true,
+      body: stockMoveCreateBody,
+      response: { 200: stockMoveSchema, 404: errorSchema },
+    },
   );

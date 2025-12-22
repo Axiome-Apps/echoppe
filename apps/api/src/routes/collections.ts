@@ -33,6 +33,10 @@ const collectionParams = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
+// Schemas génériques
+const errorSchema = t.Object({ message: t.String() });
+const successSchema = t.Object({ success: t.Boolean() });
+
 export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { tags: ['Collections'] } })
   .use(authPlugin)
 
@@ -89,7 +93,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
         .returning();
       return created;
     },
-    { auth: true, body: collectionCreateBody }
+    { auth: true, body: collectionCreateBody, response: { 200: collectionSchema } }
   )
 
   // PUT /collections/:id - Update (slug immutable)
@@ -109,7 +113,12 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       if (!updated) return status(404, { message: 'Collection non trouvee' });
       return updated;
     },
-    { auth: true, params: collectionParams, body: collectionUpdateBody }
+    {
+      auth: true,
+      params: collectionParams,
+      body: collectionUpdateBody,
+      response: { 200: collectionSchema, 404: errorSchema },
+    }
   )
 
   // DELETE /collections/:id - Delete
@@ -120,5 +129,9 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       if (!deleted) return status(404, { message: 'Collection non trouvee' });
       return { success: true };
     },
-    { auth: true, params: collectionParams }
+    {
+      auth: true,
+      params: collectionParams,
+      response: { 200: successSchema, 404: errorSchema },
+    }
   );

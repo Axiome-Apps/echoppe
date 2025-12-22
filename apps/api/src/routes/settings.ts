@@ -31,6 +31,29 @@ const countrySchema = t.Object({
   isShippingEnabled: t.Boolean(),
 });
 
+const companySchema = t.Object({
+  id: t.String(),
+  shopName: t.String(),
+  logo: t.Nullable(t.String()),
+  publicEmail: t.String(),
+  publicPhone: t.Nullable(t.String()),
+  legalName: t.String(),
+  legalForm: t.Nullable(t.String()),
+  siren: t.Nullable(t.String()),
+  siret: t.Nullable(t.String()),
+  tvaIntra: t.Nullable(t.String()),
+  rcsCity: t.Nullable(t.String()),
+  shareCapital: t.Nullable(t.String()),
+  street: t.String(),
+  street2: t.Nullable(t.String()),
+  postalCode: t.String(),
+  city: t.String(),
+  country: t.String(),
+  documentPrefix: t.String(),
+  invoicePrefix: t.String(),
+  taxExempt: t.Boolean(),
+});
+
 export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: ['Settings'] } })
   .use(authPlugin)
 
@@ -41,7 +64,7 @@ export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: 
       const [settings] = await db.select().from(company).limit(1);
       return settings ?? null;
     },
-    { auth: true },
+    { auth: true, response: { 200: t.Union([companySchema, t.Null()]) } },
   )
 
   // GET /settings/countries - List countries for select
@@ -93,5 +116,5 @@ export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: 
       const [created] = await db.insert(company).values(values).returning();
       return created;
     },
-    { auth: true, body: settingsBody },
+    { auth: true, body: settingsBody, response: { 200: companySchema } },
   );

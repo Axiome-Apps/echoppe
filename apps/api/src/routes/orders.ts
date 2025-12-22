@@ -62,6 +62,155 @@ const uuidParam = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
+// Response schemas
+const errorSchema = t.Object({ message: t.String() });
+const successSchema = t.Object({ success: t.Boolean() });
+
+const orderStatusEnum = t.Union([
+  t.Literal('pending'),
+  t.Literal('confirmed'),
+  t.Literal('processing'),
+  t.Literal('shipped'),
+  t.Literal('delivered'),
+  t.Literal('cancelled'),
+  t.Literal('refunded'),
+]);
+
+const customerSummarySchema = t.Object({
+  id: t.String(),
+  email: t.String(),
+  firstName: t.String(),
+  lastName: t.String(),
+});
+
+const orderListItemSchema = t.Object({
+  id: t.String(),
+  orderNumber: t.String(),
+  status: orderStatusEnum,
+  totalTtc: t.String(),
+  dateCreated: t.Date(),
+  customer: customerSummarySchema,
+});
+
+const paginatedOrdersSchema = t.Object({
+  data: t.Array(orderListItemSchema),
+  meta: t.Object({
+    page: t.Number(),
+    limit: t.Number(),
+    total: t.Number(),
+    totalPages: t.Number(),
+  }),
+});
+
+const customerDetailSchema = t.Object({
+  id: t.String(),
+  email: t.String(),
+  firstName: t.String(),
+  lastName: t.String(),
+  phone: t.Nullable(t.String()),
+});
+
+const orderItemSchema = t.Object({
+  id: t.String(),
+  order: t.String(),
+  variant: t.Nullable(t.String()),
+  label: t.String(),
+  sku: t.Nullable(t.String()),
+  quantity: t.Number(),
+  unitPriceHt: t.String(),
+  taxRate: t.String(),
+  totalHt: t.String(),
+  totalTax: t.String(),
+  totalTtc: t.String(),
+});
+
+const paymentSchema = t.Object({
+  id: t.String(),
+  order: t.String(),
+  provider: t.String(),
+  status: t.String(),
+  amount: t.String(),
+  providerTransactionId: t.Nullable(t.String()),
+  dateCreated: t.Date(),
+  dateUpdated: t.Nullable(t.Date()),
+});
+
+const shipmentProviderSchema = t.Object({
+  id: t.String(),
+  name: t.String(),
+  type: t.String(),
+});
+
+const shipmentSchema = t.Object({
+  id: t.String(),
+  status: t.String(),
+  trackingNumber: t.Nullable(t.String()),
+  trackingUrl: t.Nullable(t.String()),
+  weight: t.Nullable(t.String()),
+  shippedAt: t.Nullable(t.Date()),
+  deliveredAt: t.Nullable(t.Date()),
+  dateCreated: t.Date(),
+  provider: t.Nullable(shipmentProviderSchema),
+});
+
+const orderDetailSchema = t.Object({
+  id: t.String(),
+  orderNumber: t.String(),
+  status: orderStatusEnum,
+  shippingAddress: t.Any(),
+  billingAddress: t.Any(),
+  subtotalHt: t.String(),
+  shippingHt: t.String(),
+  discountHt: t.String(),
+  totalHt: t.String(),
+  totalTax: t.String(),
+  totalTtc: t.String(),
+  customerNote: t.Nullable(t.String()),
+  internalNote: t.Nullable(t.String()),
+  dateCreated: t.Date(),
+  dateUpdated: t.Nullable(t.Date()),
+  customer: customerDetailSchema,
+  items: t.Array(orderItemSchema),
+  payment: t.Nullable(paymentSchema),
+  shipment: t.Nullable(shipmentSchema),
+});
+
+const statusChangeResultSchema = t.Object({
+  success: t.Boolean(),
+  previousStatus: orderStatusEnum,
+  newStatus: orderStatusEnum,
+});
+
+const statusByStatusSchema = t.Record(
+  t.String(),
+  t.Object({ count: t.Number(), total: t.Number() }),
+);
+
+const orderStatsSchema = t.Object({
+  byStatus: statusByStatusSchema,
+  totalOrders: t.Number(),
+  totalRevenue: t.Number(),
+});
+
+const invoiceSummarySchema = t.Object({
+  id: t.String(),
+  type: t.String(),
+  number: t.String(),
+  status: t.String(),
+  totalHt: t.String(),
+  totalTax: t.String(),
+  totalTtc: t.String(),
+  dateIssued: t.Date(),
+  dateDue: t.Nullable(t.Date()),
+  hasPdf: t.Boolean(),
+});
+
+const invoiceCreatedSchema = t.Object({
+  id: t.String(),
+  number: t.String(),
+  pdfUrl: t.String(),
+});
+
 export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Orders'] } })
   .use(authPlugin)
 
@@ -167,7 +316,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         },
       };
     },
-    { auth: true, query: paginationQuery },
+    { auth: true, query: paginationQuery, response: { 200: paginatedOrdersSchema } },
   )
 
   // GET /orders/:id - Détail commande
@@ -242,7 +391,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         shipment: shipmentData ?? null,
       };
     },
-    { auth: true, params: uuidParam },
+    { auth: true, params: uuidParam, response: { 200: orderDetailSchema, 404: errorSchema } },
   )
 
   // PATCH /orders/:id/status - Changer statut
@@ -287,7 +436,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       return { success: true, previousStatus, newStatus };
     },
-    { auth: true, params: uuidParam, body: statusBody },
+    { auth: true, params: uuidParam, body: statusBody, response: { 200: statusChangeResultSchema, 404: errorSchema } },
   )
 
   // PATCH /orders/:id/notes - Modifier notes
@@ -318,7 +467,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       return { success: true };
     },
-    { auth: true, params: uuidParam, body: notesBody },
+    { auth: true, params: uuidParam, body: notesBody, response: { 200: successSchema, 404: errorSchema } },
   )
 
   // GET /orders/stats - Statistiques commandes
@@ -349,7 +498,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         totalRevenue,
       };
     },
-    { auth: true },
+    { auth: true, response: { 200: orderStatsSchema } },
   )
 
   // === INVOICES ===
@@ -382,7 +531,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         hasPdf: !!inv.pdf,
       }));
     },
-    { auth: true, params: uuidParam },
+    { auth: true, params: uuidParam, response: { 200: t.Array(invoiceSummarySchema), 404: errorSchema } },
   )
 
   // POST /orders/:id/invoice - Générer une facture
@@ -454,6 +603,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
           dateDue: t.Optional(t.String()),
         }),
       ),
+      response: { 200: invoiceCreatedSchema, 404: errorSchema },
     },
   )
 

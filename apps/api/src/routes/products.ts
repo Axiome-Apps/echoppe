@@ -101,6 +101,23 @@ const optionValueBody = t.Object({
   sortOrder: t.Optional(t.Number({ default: 0 })),
 });
 
+// Schemas génériques
+const errorSchema = t.Object({ message: t.String() });
+const successSchema = t.Object({ success: t.Boolean() });
+
+// Schema option
+const optionSchema = t.Object({
+  id: t.String(),
+  name: t.String(),
+});
+
+const optionValueSchema = t.Object({
+  id: t.String(),
+  option: t.String(),
+  value: t.String(),
+  sortOrder: t.Number(),
+});
+
 // Schema pour product media (réponse)
 const productMediaSchema = t.Object({
   product: t.String(),
@@ -190,7 +207,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return { ...found, variants: variantsWithOptions, options: optionsWithValues };
     },
-    { params: productParams }
+    { params: productParams, response: { 404: errorSchema } }
   )
 
   // GET /products/:id/variants (public)
@@ -222,7 +239,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .returning();
       return created;
     },
-    { auth: true, body: productCreateBody }
+    { auth: true, body: productCreateBody, response: { 200: productSchema } }
   )
 
   // PUT /products/:id - Update (full, slug immutable)
@@ -244,7 +261,12 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (!updated) return status(404, { message: 'Product not found' });
       return updated;
     },
-    { auth: true, params: productParams, body: productUpdateBody }
+    {
+      auth: true,
+      params: productParams,
+      body: productUpdateBody,
+      response: { 200: productSchema, 404: errorSchema },
+    }
   )
 
   // PATCH /products/:id - Partial update
@@ -269,7 +291,12 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (!updated) return status(404, { message: 'Product not found' });
       return updated;
     },
-    { auth: true, params: productParams, body: productPatchBody }
+    {
+      auth: true,
+      params: productParams,
+      body: productPatchBody,
+      response: { 200: productSchema, 404: errorSchema },
+    }
   )
 
   // DELETE /products/:id - Delete
@@ -280,7 +307,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (!deleted) return status(404, { message: 'Product not found' });
       return { success: true };
     },
-    { auth: true, params: productParams }
+    {
+      auth: true,
+      params: productParams,
+      response: { 200: successSchema, 404: errorSchema },
+    }
   )
 
   // === VARIANTS ===
@@ -314,7 +345,12 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .returning();
       return created;
     },
-    { auth: true, params: productParams, body: variantBody }
+    {
+      auth: true,
+      params: productParams,
+      body: variantBody,
+      response: { 200: variantSchema, 404: errorSchema },
+    }
   )
 
   // PUT /products/:id/variants/:variantId
@@ -344,7 +380,12 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (!updated) return status(404, { message: 'Variant not found' });
       return updated;
     },
-    { auth: true, params: variantParams, body: variantBody }
+    {
+      auth: true,
+      params: variantParams,
+      body: variantBody,
+      response: { 200: variantSchema, 404: errorSchema },
+    }
   )
 
   // DELETE /products/:id/variants/:variantId
@@ -358,7 +399,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (!deleted) return status(404, { message: 'Variant not found' });
       return { success: true };
     },
-    { auth: true, params: variantParams }
+    {
+      auth: true,
+      params: variantParams,
+      response: { 200: successSchema, 404: errorSchema },
+    }
   )
 
   // PUT /products/:id/variants/:variantId/options - Set variant option values (replaces all)
@@ -390,6 +435,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       auth: true,
       params: variantParams,
       body: t.Object({ optionValueIds: t.Array(t.String({ format: 'uuid' })) }),
+      response: { 200: successSchema, 404: errorSchema },
     }
   )
 
@@ -436,7 +482,12 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .returning();
       return created;
     },
-    { auth: true, params: productParams, body: productMediaBody }
+    {
+      auth: true,
+      params: productParams,
+      body: productMediaBody,
+      response: { 200: productMediaSchema, 404: errorSchema },
+    }
   )
 
   // PUT /products/:id/media/:mediaId - Update media settings
@@ -472,7 +523,12 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (!updated) return status(404, { message: 'Product media not found' });
       return updated;
     },
-    { auth: true, params: mediaParams, body: productMediaUpdateBody }
+    {
+      auth: true,
+      params: mediaParams,
+      body: productMediaUpdateBody,
+      response: { 200: productMediaSchema, 404: errorSchema },
+    }
   )
 
   // DELETE /products/:id/media/:mediaId
@@ -486,7 +542,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (!deleted) return status(404, { message: 'Product media not found' });
       return { success: true };
     },
-    { auth: true, params: mediaParams }
+    {
+      auth: true,
+      params: mediaParams,
+      response: { 200: successSchema, 404: errorSchema },
+    }
   )
 
   // === OPTIONS (globales) ===
@@ -498,7 +558,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       const options = await db.select().from(option).orderBy(option.name);
       return options;
     },
-    { auth: true }
+    { auth: true, response: { 200: t.Array(optionSchema) } }
   )
 
   // POST /products/:id/options - Associe une option au produit (crée l'option si elle n'existe pas)
@@ -537,7 +597,12 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return opt;
     },
-    { auth: true, params: productParams, body: optionBody }
+    {
+      auth: true,
+      params: productParams,
+      body: optionBody,
+      response: { 200: optionSchema, 404: errorSchema, 409: errorSchema },
+    }
   )
 
   // POST /products/:id/options/:optionId/values
@@ -567,5 +632,10 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .returning();
       return created;
     },
-    { auth: true, params: optionParams, body: optionValueBody }
+    {
+      auth: true,
+      params: optionParams,
+      body: optionValueBody,
+      response: { 200: optionValueSchema, 404: errorSchema },
+    }
   );

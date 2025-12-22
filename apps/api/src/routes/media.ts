@@ -98,6 +98,12 @@ const batchDeleteBody = t.Object({
   ids: t.Array(t.String({ format: 'uuid' })),
 });
 
+// Schemas génériques
+const errorSchema = t.Object({ message: t.String() });
+const successSchema = t.Object({ success: t.Boolean() });
+const batchResultSchema = t.Object({ moved: t.Array(t.String()), count: t.Number() });
+const batchDeleteResultSchema = t.Object({ deleted: t.Array(t.String()), count: t.Number() });
+
 export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Media'] } })
   .use(authPlugin)
 
@@ -128,7 +134,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
         .returning();
       return created;
     },
-    { auth: true, body: folderBody },
+    { auth: true, body: folderBody, response: { 200: folderSchema } },
   )
 
   // PUT /media/folders/:id - Update folder
@@ -144,7 +150,12 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
       if (!updated) return status(404, { message: 'Dossier non trouvé' });
       return updated;
     },
-    { auth: true, params: uuidParam, body: folderBody },
+    {
+      auth: true,
+      params: uuidParam,
+      body: folderBody,
+      response: { 200: folderSchema, 404: errorSchema },
+    },
   )
 
   // DELETE /media/folders/:id - Delete folder
@@ -169,7 +180,11 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
       if (!deleted) return status(404, { message: 'Dossier non trouvé' });
       return { success: true };
     },
-    { auth: true, params: uuidParam },
+    {
+      auth: true,
+      params: uuidParam,
+      response: { 200: successSchema, 404: errorSchema },
+    },
   )
 
   // === MEDIA ===
@@ -328,7 +343,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return results.length === 1 ? results[0] : results;
     },
-    { auth: true, body: uploadBody },
+    { auth: true, body: uploadBody, response: { 200: t.Union([mediaSchema, t.Array(mediaSchema)]) } },
   )
 
   // PUT /media/:id - Update media metadata
@@ -350,7 +365,12 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
       if (!updated) return status(404, { message: 'Média non trouvé' });
       return updated;
     },
-    { auth: true, params: uuidParam, body: mediaUpdate },
+    {
+      auth: true,
+      params: uuidParam,
+      body: mediaUpdate,
+      response: { 200: mediaSchema, 404: errorSchema },
+    },
   )
 
   // PUT /media/batch/move - Move multiple media to folder
@@ -371,7 +391,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return { moved, count: moved.length };
     },
-    { auth: true, body: batchMoveBody },
+    { auth: true, body: batchMoveBody, response: { 200: batchResultSchema } },
   )
 
   // DELETE /media/:id - Delete media
@@ -393,7 +413,11 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return { success: true };
     },
-    { auth: true, params: uuidParam },
+    {
+      auth: true,
+      params: uuidParam,
+      response: { 200: successSchema, 404: errorSchema },
+    },
   )
 
   // DELETE /media/batch - Delete multiple media
@@ -418,5 +442,5 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return { deleted, count: deleted.length };
     },
-    { auth: true, body: batchDeleteBody },
+    { auth: true, body: batchDeleteBody, response: { 200: batchDeleteResultSchema } },
   );

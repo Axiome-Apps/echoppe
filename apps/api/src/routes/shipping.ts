@@ -75,6 +75,50 @@ const labelBody = t.Object({
   }),
 });
 
+// Response schemas
+const errorSchema = t.Object({ message: t.String() });
+const successSchema = t.Object({ success: t.Boolean() });
+
+const providerFieldSchema = t.Object({
+  key: t.String(),
+  label: t.String(),
+  type: t.String(),
+  placeholder: t.Optional(t.String()),
+});
+
+const shippingProviderStatusSchema = t.Object({
+  id: t.String(),
+  name: t.String(),
+  description: t.String(),
+  fields: t.Array(providerFieldSchema),
+  isConfigured: t.Boolean(),
+  isEnabled: t.Boolean(),
+  encryptionReady: t.Boolean(),
+});
+
+const rateSchema = t.Object({
+  provider: t.String(),
+  service: t.String(),
+  name: t.String(),
+  price: t.Number(),
+  currency: t.String(),
+  estimatedDays: t.Optional(t.Number()),
+});
+
+const labelSchema = t.Object({
+  trackingNumber: t.String(),
+  trackingUrl: t.Optional(t.String()),
+  labelUrl: t.Optional(t.String()),
+  labelData: t.Optional(t.String()),
+});
+
+const trackingEventSchema = t.Object({
+  date: t.Date(),
+  status: t.String(),
+  description: t.String(),
+  location: t.Optional(t.String()),
+});
+
 const providerMeta: Record<
   ShippingProvider,
   {
@@ -134,7 +178,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return result;
     },
-    { auth: true },
+    { auth: true, response: { 200: t.Array(shippingProviderStatusSchema) } },
   )
 
   // PUT /shipping/providers/colissimo
@@ -155,7 +199,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return { success: true };
     },
-    { auth: true, body: colissimoConfigBody },
+    { auth: true, body: colissimoConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
 
   // PUT /shipping/providers/mondialrelay
@@ -177,7 +221,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return { success: true };
     },
-    { auth: true, body: mondialrelayConfigBody },
+    { auth: true, body: mondialrelayConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
 
   // PUT /shipping/providers/sendcloud
@@ -198,7 +242,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return { success: true };
     },
-    { auth: true, body: sendcloudConfigBody },
+    { auth: true, body: sendcloudConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
 
   // POST /shipping/rates - Calcul des tarifs
@@ -222,7 +266,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return allRates.sort((a, b) => a.price - b.price);
     },
-    { auth: true, body: ratesBody },
+    { auth: true, body: ratesBody, response: { 200: t.Array(rateSchema) } },
   )
 
   // POST /shipping/labels - Créer une étiquette
@@ -285,7 +329,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return label;
     },
-    { auth: true, body: labelBody },
+    { auth: true, body: labelBody, response: { 200: labelSchema, 400: errorSchema, 404: errorSchema } },
   )
 
   // GET /shipping/tracking/:trackingNumber
@@ -311,5 +355,6 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
       auth: true,
       params: t.Object({ trackingNumber: t.String() }),
       query: t.Object({ provider: t.Optional(t.String()) }),
+      response: { 200: t.Array(trackingEventSchema), 400: errorSchema },
     },
   );

@@ -45,6 +45,11 @@ const categoryParams = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
+// Schemas de réponse
+const errorSchema = t.Object({ message: t.String() });
+const successSchema = t.Object({ success: t.Boolean() });
+const batchSuccessSchema = t.Object({ success: t.Boolean(), count: t.Number() });
+
 export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { tags: ['Categories'] } })
   .use(authPlugin)
 
@@ -63,7 +68,10 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       if (!found) return status(404, { message: 'Category not found' });
       return found;
     },
-    { params: categoryParams }
+    {
+      params: categoryParams,
+      response: { 200: categorySchema, 404: errorSchema },
+    }
   )
 
   // === PROTECTED ROUTES (Admin) ===
@@ -86,7 +94,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
         .returning();
       return created;
     },
-    { auth: true, body: categoryCreateBody }
+    { auth: true, body: categoryCreateBody, response: { 200: categorySchema } }
   )
 
   // PUT /categories/:id - Update (slug immutable)
@@ -108,7 +116,12 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       if (!updated) return status(404, { message: 'Category not found' });
       return updated;
     },
-    { auth: true, params: categoryParams, body: categoryUpdateBody }
+    {
+      auth: true,
+      params: categoryParams,
+      body: categoryUpdateBody,
+      response: { 200: categorySchema, 404: errorSchema },
+    }
   )
 
   // PATCH /categories/batch/order - Batch update parent and sortOrder (drag & drop)
@@ -128,7 +141,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       });
       return { success: true, count: body.length };
     },
-    { auth: true, body: batchOrderBody }
+    { auth: true, body: batchOrderBody, response: { 200: batchSuccessSchema } }
   )
 
   // DELETE /categories/:id - Delete
@@ -139,5 +152,9 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       if (!deleted) return status(404, { message: 'Category not found' });
       return { success: true };
     },
-    { auth: true, params: categoryParams }
+    {
+      auth: true,
+      params: categoryParams,
+      response: { 200: successSchema, 404: errorSchema },
+    }
   );

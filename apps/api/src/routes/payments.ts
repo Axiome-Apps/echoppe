@@ -38,6 +38,51 @@ const paypalConfigBody = t.Object({
   isEnabled: t.Optional(t.Boolean()),
 });
 
+// Response schemas
+const errorSchema = t.Object({ message: t.String() });
+const successSchema = t.Object({ success: t.Boolean() });
+
+const providerFieldSchema = t.Object({
+  key: t.String(),
+  label: t.String(),
+  type: t.String(),
+  placeholder: t.Optional(t.String()),
+});
+
+const providerStatusSchema = t.Object({
+  id: t.String(),
+  name: t.String(),
+  description: t.String(),
+  fields: t.Array(providerFieldSchema),
+  isConfigured: t.Boolean(),
+  isEnabled: t.Boolean(),
+  encryptionReady: t.Boolean(),
+});
+
+const checkoutSessionSchema = t.Object({
+  sessionId: t.String(),
+  url: t.String(),
+  provider: t.String(),
+});
+
+const paymentSchema = t.Object({
+  id: t.String(),
+  order: t.String(),
+  provider: t.String(),
+  status: t.String(),
+  amount: t.String(),
+  providerTransactionId: t.Nullable(t.String()),
+  dateCreated: t.Date(),
+  dateUpdated: t.Nullable(t.Date()),
+});
+
+const webhookReceivedSchema = t.Object({ received: t.Boolean() });
+
+const refundResultSchema = t.Object({
+  success: t.Boolean(),
+  refundId: t.Optional(t.String()),
+});
+
 const providerMeta: Record<
   PaymentProvider,
   { name: string; description: string; fields: { key: string; label: string; type: string; placeholder?: string }[] }
@@ -85,7 +130,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return result;
     },
-    { auth: true },
+    { auth: true, response: { 200: t.Array(providerStatusSchema) } },
   )
 
   // PUT /payments/providers/stripe - Configure Stripe
@@ -106,7 +151,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return { success: true };
     },
-    { auth: true, body: stripeConfigBody },
+    { auth: true, body: stripeConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
 
   // PUT /payments/providers/paypal - Configure PayPal
@@ -128,7 +173,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return { success: true };
     },
-    { auth: true, body: paypalConfigBody },
+    { auth: true, body: paypalConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
 
   // POST /payments/checkout - Créer une session de paiement
@@ -215,7 +260,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         provider: session.provider,
       };
     },
-    { body: checkoutBody },
+    { body: checkoutBody, response: { 200: checkoutSessionSchema, 400: errorSchema, 404: errorSchema } },
   )
 
   // GET /payments/:orderId - Statut du paiement
@@ -233,7 +278,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return paymentData;
     },
-    { auth: true, params: uuidParam },
+    { auth: true, params: uuidParam, response: { 200: paymentSchema, 404: errorSchema } },
   )
 
   // POST /payments/webhook/stripe - Webhook Stripe
@@ -261,6 +306,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         return status(400, { message: 'Webhook verification failed' });
       }
     },
+    { response: { 200: webhookReceivedSchema, 400: errorSchema } },
   )
 
   // POST /payments/webhook/paypal - Webhook PayPal
@@ -284,6 +330,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         return status(400, { message: 'Webhook verification failed' });
       }
     },
+    { response: { 200: webhookReceivedSchema, 400: errorSchema } },
   )
 
   // POST /payments/:orderId/refund - Rembourser (admin)
@@ -339,6 +386,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       body: t.Object({
         amount: t.Optional(t.Number({ minimum: 0 })),
       }),
+      response: { 200: refundResultSchema, 400: errorSchema, 404: errorSchema },
     },
   );
 

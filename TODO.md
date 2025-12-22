@@ -65,6 +65,8 @@
 ## V2
 
 - [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
+- [ ] Stats / Dashboard insight (CA, top produits, tendances)
+- [ ] Mode caisse simplifié (vente rapide en boutique/marché)
 - [ ] Multi-langue
 - [ ] SEO avancé
 - [ ] Analytics intégrés

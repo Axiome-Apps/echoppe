@@ -31,6 +31,22 @@ const meResponseSchema = t.Object({
   role: meRoleSchema,
 });
 
+// Schema pour /auth/login (réponse)
+const loginUserSchema = t.Object({
+  id: t.String(),
+  email: t.String(),
+  firstName: t.String(),
+  lastName: t.String(),
+});
+
+const loginResponseSchema = t.Object({
+  user: loginUserSchema,
+});
+
+// Schema générique
+const successSchema = t.Object({ success: t.Boolean() });
+const errorSchema = t.Object({ message: t.String() });
+
 function generateToken(): string {
   return randomBytes(32).toString('hex');
 }
@@ -116,6 +132,11 @@ export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth']
         password: t.String({ minLength: 1 }),
       }),
       cookie: cookieSchema,
+      response: {
+        200: loginResponseSchema,
+        401: errorSchema,
+        403: errorSchema,
+      },
     }
   )
 
@@ -135,7 +156,10 @@ export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth']
 
       return { success: true };
     },
-    { cookie: cookieSchema }
+    {
+      cookie: cookieSchema,
+      response: { 200: successSchema },
+    }
   )
 
   // GET /auth/me
