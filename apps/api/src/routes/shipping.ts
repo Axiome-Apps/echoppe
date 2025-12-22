@@ -17,7 +17,7 @@ import {
   type ShippingProvider,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { authPlugin } from '../plugins/auth';
+import { permissionGuard } from '../plugins/rbac';
 
 const colissimoConfigBody = t.Object({
   contractNumber: t.String({ minLength: 1 }),
@@ -97,12 +97,15 @@ const shippingProviderStatusSchema = t.Object({
 });
 
 const rateSchema = t.Object({
-  provider: t.String(),
+  id: t.String(),
+  carrier: t.String(),
   service: t.String(),
-  name: t.String(),
   price: t.Number(),
   currency: t.String(),
-  estimatedDays: t.Optional(t.Number()),
+  deliveryDays: t.Object({
+    min: t.Number(),
+    max: t.Number(),
+  }),
 });
 
 const labelSchema = t.Object({
@@ -155,7 +158,9 @@ const providerMeta: Record<
 };
 
 export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: ['Shipping'] } })
-  .use(authPlugin)
+
+  // === SHIPPING PROVIDER READ ===
+  .use(permissionGuard('shipping_provider', 'read'))
 
   // GET /shipping/providers - Liste des providers avec statut
   .get(
@@ -178,71 +183,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return result;
     },
-    { auth: true, response: { 200: t.Array(shippingProviderStatusSchema) } },
-  )
-
-  // PUT /shipping/providers/colissimo
-  .put(
-    '/providers/colissimo',
-    async ({ body, status }) => {
-      if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
-      }
-
-      const credentials: ColissimoCredentials = {
-        contractNumber: body.contractNumber,
-        password: body.password,
-      };
-
-      await saveShippingProviderCredentials('colissimo', credentials, body.isEnabled ?? true);
-      resetShippingAdapters();
-
-      return { success: true };
-    },
-    { auth: true, body: colissimoConfigBody, response: { 200: successSchema, 400: errorSchema } },
-  )
-
-  // PUT /shipping/providers/mondialrelay
-  .put(
-    '/providers/mondialrelay',
-    async ({ body, status }) => {
-      if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
-      }
-
-      const credentials: MondialRelayCredentials = {
-        brandId: body.brandId,
-        login: body.login,
-        password: body.password,
-      };
-
-      await saveShippingProviderCredentials('mondialrelay', credentials, body.isEnabled ?? true);
-      resetShippingAdapters();
-
-      return { success: true };
-    },
-    { auth: true, body: mondialrelayConfigBody, response: { 200: successSchema, 400: errorSchema } },
-  )
-
-  // PUT /shipping/providers/sendcloud
-  .put(
-    '/providers/sendcloud',
-    async ({ body, status }) => {
-      if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
-      }
-
-      const credentials: SendcloudCredentials = {
-        apiKey: body.apiKey,
-        apiSecret: body.apiSecret,
-      };
-
-      await saveShippingProviderCredentials('sendcloud', credentials, body.isEnabled ?? true);
-      resetShippingAdapters();
-
-      return { success: true };
-    },
-    { auth: true, body: sendcloudConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    { permission: true, response: { 200: t.Array(shippingProviderStatusSchema) } },
   )
 
   // POST /shipping/rates - Calcul des tarifs
@@ -266,8 +207,105 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return allRates.sort((a, b) => a.price - b.price);
     },
-    { auth: true, body: ratesBody, response: { 200: t.Array(rateSchema) } },
+    { permission: true, body: ratesBody, response: { 200: t.Array(rateSchema) } },
   )
+
+  // GET /shipping/tracking/:trackingNumber
+  .get(
+    '/tracking/:trackingNumber',
+    async ({ params, query, status }) => {
+      const provider = query.provider as ShippingProvider | undefined;
+
+      if (!provider) {
+        return status(400, { message: 'Provider requis (?provider=colissimo)' });
+      }
+
+      const adapter = getShippingAdapter(provider);
+
+      if (!(await adapter.isConfigured())) {
+        return status(400, { message: `Provider ${provider} non configuré` });
+      }
+
+      const events = await adapter.getTracking(params.trackingNumber);
+      return events;
+    },
+    {
+      permission: true,
+      params: t.Object({ trackingNumber: t.String() }),
+      query: t.Object({ provider: t.Optional(t.String()) }),
+      response: { 200: t.Array(trackingEventSchema), 400: errorSchema },
+    },
+  )
+
+  // === SHIPPING PROVIDER UPDATE ===
+  .use(permissionGuard('shipping_provider', 'update'))
+
+  // PUT /shipping/providers/colissimo
+  .put(
+    '/providers/colissimo',
+    async ({ body, status }) => {
+      if (!isEncryptionConfigured()) {
+        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+      }
+
+      const credentials: ColissimoCredentials = {
+        contractNumber: body.contractNumber,
+        password: body.password,
+      };
+
+      await saveShippingProviderCredentials('colissimo', credentials, body.isEnabled ?? true);
+      resetShippingAdapters();
+
+      return { success: true };
+    },
+    { permission: true, body: colissimoConfigBody, response: { 200: successSchema, 400: errorSchema } },
+  )
+
+  // PUT /shipping/providers/mondialrelay
+  .put(
+    '/providers/mondialrelay',
+    async ({ body, status }) => {
+      if (!isEncryptionConfigured()) {
+        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+      }
+
+      const credentials: MondialRelayCredentials = {
+        brandId: body.brandId,
+        login: body.login,
+        password: body.password,
+      };
+
+      await saveShippingProviderCredentials('mondialrelay', credentials, body.isEnabled ?? true);
+      resetShippingAdapters();
+
+      return { success: true };
+    },
+    { permission: true, body: mondialrelayConfigBody, response: { 200: successSchema, 400: errorSchema } },
+  )
+
+  // PUT /shipping/providers/sendcloud
+  .put(
+    '/providers/sendcloud',
+    async ({ body, status }) => {
+      if (!isEncryptionConfigured()) {
+        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+      }
+
+      const credentials: SendcloudCredentials = {
+        apiKey: body.apiKey,
+        apiSecret: body.apiSecret,
+      };
+
+      await saveShippingProviderCredentials('sendcloud', credentials, body.isEnabled ?? true);
+      resetShippingAdapters();
+
+      return { success: true };
+    },
+    { permission: true, body: sendcloudConfigBody, response: { 200: successSchema, 400: errorSchema } },
+  )
+
+  // === SHIPPING LABEL CREATE (uses order:update since it's part of order fulfillment) ===
+  .use(permissionGuard('order', 'update'))
 
   // POST /shipping/labels - Créer une étiquette
   .post(
@@ -329,32 +367,5 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return label;
     },
-    { auth: true, body: labelBody, response: { 200: labelSchema, 400: errorSchema, 404: errorSchema } },
-  )
-
-  // GET /shipping/tracking/:trackingNumber
-  .get(
-    '/tracking/:trackingNumber',
-    async ({ params, query, status }) => {
-      const provider = query.provider as ShippingProvider | undefined;
-
-      if (!provider) {
-        return status(400, { message: 'Provider requis (?provider=colissimo)' });
-      }
-
-      const adapter = getShippingAdapter(provider);
-
-      if (!(await adapter.isConfigured())) {
-        return status(400, { message: `Provider ${provider} non configuré` });
-      }
-
-      const events = await adapter.getTracking(params.trackingNumber);
-      return events;
-    },
-    {
-      auth: true,
-      params: t.Object({ trackingNumber: t.String() }),
-      query: t.Object({ provider: t.Optional(t.String()) }),
-      response: { 200: t.Array(trackingEventSchema), 400: errorSchema },
-    },
+    { permission: true, body: labelBody, response: { 200: labelSchema, 400: errorSchema, 404: errorSchema } },
   );

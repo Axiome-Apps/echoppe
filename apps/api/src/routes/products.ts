@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { db, product, variant, option, optionValue, variantOptionValue, productOption, productMedia, eq, and, count, ilike } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
-import { authPlugin } from '../plugins/auth';
+import { permissionGuard } from '../plugins/rbac';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 
 // Schema du produit pour les réponses
@@ -149,7 +149,6 @@ const variantSchema = t.Object({
 });
 
 export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: ['Products'] } })
-  .use(authPlugin)
 
   // === PUBLIC ROUTES ===
 
@@ -223,6 +222,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // === PROTECTED ROUTES (Admin) ===
 
   // POST /products - Create
+  .use(permissionGuard('product', 'create'))
   .post(
     '/',
     async ({ body }) => {
@@ -239,10 +239,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .returning();
       return created;
     },
-    { auth: true, body: productCreateBody, response: { 200: productSchema } }
+    { permission: true, body: productCreateBody, response: { 200: productSchema } }
   )
 
   // PUT /products/:id - Update (full, slug immutable)
+  .use(permissionGuard('product', 'update'))
   .put(
     '/:id',
     async ({ params, body, status }) => {
@@ -262,7 +263,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return updated;
     },
     {
-      auth: true,
+      permission: true,
       params: productParams,
       body: productUpdateBody,
       response: { 200: productSchema, 404: errorSchema },
@@ -292,7 +293,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return updated;
     },
     {
-      auth: true,
+      permission: true,
       params: productParams,
       body: productPatchBody,
       response: { 200: productSchema, 404: errorSchema },
@@ -300,6 +301,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   )
 
   // DELETE /products/:id - Delete
+  .use(permissionGuard('product', 'delete'))
   .delete(
     '/:id',
     async ({ params, status }) => {
@@ -308,7 +310,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return { success: true };
     },
     {
-      auth: true,
+      permission: true,
       params: productParams,
       response: { 200: successSchema, 404: errorSchema },
     }
@@ -317,6 +319,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // === VARIANTS ===
 
   // POST /products/:id/variants
+  .use(permissionGuard('variant', 'create'))
   .post(
     '/:id/variants',
     async ({ params, body, status }) => {
@@ -346,7 +349,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return created;
     },
     {
-      auth: true,
+      permission: true,
       params: productParams,
       body: variantBody,
       response: { 200: variantSchema, 404: errorSchema },
@@ -354,6 +357,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   )
 
   // PUT /products/:id/variants/:variantId
+  .use(permissionGuard('variant', 'update'))
   .put(
     '/:id/variants/:variantId',
     async ({ params, body, status }) => {
@@ -381,7 +385,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return updated;
     },
     {
-      auth: true,
+      permission: true,
       params: variantParams,
       body: variantBody,
       response: { 200: variantSchema, 404: errorSchema },
@@ -389,6 +393,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   )
 
   // DELETE /products/:id/variants/:variantId
+  .use(permissionGuard('variant', 'delete'))
   .delete(
     '/:id/variants/:variantId',
     async ({ params, status }) => {
@@ -400,13 +405,14 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return { success: true };
     },
     {
-      auth: true,
+      permission: true,
       params: variantParams,
       response: { 200: successSchema, 404: errorSchema },
     }
   )
 
   // PUT /products/:id/variants/:variantId/options - Set variant option values (replaces all)
+  .use(permissionGuard('variant', 'update'))
   .put(
     '/:id/variants/:variantId/options',
     async ({ params, body, status }) => {
@@ -432,7 +438,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return { success: true };
     },
     {
-      auth: true,
+      permission: true,
       params: variantParams,
       body: t.Object({ optionValueIds: t.Array(t.String({ format: 'uuid' })) }),
       response: { 200: successSchema, 404: errorSchema },
@@ -442,6 +448,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // === MEDIA ===
 
   // GET /products/:id/media
+  .use(permissionGuard('product', 'read'))
   .get(
     '/:id/media',
     async ({ params }) => {
@@ -452,10 +459,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .orderBy(productMedia.sortOrder);
       return media;
     },
-    { auth: true, params: productParams, response: t.Array(productMediaSchema) }
+    { permission: true, params: productParams, response: t.Array(productMediaSchema) }
   )
 
   // POST /products/:id/media - Add media to product
+  .use(permissionGuard('product', 'update'))
   .post(
     '/:id/media',
     async ({ params, body, status }) => {
@@ -483,7 +491,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return created;
     },
     {
-      auth: true,
+      permission: true,
       params: productParams,
       body: productMediaBody,
       response: { 200: productMediaSchema, 404: errorSchema },
@@ -524,7 +532,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return updated;
     },
     {
-      auth: true,
+      permission: true,
       params: mediaParams,
       body: productMediaUpdateBody,
       response: { 200: productMediaSchema, 404: errorSchema },
@@ -532,6 +540,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   )
 
   // DELETE /products/:id/media/:mediaId
+  .use(permissionGuard('product', 'delete'))
   .delete(
     '/:id/media/:mediaId',
     async ({ params, status }) => {
@@ -543,7 +552,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return { success: true };
     },
     {
-      auth: true,
+      permission: true,
       params: mediaParams,
       response: { 200: successSchema, 404: errorSchema },
     }
@@ -552,16 +561,18 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // === OPTIONS (globales) ===
 
   // GET /options - Liste toutes les options globales
+  .use(permissionGuard('option', 'read'))
   .get(
     '/options',
     async () => {
       const options = await db.select().from(option).orderBy(option.name);
       return options;
     },
-    { auth: true, response: { 200: t.Array(optionSchema) } }
+    { permission: true, response: { 200: t.Array(optionSchema) } }
   )
 
   // POST /products/:id/options - Associe une option au produit (crée l'option si elle n'existe pas)
+  .use(permissionGuard('option', 'create'))
   .post(
     '/:id/options',
     async ({ params, body, status }) => {
@@ -598,7 +609,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return opt;
     },
     {
-      auth: true,
+      permission: true,
       params: productParams,
       body: optionBody,
       response: { 200: optionSchema, 404: errorSchema, 409: errorSchema },
@@ -633,7 +644,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return created;
     },
     {
-      auth: true,
+      permission: true,
       params: optionParams,
       body: optionValueBody,
       response: { 200: optionValueSchema, 404: errorSchema },

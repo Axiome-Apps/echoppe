@@ -17,3 +17,6 @@ export { encrypt, decrypt, isEncryptionConfigured, generateEncryptionKey } from 
 
 // Invoice service
 export * from './services/invoice';
+
+// RBAC constants
+export * from './constants/resources';

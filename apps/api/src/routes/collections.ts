@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { db, collection, eq, count } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
-import { authPlugin } from '../plugins/auth';
+import { permissionGuard } from '../plugins/rbac';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 
 // Schema de réponse pour les collections
@@ -38,7 +38,6 @@ const errorSchema = t.Object({ message: t.String() });
 const successSchema = t.Object({ success: t.Boolean() });
 
 export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { tags: ['Collections'] } })
-  .use(authPlugin)
 
   // === PUBLIC ROUTES ===
 
@@ -78,6 +77,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
   // === PROTECTED ROUTES (Admin) ===
 
   // POST /collections - Create (slug auto-generated)
+  .use(permissionGuard('collection', 'create'))
   .post(
     '/',
     async ({ body }) => {
@@ -93,10 +93,11 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
         .returning();
       return created;
     },
-    { auth: true, body: collectionCreateBody, response: { 200: collectionSchema } }
+    { permission: true, body: collectionCreateBody, response: { 200: collectionSchema } }
   )
 
   // PUT /collections/:id - Update (slug immutable)
+  .use(permissionGuard('collection', 'update'))
   .put(
     '/:id',
     async ({ params, body, status }) => {
@@ -114,7 +115,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       return updated;
     },
     {
-      auth: true,
+      permission: true,
       params: collectionParams,
       body: collectionUpdateBody,
       response: { 200: collectionSchema, 404: errorSchema },
@@ -122,6 +123,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
   )
 
   // DELETE /collections/:id - Delete
+  .use(permissionGuard('collection', 'delete'))
   .delete(
     '/:id',
     async ({ params, status }) => {
@@ -130,7 +132,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       return { success: true };
     },
     {
-      auth: true,
+      permission: true,
       params: collectionParams,
       response: { 200: successSchema, 404: errorSchema },
     }

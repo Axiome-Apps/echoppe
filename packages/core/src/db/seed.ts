@@ -3,6 +3,7 @@ import {
   country,
   taxRate,
   role,
+  permission,
   user,
   company,
   category,
@@ -180,37 +181,160 @@ async function seed() {
 
   // === ROLES ===
   console.log('  → Roles...');
-  const roles = await db
-    .insert(role)
-    .values([
-      {
-        name: 'Owner',
-        description: 'Propriétaire de la boutique - accès total',
-        scope: 'admin',
-        isSystem: true,
-      },
-      {
-        name: 'Admin',
-        description: 'Administrateur - accès complet sauf paramètres critiques',
-        scope: 'admin',
-        isSystem: true,
-      },
-      {
-        name: 'Manager',
-        description: 'Gestionnaire - gestion produits, commandes, clients',
-        scope: 'admin',
-        isSystem: false,
-      },
-      {
-        name: 'Support',
-        description: 'Support client - lecture seule + gestion commandes',
-        scope: 'admin',
-        isSystem: false,
-      },
-    ])
-    .onConflictDoNothing()
-    .returning();
-  console.log(`    ✓ ${roles.length} roles`);
+  const defaultRoles = [
+    {
+      name: 'Propriétaire',
+      description: 'Propriétaire de la boutique - accès total',
+      scope: 'admin' as const,
+      isSystem: true,
+    },
+    {
+      name: 'Administrateur',
+      description: 'Administrateur - accès complet sauf rôles/permissions',
+      scope: 'admin' as const,
+      isSystem: true,
+    },
+    {
+      name: 'Client',
+      description: 'Client authentifié - accès à ses propres données',
+      scope: 'store' as const,
+      isSystem: true,
+    },
+    {
+      name: 'Public',
+      description: 'Accès public non authentifié - lecture seule catalogue',
+      scope: 'store' as const,
+      isSystem: true,
+    },
+  ];
+
+  // Insérer seulement les rôles qui n'existent pas déjà
+  const existingRoles = await db.select({ name: role.name }).from(role);
+  const existingNames = new Set(existingRoles.map((r) => r.name));
+  const rolesToInsert = defaultRoles.filter((r) => !existingNames.has(r.name));
+
+  if (rolesToInsert.length > 0) {
+    await db.insert(role).values(rolesToInsert);
+  }
+  console.log(`    ✓ ${rolesToInsert.length} roles`);
+
+  // === PERMISSIONS ===
+  console.log('  → Permissions...');
+
+  // Récupérer tous les rôles (y compris ceux déjà existants)
+  const allRoles = await db.select().from(role);
+  const roleByName = new Map(allRoles.map((r) => [r.name, r.id]));
+
+  // Helper pour créer des permissions
+  type PermDef = {
+    resource: string;
+    canCreate?: boolean;
+    canRead?: boolean;
+    canUpdate?: boolean;
+    canDelete?: boolean;
+    selfOnly?: boolean;
+  };
+
+  async function setPermissions(roleName: string, perms: PermDef[]) {
+    const roleId = roleByName.get(roleName);
+    if (!roleId) return;
+
+    for (const p of perms) {
+      await db
+        .insert(permission)
+        .values({
+          role: roleId,
+          resource: p.resource,
+          canCreate: p.canCreate ?? false,
+          canRead: p.canRead ?? false,
+          canUpdate: p.canUpdate ?? false,
+          canDelete: p.canDelete ?? false,
+          selfOnly: p.selfOnly ?? false,
+        })
+        .onConflictDoNothing();
+    }
+  }
+
+  // Propriétaire: Full access (bypass dans le code, mais permissions définies pour cohérence)
+  await setPermissions('Propriétaire', [
+    { resource: 'product', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'category', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'collection', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'variant', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'option', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'media', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'folder', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'order', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'customer', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'user', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'role', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'permission', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'company', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'shipping_provider', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'payment_config', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'tax_rate', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'country', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'wishlist', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'invoice', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'audit_log', canRead: true },
+  ]);
+
+  // Administrateur: Presque tout sauf rôles/permissions
+  await setPermissions('Administrateur', [
+    { resource: 'product', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'category', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'collection', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'variant', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'option', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'media', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'folder', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'order', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'customer', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'user', canCreate: true, canRead: true, canUpdate: true },
+    { resource: 'role', canRead: true },
+    { resource: 'permission', canRead: true },
+    { resource: 'company', canRead: true, canUpdate: true },
+    { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'shipping_provider', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'payment_config', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'tax_rate', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'country', canRead: true },
+    { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    { resource: 'invoice', canCreate: true, canRead: true },
+    { resource: 'audit_log', canRead: true },
+  ]);
+
+  // Client: Ses propres données (selfOnly)
+  await setPermissions('Client', [
+    { resource: 'product', canRead: true },
+    { resource: 'category', canRead: true },
+    { resource: 'collection', canRead: true },
+    { resource: 'variant', canRead: true },
+    { resource: 'option', canRead: true },
+    { resource: 'tax_rate', canRead: true },
+    { resource: 'country', canRead: true },
+    { resource: 'order', canRead: true, selfOnly: true },
+    { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true },
+    { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true },
+    { resource: 'wishlist', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true },
+    { resource: 'invoice', canRead: true, selfOnly: true },
+  ]);
+
+  // Public: Lecture seule catalogue
+  await setPermissions('Public', [
+    { resource: 'product', canRead: true },
+    { resource: 'category', canRead: true },
+    { resource: 'collection', canRead: true },
+    { resource: 'variant', canRead: true },
+    { resource: 'option', canRead: true },
+    { resource: 'tax_rate', canRead: true },
+    { resource: 'country', canRead: true },
+  ]);
+
+  console.log('    ✓ Permissions created');
 
   // === CATEGORIES ===
   console.log('  → Categories...');

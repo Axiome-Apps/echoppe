@@ -1,6 +1,6 @@
 import { db, desc, eq, product, sql, stockMove, variant } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { authPlugin } from '../plugins/auth';
+import { permissionGuard } from '../plugins/rbac';
 
 const stockMoveCreateBody = t.Object({
   variant: t.String({ format: 'uuid' }),
@@ -27,10 +27,17 @@ const paginationQuery = t.Object({
 const errorSchema = t.Object({ message: t.String() });
 const stockMoveSchema = t.Object({
   id: t.String(),
-  variant: t.String(),
+  variant: t.Nullable(t.String()),
   label: t.String(),
   quantity: t.Number(),
-  type: t.Union([t.Literal('restock'), t.Literal('adjustment'), t.Literal('sale'), t.Literal('cancel'), t.Literal('refund')]),
+  type: t.Union([
+    t.Literal('sale'),
+    t.Literal('return'),
+    t.Literal('restock'),
+    t.Literal('adjustment'),
+    t.Literal('reservation'),
+  ]),
+  reference: t.Nullable(t.String()),
   note: t.Nullable(t.String()),
   dateCreated: t.Date(),
 });
@@ -51,7 +58,9 @@ const paginatedStockSchema = t.Object({
 });
 
 export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stock'] } })
-  .use(authPlugin)
+
+  // === STOCK READ ===
+  .use(permissionGuard('stock', 'read'))
 
   // GET /stock - List stock moves with pagination
   .get(
@@ -83,7 +92,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
         },
       };
     },
-    { auth: true, query: paginationQuery, response: { 200: paginatedStockSchema } },
+    { permission: true, query: paginationQuery, response: { 200: paginatedStockSchema } },
   )
 
   // GET /stock/alerts - Variants below low stock threshold
@@ -108,7 +117,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
 
       return alerts;
     },
-    { auth: true, response: t.Array(alertSchema) },
+    { permission: true, response: t.Array(alertSchema) },
   )
 
   // GET /stock/variants - List variants for select (adjustment modal)
@@ -128,8 +137,11 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
 
       return variants;
     },
-    { auth: true, response: { 200: t.Array(stockVariantSchema) } },
+    { permission: true, response: { 200: t.Array(stockVariantSchema) } },
   )
+
+  // === STOCK CREATE ===
+  .use(permissionGuard('stock', 'create'))
 
   // POST /stock - Create a stock move and update variant quantity
   .post(
@@ -182,7 +194,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
       return move;
     },
     {
-      auth: true,
+      permission: true,
       body: stockMoveCreateBody,
       response: { 200: stockMoveSchema, 404: errorSchema },
     },

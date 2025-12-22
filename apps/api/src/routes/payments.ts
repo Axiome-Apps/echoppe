@@ -12,7 +12,7 @@ import {
 } from '@echoppe/core';
 import type { PaymentProvider, PayPalCredentials, StripeCredentials } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { authPlugin } from '../plugins/auth';
+import { permissionGuard } from '../plugins/rbac';
 
 const checkoutBody = t.Object({
   orderId: t.String({ format: 'uuid' }),
@@ -107,7 +107,9 @@ const providerMeta: Record<
 };
 
 export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: ['Payments'] } })
-  .use(authPlugin)
+
+  // === PAYMENT CONFIG READ ===
+  .use(permissionGuard('payment_config', 'read'))
 
   // GET /payments/providers - Liste des providers avec statut
   .get(
@@ -130,8 +132,11 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return result;
     },
-    { auth: true, response: { 200: t.Array(providerStatusSchema) } },
+    { permission: true, response: { 200: t.Array(providerStatusSchema) } },
   )
+
+  // === PAYMENT CONFIG UPDATE ===
+  .use(permissionGuard('payment_config', 'update'))
 
   // PUT /payments/providers/stripe - Configure Stripe
   .put(
@@ -151,7 +156,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return { success: true };
     },
-    { auth: true, body: stripeConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    { permission: true, body: stripeConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
 
   // PUT /payments/providers/paypal - Configure PayPal
@@ -173,10 +178,12 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return { success: true };
     },
-    { auth: true, body: paypalConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    { permission: true, body: paypalConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
 
-  // POST /payments/checkout - Créer une session de paiement
+  // === PUBLIC ROUTES (no auth needed) ===
+
+  // POST /payments/checkout - Créer une session de paiement (public for checkout flow)
   .post(
     '/checkout',
     async ({ body, status }) => {
@@ -263,25 +270,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     { body: checkoutBody, response: { 200: checkoutSessionSchema, 400: errorSchema, 404: errorSchema } },
   )
 
-  // GET /payments/:orderId - Statut du paiement
-  .get(
-    '/:orderId',
-    async ({ params, status }) => {
-      const [paymentData] = await db
-        .select()
-        .from(payment)
-        .where(eq(payment.order, params.orderId));
-
-      if (!paymentData) {
-        return status(404, { message: 'Paiement introuvable' });
-      }
-
-      return paymentData;
-    },
-    { auth: true, params: uuidParam, response: { 200: paymentSchema, 404: errorSchema } },
-  )
-
-  // POST /payments/webhook/stripe - Webhook Stripe
+  // POST /payments/webhook/stripe - Webhook Stripe (public)
   .post(
     '/webhook/stripe',
     async ({ request, status }) => {
@@ -309,7 +298,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     { response: { 200: webhookReceivedSchema, 400: errorSchema } },
   )
 
-  // POST /payments/webhook/paypal - Webhook PayPal
+  // POST /payments/webhook/paypal - Webhook PayPal (public)
   .post(
     '/webhook/paypal',
     async ({ request, status }) => {
@@ -332,6 +321,30 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     },
     { response: { 200: webhookReceivedSchema, 400: errorSchema } },
   )
+
+  // === ORDER READ (payment status) ===
+  .use(permissionGuard('order', 'read'))
+
+  // GET /payments/:orderId - Statut du paiement
+  .get(
+    '/:orderId',
+    async ({ params, status }) => {
+      const [paymentData] = await db
+        .select()
+        .from(payment)
+        .where(eq(payment.order, params.orderId));
+
+      if (!paymentData) {
+        return status(404, { message: 'Paiement introuvable' });
+      }
+
+      return paymentData;
+    },
+    { permission: true, params: uuidParam, response: { 200: paymentSchema, 404: errorSchema } },
+  )
+
+  // === ORDER UPDATE (refund) ===
+  .use(permissionGuard('order', 'update'))
 
   // POST /payments/:orderId/refund - Rembourser (admin)
   .post(
@@ -381,7 +394,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       return result;
     },
     {
-      auth: true,
+      permission: true,
       params: uuidParam,
       body: t.Object({
         amount: t.Optional(t.Number({ minimum: 0 })),

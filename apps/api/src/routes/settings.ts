@@ -1,6 +1,6 @@
 import { company, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { authPlugin } from '../plugins/auth';
+import { permissionGuard } from '../plugins/rbac';
 
 const settingsBody = t.Object({
   shopName: t.String({ minLength: 1, maxLength: 255 }),
@@ -55,7 +55,9 @@ const companySchema = t.Object({
 });
 
 export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: ['Settings'] } })
-  .use(authPlugin)
+
+  // === COMPANY READ ===
+  .use(permissionGuard('company', 'read'))
 
   // GET /settings - Get company settings (singleton)
   .get(
@@ -64,7 +66,7 @@ export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: 
       const [settings] = await db.select().from(company).limit(1);
       return settings ?? null;
     },
-    { auth: true, response: { 200: t.Union([companySchema, t.Null()]) } },
+    { permission: true, response: { 200: t.Union([companySchema, t.Null()]) } },
   )
 
   // GET /settings/countries - List countries for select
@@ -73,8 +75,11 @@ export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: 
     async () => {
       return db.select().from(country).orderBy(country.name);
     },
-    { auth: true, response: t.Array(countrySchema) },
+    { permission: true, response: t.Array(countrySchema) },
   )
+
+  // === COMPANY UPDATE ===
+  .use(permissionGuard('company', 'update'))
 
   // PUT /settings - Create or update (upsert)
   .put(
@@ -116,5 +121,5 @@ export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: 
       const [created] = await db.insert(company).values(values).returning();
       return created;
     },
-    { auth: true, body: settingsBody, response: { 200: companySchema } },
+    { permission: true, body: settingsBody, response: { 200: companySchema } },
   );

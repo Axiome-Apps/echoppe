@@ -1,0 +1,49 @@
+/**
+ * Ressources protégées par le système RBAC
+ * Chaque ressource peut avoir des permissions CRUD distinctes
+ */
+export const RESOURCES = {
+  // Catalogue
+  PRODUCT: 'product',
+  CATEGORY: 'category',
+  COLLECTION: 'collection',
+  VARIANT: 'variant',
+  OPTION: 'option',
+  TAX_RATE: 'tax_rate',
+
+  // Référentiel
+  COUNTRY: 'country',
+
+  // Médias
+  MEDIA: 'media',
+  FOLDER: 'folder',
+
+  // Commerce
+  ORDER: 'order',
+  CART: 'cart',
+  WISHLIST: 'wishlist',
+  INVOICE: 'invoice',
+
+  // Clients
+  CUSTOMER: 'customer',
+  ADDRESS: 'address',
+
+  // Administration
+  USER: 'user',
+  ROLE: 'role',
+  PERMISSION: 'permission',
+  COMPANY: 'company',
+  STOCK: 'stock',
+  SHIPPING_PROVIDER: 'shipping_provider',
+  PAYMENT_CONFIG: 'payment_config',
+  AUDIT_LOG: 'audit_log',
+} as const;
+
+export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];
+
+export type Action = 'create' | 'read' | 'update' | 'delete';
+
+/**
+ * Liste des ressources pour itération
+ */
+export const RESOURCE_LIST = Object.values(RESOURCES);

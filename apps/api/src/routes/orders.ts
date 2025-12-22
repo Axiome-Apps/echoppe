@@ -26,7 +26,7 @@ import {
 import { randomUUID } from 'crypto';
 import { Elysia, t } from 'elysia';
 import { join } from 'path';
-import { authPlugin } from '../plugins/auth';
+import { permissionGuard } from '../plugins/rbac';
 
 const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
 
@@ -115,12 +115,10 @@ const orderItemSchema = t.Object({
   order: t.String(),
   variant: t.Nullable(t.String()),
   label: t.String(),
-  sku: t.Nullable(t.String()),
   quantity: t.Number(),
   unitPriceHt: t.String(),
   taxRate: t.String(),
   totalHt: t.String(),
-  totalTax: t.String(),
   totalTtc: t.String(),
 });
 
@@ -212,7 +210,9 @@ const invoiceCreatedSchema = t.Object({
 });
 
 export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Orders'] } })
-  .use(authPlugin)
+
+  // === ORDER READ ===
+  .use(permissionGuard('order', 'read'))
 
   // GET /orders - Liste paginée avec filtres
   .get(
@@ -316,7 +316,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         },
       };
     },
-    { auth: true, query: paginationQuery, response: { 200: paginatedOrdersSchema } },
+    { permission: true, query: paginationQuery, response: { 200: paginatedOrdersSchema } },
   )
 
   // GET /orders/:id - Détail commande
@@ -391,8 +391,11 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         shipment: shipmentData ?? null,
       };
     },
-    { auth: true, params: uuidParam, response: { 200: orderDetailSchema, 404: errorSchema } },
+    { permission: true, params: uuidParam, response: { 200: orderDetailSchema, 404: errorSchema } },
   )
+
+  // === ORDER UPDATE ===
+  .use(permissionGuard('order', 'update'))
 
   // PATCH /orders/:id/status - Changer statut
   .patch(
@@ -436,7 +439,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       return { success: true, previousStatus, newStatus };
     },
-    { auth: true, params: uuidParam, body: statusBody, response: { 200: statusChangeResultSchema, 404: errorSchema } },
+    { permission: true, params: uuidParam, body: statusBody, response: { 200: statusChangeResultSchema, 404: errorSchema } },
   )
 
   // PATCH /orders/:id/notes - Modifier notes
@@ -467,8 +470,11 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       return { success: true };
     },
-    { auth: true, params: uuidParam, body: notesBody, response: { 200: successSchema, 404: errorSchema } },
+    { permission: true, params: uuidParam, body: notesBody, response: { 200: successSchema, 404: errorSchema } },
   )
+
+  // === ORDER READ (stats) ===
+  .use(permissionGuard('order', 'read'))
 
   // GET /orders/stats - Statistiques commandes
   .get(
@@ -498,10 +504,10 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         totalRevenue,
       };
     },
-    { auth: true, response: { 200: orderStatsSchema } },
+    { permission: true, response: { 200: orderStatsSchema } },
   )
 
-  // === INVOICES ===
+  // === INVOICES (READ) ===
 
   // GET /orders/:id/invoices - Liste des factures d'une commande
   .get(
@@ -531,8 +537,11 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         hasPdf: !!inv.pdf,
       }));
     },
-    { auth: true, params: uuidParam, response: { 200: t.Array(invoiceSummarySchema), 404: errorSchema } },
+    { permission: true, params: uuidParam, response: { 200: t.Array(invoiceSummarySchema), 404: errorSchema } },
   )
+
+  // === INVOICES (CREATE) ===
+  .use(permissionGuard('order', 'update'))
 
   // POST /orders/:id/invoice - Générer une facture
   .post(
@@ -595,7 +604,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
       };
     },
     {
-      auth: true,
+      permission: true,
       params: uuidParam,
       body: t.Optional(
         t.Object({
@@ -606,6 +615,9 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
       response: { 200: invoiceCreatedSchema, 404: errorSchema },
     },
   )
+
+  // === INVOICES (READ PDF) ===
+  .use(permissionGuard('order', 'read'))
 
   // GET /orders/:id/invoices/:invoiceId/pdf - Télécharger le PDF d'une facture
   .get(
@@ -679,7 +691,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
       return new Response(new Uint8Array(pdfBuffer));
     },
     {
-      auth: true,
+      permission: true,
       params: t.Object({
         id: t.String({ format: 'uuid' }),
         invoiceId: t.String({ format: 'uuid' }),

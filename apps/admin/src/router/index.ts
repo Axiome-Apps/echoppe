@@ -70,6 +70,21 @@ const router = createRouter({
           name: 'settings',
           component: () => import('../views/SettingsView.vue'),
         },
+        {
+          path: 'roles',
+          name: 'roles',
+          component: () => import('../views/RolesView.vue'),
+        },
+        {
+          path: 'roles/nouveau',
+          name: 'role-new',
+          component: () => import('../views/RoleEditView.vue'),
+        },
+        {
+          path: 'roles/:id',
+          name: 'role-edit',
+          component: () => import('../views/RoleEditView.vue'),
+        },
       ],
     },
   ],

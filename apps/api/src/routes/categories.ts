@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { db, category, eq } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
-import { authPlugin } from '../plugins/auth';
+import { permissionGuard } from '../plugins/rbac';
 
 // Schema de réponse pour les catégories
 const categorySchema = t.Object({
@@ -51,7 +51,6 @@ const successSchema = t.Object({ success: t.Boolean() });
 const batchSuccessSchema = t.Object({ success: t.Boolean(), count: t.Number() });
 
 export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { tags: ['Categories'] } })
-  .use(authPlugin)
 
   // === PUBLIC ROUTES ===
 
@@ -77,6 +76,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
   // === PROTECTED ROUTES (Admin) ===
 
   // POST /categories - Create (slug auto-generated)
+  .use(permissionGuard('category', 'create'))
   .post(
     '/',
     async ({ body }) => {
@@ -94,10 +94,11 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
         .returning();
       return created;
     },
-    { auth: true, body: categoryCreateBody, response: { 200: categorySchema } }
+    { permission: true, body: categoryCreateBody, response: { 200: categorySchema } }
   )
 
   // PUT /categories/:id - Update (slug immutable)
+  .use(permissionGuard('category', 'update'))
   .put(
     '/:id',
     async ({ params, body, status }) => {
@@ -117,7 +118,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       return updated;
     },
     {
-      auth: true,
+      permission: true,
       params: categoryParams,
       body: categoryUpdateBody,
       response: { 200: categorySchema, 404: errorSchema },
@@ -141,10 +142,11 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       });
       return { success: true, count: body.length };
     },
-    { auth: true, body: batchOrderBody, response: { 200: batchSuccessSchema } }
+    { permission: true, body: batchOrderBody, response: { 200: batchSuccessSchema } }
   )
 
   // DELETE /categories/:id - Delete
+  .use(permissionGuard('category', 'delete'))
   .delete(
     '/:id',
     async ({ params, status }) => {
@@ -153,7 +155,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       return { success: true };
     },
     {
-      auth: true,
+      permission: true,
       params: categoryParams,
       response: { 200: successSchema, 404: errorSchema },
     }
