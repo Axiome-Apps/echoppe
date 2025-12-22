@@ -48,6 +48,9 @@
 - [ ] Panier + Checkout
 - [ ] Espace client (commandes, adresses)
 
+### API Documentation
+- [ ] Helper pour ajouter les réponses d'erreur communes (401/400/500) automatiquement dans OpenAPI
+
 ### Autres
 - [ ] Webhooks
 - [ ] Notifications email (confirmation commande, expédition, facture client)

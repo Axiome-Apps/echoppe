@@ -4,23 +4,23 @@ import { join } from 'path';
 
 const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
 
+const errorSchema = t.Object({ message: t.String() });
+
 export const assetsRoutes = new Elysia({ prefix: '/assets', detail: { tags: ['Assets'] } })
   .get(
     '/:id',
-    async ({ params, set }) => {
+    async ({ params, status, set }) => {
       const [item] = await db.select().from(media).where(eq(media.id, params.id));
 
       if (!item) {
-        set.status = 404;
-        return { message: 'Media not found' };
+        return status(404, { message: 'Media not found' });
       }
 
       const filePath = join(UPLOAD_DIR, item.filenameDisk);
       const file = Bun.file(filePath);
 
       if (!(await file.exists())) {
-        set.status = 404;
-        return { message: 'File not found' };
+        return status(404, { message: 'File not found' });
       }
 
       set.headers['content-type'] = item.mimeType;
@@ -29,5 +29,6 @@ export const assetsRoutes = new Elysia({ prefix: '/assets', detail: { tags: ['As
     },
     {
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
+      response: { 404: errorSchema },
     }
   );
