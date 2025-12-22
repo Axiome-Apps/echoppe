@@ -1,5 +1,5 @@
 import { cors } from '@elysiajs/cors';
-import { swagger } from '@elysiajs/swagger';
+import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
 import { authRoutes } from './routes/auth';
 import { categoriesRoutes } from './routes/categories';
@@ -24,8 +24,13 @@ const app = new Elysia()
     })
   )
   .use(
-    swagger({
+    openapi({
       path: '/docs',
+      scalar: {
+        theme: 'bluePlanet',
+        darkMode: true,
+        customCss: `.dark-mode { --scalar-color-accent: #ffffff !important; }`,
+      },
       documentation: {
         info: {
           title: 'Échoppe API',
