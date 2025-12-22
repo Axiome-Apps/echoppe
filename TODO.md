@@ -40,13 +40,16 @@
 - [x] Liaison stock/paiement/livraison
 
 ### Auth & Permissions
-- [ ] Auth Customer (inscription, login, profil)
+- [x] Auth Customer (inscription, login, profil)
 - [ ] Permissions RBAC (middleware + admin)
 
 ### Front Store
 - [ ] Pages vitrine (accueil, catégories, produits)
 - [ ] Panier + Checkout
 - [ ] Espace client (commandes, adresses)
+
+### Clients
+- [ ] Gestion Customers (Admin) - liste, détail, désactivation
 
 ### API Documentation
 - [ ] Helper pour ajouter les réponses d'erreur communes (401/400/500) automatiquement dans OpenAPI
