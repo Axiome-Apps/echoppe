@@ -155,7 +155,7 @@ export function useProductVariants({
       id: 'sku',
       label: 'SKU',
       accessorKey: 'sku',
-      cell: ({ row }) => h('span', { class: 'font-mono text-gray-700' }, row.original.sku || '-'),
+      cell: ({ row }) => h('span', { class: 'font-mono text-xs text-gray-400' }, row.original.sku || '-'),
     },
     {
       id: 'barcode',

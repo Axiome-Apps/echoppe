@@ -29,7 +29,6 @@ const emit = defineEmits<{
       :selectable="false"
       :searchable="false"
       :filterable="false"
-      :add-column-enabled="true"
       :reorderable="true"
       :row-id="rowId"
       :on-reorder="onReorder"
