@@ -243,13 +243,13 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         }
       }
 
-      // Filter by date range
+      // Filter by date range (interpret as local time, not UTC)
       if (query.dateFrom) {
-        conditions.push(gte(order.dateCreated, new Date(query.dateFrom)));
+        const fromDate = new Date(query.dateFrom + 'T00:00:00');
+        conditions.push(gte(order.dateCreated, fromDate));
       }
       if (query.dateTo) {
-        const toDate = new Date(query.dateTo);
-        toDate.setHours(23, 59, 59, 999);
+        const toDate = new Date(query.dateTo + 'T23:59:59.999');
         conditions.push(lte(order.dateCreated, toDate));
       }
 
