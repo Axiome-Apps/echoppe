@@ -19,9 +19,8 @@ import SortIcon from '@/components/atoms/icons/SortIcon.vue';
 import GripIcon from '@/components/atoms/icons/GripIcon.vue';
 import { useSortable, type FlatDropPosition } from '@/composables/sortable';
 import type { DataTableColumn } from './types';
-import DataTableHeader, { type BatchAction } from './DataTableHeader.vue';
-import ColumnMenu from './ColumnMenu.vue';
-import AddColumnPopover from './AddColumnPopover.vue';
+import PageHeader from '@/components/molecules/PageHeader/PageHeader.vue';
+import type { BatchAction, ColumnInfo } from '@/components/molecules/PageHeader/types';
 
 const props = withDefaults(
   defineProps<{
@@ -31,8 +30,9 @@ const props = withDefaults(
     searchable?: boolean;
     searchPlaceholder?: string;
     filterable?: boolean;
+    filtersOpen?: boolean;
+    activeFiltersCount?: number;
     selectable?: boolean;
-    addColumnEnabled?: boolean;
     onRowClick?: (_row: TData) => void;
     addLabel?: string;
     emptyMessage?: string;
@@ -47,9 +47,10 @@ const props = withDefaults(
     loading: false,
     searchable: true,
     searchPlaceholder: 'Rechercher...',
-    filterable: true,
+    filterable: false,
+    filtersOpen: false,
+    activeFiltersCount: 0,
     selectable: true,
-    addColumnEnabled: true,
     onRowClick: undefined,
     addLabel: 'Ajouter',
     emptyMessage: 'Aucun element',
@@ -65,6 +66,9 @@ const props = withDefaults(
 const emit = defineEmits<{
   add: [];
   selectionChange: [selectedRows: TData[]];
+  'update:filtersOpen': [open: boolean];
+  applyFilters: [];
+  resetFilters: [];
 }>();
 
 const sorting = ref<SortingState>([]);
@@ -128,13 +132,13 @@ const tableColumns = computed<ColumnDef<TData, unknown>[]>(() => {
   if (props.reorderable) {
     cols.push({
       id: '_reorder',
-      header: 'Ordre',
+      header: '',
       accessorKey: '_reorder',
       cell: ({ row }) =>
         isDragEnabled.value
           ? h('div', { class: 'cursor-grab text-gray-400 hover:text-gray-600' }, [h(GripIcon)])
           : h('span', { class: 'text-gray-400 text-sm' }, String(row.index + 1)),
-      size: 60,
+      size: 44,
       enableSorting: true,
       enableHiding: false,
     });
@@ -231,11 +235,15 @@ watch(rowSelection, () => {
   emit('selectionChange', selectedRows);
 });
 
-// Hidden columns for AddColumnPopover
-const hiddenColumns = computed(() => {
+// Column info for PageHeader ColumnsPopover
+const columnInfoList = computed<ColumnInfo[]>(() => {
   return props.columns
-    .filter((col) => columnVisibility.value[col.id] === false)
-    .map((col) => ({ id: col.id, label: col.label }));
+    .filter((col) => col.hideable !== false)
+    .map((col) => ({
+      id: col.id,
+      label: col.label,
+      visible: columnVisibility.value[col.id] !== false,
+    }));
 });
 
 // Get current sort state for a column
@@ -243,19 +251,6 @@ function getColumnSort(columnId: string): 'asc' | 'desc' | false {
   const sort = sorting.value.find((s) => s.id === columnId);
   if (!sort) return false;
   return sort.desc ? 'desc' : 'asc';
-}
-
-// Sort handlers
-function handleSortAsc(columnId: string) {
-  sorting.value = [{ id: columnId, desc: false }];
-}
-
-function handleSortDesc(columnId: string) {
-  sorting.value = [{ id: columnId, desc: true }];
-}
-
-function handleClearSort() {
-  sorting.value = [];
 }
 
 // Toggle sort: none -> asc -> desc -> none
@@ -270,16 +265,16 @@ function handleToggleSort(columnId: string) {
   }
 }
 
-// Hide column
-function handleHideColumn(columnId: string) {
-  columnVisibility.value = { ...columnVisibility.value, [columnId]: false };
-}
-
-// Show column
-function handleShowColumn(columnId: string) {
-  const { [columnId]: _removed, ...rest } = columnVisibility.value;
-  void _removed; // Intentionally unused - removing property from object
-  columnVisibility.value = rest;
+// Toggle column visibility
+function handleToggleColumn(columnId: string) {
+  const isCurrentlyVisible = columnVisibility.value[columnId] !== false;
+  if (isCurrentlyVisible) {
+    columnVisibility.value = { ...columnVisibility.value, [columnId]: false };
+  } else {
+    const { [columnId]: _removed, ...rest } = columnVisibility.value;
+    void _removed;
+    columnVisibility.value = rest;
+  }
 }
 
 // Handle row click (disabled when drag is enabled)
@@ -308,20 +303,35 @@ function handleBatchAction(actionId: string) {
 
 <template>
   <div class="w-full">
-    <DataTableHeader
-      v-model="globalFilter"
+    <PageHeader
+      :search-value="globalFilter"
       :total-items="data.length"
       :selected-count="Object.keys(rowSelection).length"
       :searchable="searchable"
       :search-placeholder="searchPlaceholder"
       :filterable="filterable"
+      :filters-open="filtersOpen"
+      :active-filters-count="activeFiltersCount"
       :show-add="showAdd"
       :add-label="addLabel"
       :batch-actions="batchActions"
+      :columns="columnInfoList"
+      @update:search-value="globalFilter = $event"
+      @update:filters-open="emit('update:filtersOpen', $event)"
       @add="emit('add')"
       @batch-action="handleBatchAction"
       @clear-selection="clearSelection"
-    />
+      @apply-filters="emit('applyFilters')"
+      @reset-filters="emit('resetFilters')"
+      @toggle-column="handleToggleColumn"
+    >
+      <template v-if="$slots.filters" #filters>
+        <slot name="filters" />
+      </template>
+      <template v-if="$slots.actions" #actions>
+        <slot name="actions" />
+      </template>
+    </PageHeader>
 
     <div class="bg-white rounded-lg shadow overflow-visible">
       <div
@@ -405,31 +415,7 @@ function handleBatchAction(actionId: string) {
                 >
                   <SortIcon size="sm" />
                 </span>
-
-                <ColumnMenu
-                  v-if="header.column.getCanSort() || header.column.getCanHide()"
-                  :column-id="header.id"
-                  :sortable="header.column.getCanSort()"
-                  :hideable="header.column.getCanHide()"
-                  :current-sort="getColumnSort(header.id)"
-                  class="opacity-0 group-hover:opacity-100 transition-opacity"
-                  @sort-asc="handleSortAsc(header.id)"
-                  @sort-desc="handleSortDesc(header.id)"
-                  @clear-sort="handleClearSort"
-                  @hide="handleHideColumn(header.id)"
-                />
               </div>
-            </th>
-
-            <!-- Add column header -->
-            <th
-              v-if="addColumnEnabled"
-              class="w-10 px-2 py-3"
-            >
-              <AddColumnPopover
-                :hidden-columns="hiddenColumns"
-                @show="handleShowColumn"
-              />
             </th>
           </tr>
         </thead>
@@ -458,7 +444,7 @@ function handleBatchAction(actionId: string) {
             <!-- Drop indicator line - before -->
             <td
               v-if="isDragEnabled && sortable.isDropTarget(getRowId(row.original)) && sortable.getItemDropPosition(getRowId(row.original)) === 'before'"
-              :colspan="row.getVisibleCells().length + (addColumnEnabled ? 1 : 0)"
+              :colspan="row.getVisibleCells().length"
               class="absolute inset-x-0 top-0 h-0 p-0 border-none"
             >
               <div class="h-0.5 bg-blue-500 rounded-full mx-2" />
@@ -466,7 +452,7 @@ function handleBatchAction(actionId: string) {
             <!-- Drop indicator line - after -->
             <td
               v-if="isDragEnabled && sortable.isDropTarget(getRowId(row.original)) && sortable.getItemDropPosition(getRowId(row.original)) === 'after'"
-              :colspan="row.getVisibleCells().length + (addColumnEnabled ? 1 : 0)"
+              :colspan="row.getVisibleCells().length"
               class="absolute inset-x-0 bottom-0 h-0 p-0 border-none"
             >
               <div class="h-0.5 bg-blue-500 rounded-full mx-2" />
@@ -487,12 +473,6 @@ function handleBatchAction(actionId: string) {
                 :props="cell.getContext()"
               />
             </td>
-
-            <!-- Empty cell for add column -->
-            <td
-              v-if="addColumnEnabled"
-              class="w-10"
-            />
           </tr>
         </tbody>
       </table>
