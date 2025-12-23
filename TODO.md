@@ -41,7 +41,7 @@
 
 ### Auth & Permissions
 - [x] Auth Customer (inscription, login, profil)
-- [ ] Permissions RBAC (middleware + admin)
+- [x] Permissions RBAC (middleware + admin)
 
 ### Front Store
 - [ ] Pages vitrine (accueil, catégories, produits)
