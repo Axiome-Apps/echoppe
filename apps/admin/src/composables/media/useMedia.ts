@@ -180,14 +180,10 @@ export function useMedia(
   async function deleteMedia(id: string): Promise<boolean> {
     try {
       const { error } = await api.media({ id }).delete();
-      if (error) {
-        console.error('Erreur suppression média:', error);
-        return false;
-      }
+      if (error) return false;
       await loadMedia();
       return true;
-    } catch (err) {
-      console.error('Erreur suppression média:', err);
+    } catch {
       return false;
     }
   }
@@ -195,14 +191,10 @@ export function useMedia(
   async function deleteMediaBatch(ids: string[]): Promise<boolean> {
     try {
       const { error } = await api.media.batch.delete({ ids });
-      if (error) {
-        console.error('Erreur suppression médias:', error);
-        return false;
-      }
+      if (error) return false;
       await loadMedia();
       return true;
-    } catch (err) {
-      console.error('Erreur suppression médias:', err);
+    } catch {
       return false;
     }
   }
