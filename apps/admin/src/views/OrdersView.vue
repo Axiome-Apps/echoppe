@@ -6,11 +6,17 @@ import { useToast } from '@/composables/useToast';
 import Badge from '@/components/atoms/Badge.vue';
 import DataTable from '@/components/organisms/DataTable/DataTable.vue';
 import Pagination from '@/components/molecules/Pagination.vue';
+import FilterText from '@/components/molecules/PageHeader/FilterText.vue';
+import FilterSelect from '@/components/molecules/PageHeader/FilterSelect.vue';
+import FilterDateRange from '@/components/molecules/PageHeader/FilterDateRange.vue';
+import FilterNumberRange from '@/components/molecules/PageHeader/FilterNumberRange.vue';
 import type { DataTableColumn } from '@/components/organisms/DataTable/types';
-import type { BatchAction } from '@/components/organisms/DataTable/DataTableHeader.vue';
+import type { BatchAction, FilterOption } from '@/components/molecules/PageHeader/types';
+import type { StatusVariant } from '@/types/ui';
+import type { ApiData } from '@/types/api';
 
 // Types inférés depuis Eden
-type OrdersResponse = NonNullable<Awaited<ReturnType<typeof api.orders.get>>['data']>;
+type OrdersResponse = ApiData<ReturnType<typeof api.orders.get>>;
 type Order = OrdersResponse['data'][number];
 
 const DEFAULT_LIMIT = 20;
@@ -32,12 +38,23 @@ const paginationMeta = ref({
 });
 
 // Filters
-const statusFilter = ref<string>('');
-const dateFromFilter = ref<string>('');
-const dateToFilter = ref<string>('');
-const amountMinFilter = ref<string>('');
-const amountMaxFilter = ref<string>('');
-const showFilters = ref(false);
+const searchFilter = ref('');
+const statusFilter = ref('');
+const dateFromFilter = ref('');
+const dateToFilter = ref('');
+const amountMinFilter = ref('');
+const amountMaxFilter = ref('');
+const filtersOpen = ref(false);
+
+const statusOptions: FilterOption[] = [
+  { value: 'pending', label: 'En attente' },
+  { value: 'confirmed', label: 'Confirmee' },
+  { value: 'processing', label: 'En traitement' },
+  { value: 'shipped', label: 'Expediee' },
+  { value: 'delivered', label: 'Livree' },
+  { value: 'cancelled', label: 'Annulee' },
+  { value: 'refunded', label: 'Remboursee' },
+];
 
 async function loadOrders() {
   loading.value = true;
@@ -47,6 +64,7 @@ async function loadOrders() {
       limit: paginationMeta.value.limit,
     };
 
+    if (searchFilter.value) query.search = searchFilter.value;
     if (statusFilter.value) query.status = statusFilter.value;
     if (dateFromFilter.value) query.dateFrom = dateFromFilter.value;
     if (dateToFilter.value) query.dateTo = dateToFilter.value;
@@ -77,6 +95,7 @@ function applyFilters() {
 }
 
 function resetFilters() {
+  searchFilter.value = '';
   statusFilter.value = '';
   dateFromFilter.value = '';
   dateToFilter.value = '';
@@ -91,8 +110,6 @@ onMounted(loadOrders);
 function openDetail(order: Order) {
   router.push(`/commandes/${order.id}`);
 }
-
-type StatusVariant = 'success' | 'warning' | 'default' | 'error' | 'info';
 
 function getStatusConfig(status: string): { label: string; variant: StatusVariant } {
   const config: Record<string, { label: string; variant: StatusVariant }> = {
@@ -210,6 +227,7 @@ function handleBatchAction(actionId: string) {
 
 const activeFiltersCount = computed(() => {
   let count = 0;
+  if (searchFilter.value) count++;
   if (statusFilter.value) count++;
   if (dateFromFilter.value || dateToFilter.value) count++;
   if (amountMinFilter.value || amountMaxFilter.value) count++;
@@ -225,145 +243,46 @@ const activeFiltersCount = computed(() => {
       </h1>
     </div>
 
-    <!-- Filters toggle -->
-    <div class="mb-4">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-        @click="showFilters = !showFilters"
-      >
-        <svg
-          class="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-          />
-        </svg>
-        Filtres
-        <span
-          v-if="activeFiltersCount > 0"
-          class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 rounded-full"
-        >
-          {{ activeFiltersCount }}
-        </span>
-      </button>
-    </div>
-
-    <!-- Filters panel -->
-    <div
-      v-if="showFilters"
-      class="mb-6 p-4 bg-white border border-gray-200 rounded-lg"
-    >
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Status -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-          <select
-            v-model="statusFilter"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">
-              Tous
-            </option>
-            <option value="pending">
-              En attente
-            </option>
-            <option value="confirmed">
-              Confirmée
-            </option>
-            <option value="processing">
-              En traitement
-            </option>
-            <option value="shipped">
-              Expédiée
-            </option>
-            <option value="delivered">
-              Livrée
-            </option>
-            <option value="cancelled">
-              Annulée
-            </option>
-            <option value="refunded">
-              Remboursée
-            </option>
-          </select>
-        </div>
-
-        <!-- Date from -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Date début</label>
-          <input
-            v-model="dateFromFilter"
-            type="date"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <!-- Date to -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
-          <input
-            v-model="dateToFilter"
-            type="date"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <!-- Amount range -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Montant</label>
-          <div class="flex gap-2">
-            <input
-              v-model="amountMinFilter"
-              type="number"
-              placeholder="Min"
-              class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <input
-              v-model="amountMaxFilter"
-              type="number"
-              placeholder="Max"
-              class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 mt-4">
-        <button
-          type="button"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-          @click="resetFilters"
-        >
-          Réinitialiser
-        </button>
-        <button
-          type="button"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-          @click="applyFilters"
-        >
-          Appliquer
-        </button>
-      </div>
-    </div>
-
     <DataTable
+      v-model:filters-open="filtersOpen"
       :data="orders"
       :columns="columns"
       :loading="loading"
       :batch-actions="batchActions"
       :on-batch-action="handleBatchAction"
-      search-placeholder="Rechercher une commande..."
+      :show-add="false"
+      :searchable="false"
+      filterable
+      :active-filters-count="activeFiltersCount"
       empty-message="Aucune commande"
       :on-row-click="openDetail"
       @selection-change="handleSelectionChange"
-    />
+      @apply-filters="applyFilters"
+      @reset-filters="resetFilters"
+    >
+      <template #filters>
+        <FilterText
+          v-model="searchFilter"
+          label="Recherche"
+          placeholder="N° commande, client, email..."
+        />
+        <FilterSelect
+          v-model="statusFilter"
+          label="Statut"
+          :options="statusOptions"
+        />
+        <FilterDateRange
+          v-model:from-value="dateFromFilter"
+          v-model:to-value="dateToFilter"
+          label="Periode"
+        />
+        <FilterNumberRange
+          v-model:min-value="amountMinFilter"
+          v-model:max-value="amountMaxFilter"
+          label="Montant"
+        />
+      </template>
+    </DataTable>
 
     <Pagination
       v-if="paginationMeta.totalPages > 1"

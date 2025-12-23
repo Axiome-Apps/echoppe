@@ -1,8 +1,9 @@
 import { api } from '@/lib/api';
+import type { ApiData } from '@/types/api';
 
 // Types inférés depuis Eden (extrait le tableau, exclut les erreurs)
-type FoldersResponse = NonNullable<Awaited<ReturnType<typeof api.media.folders.get>>['data']>;
-type MediaResponse = NonNullable<Awaited<ReturnType<typeof api.media.get>>['data']>;
+type FoldersResponse = ApiData<ReturnType<typeof api.media.folders.get>>;
+type MediaResponse = ApiData<ReturnType<typeof api.media.get>>;
 
 export type Folder = Extract<FoldersResponse, unknown[]>[number];
 // MediaResponse est maintenant paginée: { data: Media[], meta: {...} }

@@ -5,10 +5,11 @@ import { api } from '@/lib/api';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import Modal from '@/components/atoms/Modal.vue';
+import type { ApiItem, ApiPaginatedItem } from '@/types/api';
 
-type StockMove = NonNullable<Awaited<ReturnType<typeof api.stock.get>>['data']>['data'][number];
-type Alert = NonNullable<Awaited<ReturnType<typeof api.stock.alerts.get>>['data']>[number];
-type VariantOption = NonNullable<Awaited<ReturnType<typeof api.stock.variants.get>>['data']>[number];
+type StockMove = ApiPaginatedItem<ReturnType<typeof api.stock.get>>;
+type Alert = ApiItem<ReturnType<typeof api.stock.alerts.get>>;
+type VariantOption = ApiItem<ReturnType<typeof api.stock.variants.get>>;
 
 const router = useRouter();
 const toast = useToast();

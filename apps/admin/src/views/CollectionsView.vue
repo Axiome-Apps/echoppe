@@ -4,9 +4,10 @@ import { api } from '@/lib/api';
 import Button from '@/components/atoms/Button.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import MediaPicker from '@/components/molecules/MediaPicker.vue';
+import type { ApiData } from '@/types/api';
 
 // Type inféré depuis Eden (response paginée)
-type CollectionsResponse = NonNullable<Awaited<ReturnType<typeof api.collections.get>>['data']>;
+type CollectionsResponse = ApiData<ReturnType<typeof api.collections.get>>;
 type Collection = CollectionsResponse['data'][number];
 
 const collections = ref<Collection[]>([]);

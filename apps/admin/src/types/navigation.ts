@@ -1,4 +1,4 @@
-export type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'default';
+import type { BadgeVariant } from './ui';
 
 export interface NavItemBadge {
   /** Clé unique pour identifier le badge (ex: 'pendingOrders', 'outOfStock') */

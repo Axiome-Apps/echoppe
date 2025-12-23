@@ -9,12 +9,14 @@ import Thumbnail from '@/components/atoms/Thumbnail.vue';
 import DataTable from '@/components/organisms/DataTable/DataTable.vue';
 import Pagination from '@/components/molecules/Pagination.vue';
 import type { DataTableColumn } from '@/components/organisms/DataTable/types';
-import type { BatchAction } from '@/components/organisms/DataTable/DataTableHeader.vue';
+import type { BatchAction } from '@/components/molecules/PageHeader/types';
+import type { StatusVariant } from '@/types/ui';
+import type { ApiData } from '@/types/api';
+import type { Category } from '@/composables/categories';
 
 // Types inférés depuis Eden
-type ProductsResponse = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>;
+type ProductsResponse = ApiData<ReturnType<typeof api.products.get>>;
 type Product = ProductsResponse['data'][number];
-type Category = NonNullable<Awaited<ReturnType<typeof api.categories.get>>['data']>[number];
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const DEFAULT_LIMIT = 20;
@@ -124,8 +126,6 @@ function cancelDelete() {
 function getCategoryName(id: string) {
   return categories.value.find((c) => c.id === id)?.name || '-';
 }
-
-type StatusVariant = 'success' | 'warning' | 'default';
 
 function getStatusConfig(status: string): { label: string; variant: StatusVariant } {
   switch (status) {

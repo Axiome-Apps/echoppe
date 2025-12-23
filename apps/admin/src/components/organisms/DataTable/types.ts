@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState } from '@tanstack/vue-table';
+import type { BadgeVariant } from '@/types/ui';
 
 export type FilterOperator = 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'gte' | 'lt' | 'lte';
 
@@ -27,8 +28,6 @@ export interface DataTableProps<TData> {
   searchPlaceholder?: string;
   filterable?: boolean;
   selectable?: boolean;
-  addColumnEnabled?: boolean;
-  hiddenColumns?: string[];
   onRowClick?: (row: TData) => void;
   onAdd?: () => void;
   addLabel?: string;
@@ -48,8 +47,6 @@ export interface ColumnMenuAction {
   type: 'sort-asc' | 'sort-desc' | 'hide' | 'filter';
   columnId: string;
 }
-
-export type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'default';
 
 export interface BadgeConfig {
   label: string;

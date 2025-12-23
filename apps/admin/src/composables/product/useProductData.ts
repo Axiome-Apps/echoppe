@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { api } from '@/lib/api';
-import type { Category, TaxRate, Collection, SelectOption } from './types';
+import type { Category } from '@/composables/categories';
+import type { TaxRate, Collection, SelectOption } from './types';
 
 export function useProductData() {
   // State

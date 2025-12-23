@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { useToast } from '@/composables/useToast';
 import Badge from '@/components/atoms/Badge.vue';
 import Button from '@/components/atoms/Button.vue';
+import type { StatusVariant } from '@/types/ui';
 import Modal from '@/components/atoms/Modal.vue';
 
 // Types inférés depuis Eden
@@ -110,8 +111,6 @@ onMounted(() => {
   loadOrder();
   loadInvoices();
 });
-
-type StatusVariant = 'success' | 'warning' | 'default' | 'error' | 'info';
 
 function getStatusConfig(status: string): { label: string; variant: StatusVariant } {
   const config: Record<string, { label: string; variant: StatusVariant }> = {

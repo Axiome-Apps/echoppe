@@ -4,9 +4,10 @@ import { api } from '@/lib/api';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import MediaPicker from '@/components/molecules/MediaPicker.vue';
+import type { ApiData, ApiItem } from '@/types/api';
 
-type Settings = NonNullable<Awaited<ReturnType<typeof api.settings.get>>['data']>;
-type Country = NonNullable<Awaited<ReturnType<typeof api.settings.countries.get>>['data']>[number];
+type Settings = ApiData<ReturnType<typeof api.settings.get>>;
+type Country = ApiItem<ReturnType<typeof api.settings.countries.get>>;
 
 const toast = useToast();
 const loading = ref(true);

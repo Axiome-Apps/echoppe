@@ -1,7 +1,8 @@
 import { api } from '@/lib/api';
+import type { ApiItem } from '@/types/api';
 
 // Types inférés depuis Eden
-export type Role = NonNullable<Awaited<ReturnType<typeof api.roles.get>>['data']>[number];
+export type Role = ApiItem<ReturnType<typeof api.roles.get>>;
 
 export type Permission = {
   id: string;

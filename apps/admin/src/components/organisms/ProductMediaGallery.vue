@@ -5,10 +5,7 @@ import StarIcon from '@/components/atoms/icons/StarIcon.vue';
 import TrashIcon from '@/components/atoms/icons/TrashIcon.vue';
 import MediaBrowserModal from '@/components/organisms/MediaBrowserModal.vue';
 import { type Media, getMediaUrl as getMediaAssetUrl } from '@/composables/media';
-
-// Types inférés depuis Eden
-type ProductMedia = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['media']['get']>>['data']>[number];
-type Variant = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['variants']['get']>>['data']>[number];
+import type { ProductMedia, Variant } from '@/composables/product';
 
 const props = defineProps<{
   productId: string;

@@ -6,13 +6,14 @@ import { api } from '@/lib/api';
 import type { NavigationConfig } from '@/types/navigation';
 import SidebarNav from '@/components/organisms/SidebarNav.vue';
 import SidebarUserMenu from '@/components/molecules/SidebarUserMenu.vue';
+import type { ApiData } from '@/types/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const router = useRouter();
 const auth = useAuth();
 
-type Settings = NonNullable<Awaited<ReturnType<typeof api.settings.get>>['data']>;
+type Settings = ApiData<ReturnType<typeof api.settings.get>>;
 const settings = ref<Settings | null>(null);
 
 const shopName = computed(() => settings.value?.shopName || 'Échoppe');

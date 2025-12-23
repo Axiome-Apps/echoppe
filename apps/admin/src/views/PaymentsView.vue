@@ -4,8 +4,9 @@ import { api } from '@/lib/api';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import Modal from '@/components/atoms/Modal.vue';
+import type { ApiItem } from '@/types/api';
 
-type Provider = NonNullable<Awaited<ReturnType<typeof api.payments.providers.get>>['data']>[number];
+type Provider = ApiItem<ReturnType<typeof api.payments.providers.get>>;
 
 const toast = useToast();
 const loading = ref(true);

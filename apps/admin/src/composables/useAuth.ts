@@ -1,8 +1,9 @@
 import { ref, computed } from 'vue';
 import { api } from '@/lib/api';
+import type { ApiData } from '@/types/api';
 
 // Types inférés depuis Eden
-type MeResponse = NonNullable<Awaited<ReturnType<typeof api.auth.me.get>>['data']>;
+type MeResponse = ApiData<ReturnType<typeof api.auth.me.get>>;
 type User = MeResponse['user'];
 type Role = MeResponse['role'];
 

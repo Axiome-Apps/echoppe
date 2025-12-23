@@ -1,5 +1,5 @@
 <script setup lang="ts">
-type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'default';
+import type { BadgeVariant } from '@/types/ui';
 
 withDefaults(
   defineProps<{

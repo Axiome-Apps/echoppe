@@ -10,39 +10,13 @@ import type { ComboboxOption } from '@/components/atoms/Combobox.vue';
 import CheckIcon from '@/components/atoms/icons/CheckIcon.vue';
 import { api } from '@/lib/api';
 import { type Media, getMediaUrl } from '@/composables/media';
+import type { ProductMedia, Option, Variant as BaseVariant } from '@/composables/product';
 
 // Type pour les options globales (sans valeurs)
 type GlobalOption = { id: string; name: string };
 
-// Types inférés depuis Eden
-type ProductMedia = NonNullable<Awaited<ReturnType<ReturnType<typeof api.products>['media']['get']>>['data']>[number];
-
-type Variant = {
-  id: string;
-  product: string;
-  sku: string | null;
-  barcode: string | null;
-  priceHt: string;
-  compareAtPriceHt: string | null;
-  costPrice: string | null;
-  weight: string | null;
-  length: string | null;
-  width: string | null;
-  height: string | null;
-  isDefault: boolean;
-  status: 'draft' | 'published' | 'archived';
-  sortOrder: number;
-  quantity: number;
-  reserved: number;
-  lowStockThreshold: number | null;
-  optionValues?: string[]; // IDs des valeurs d'option sélectionnées
-};
-
-type Option = {
-  id: string;
-  name: string;
-  values: { id: string; value: string }[];
-};
+// Type Variant étendu pour le formulaire (inclut optionValues)
+type Variant = BaseVariant & { optionValues?: string[] };
 
 const props = defineProps<{
   productId: string;
