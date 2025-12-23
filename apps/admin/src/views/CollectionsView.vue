@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 import { api } from '@/lib/api';
 import Button from '@/components/atoms/Button.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
-import MediaPicker from '@/components/MediaPicker.vue';
+import MediaPicker from '@/components/molecules/MediaPicker.vue';
 
 // Type inféré depuis Eden (response paginée)
 type CollectionsResponse = NonNullable<Awaited<ReturnType<typeof api.collections.get>>['data']>;

@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { api } from '@/lib/api';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
-import MediaPicker from '@/components/MediaPicker.vue';
+import MediaPicker from '@/components/molecules/MediaPicker.vue';
 
 type Settings = NonNullable<Awaited<ReturnType<typeof api.settings.get>>['data']>;
 type Country = NonNullable<Awaited<ReturnType<typeof api.settings.countries.get>>['data']>[number];

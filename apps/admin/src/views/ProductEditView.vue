@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import ProductMediaGallery from '@/components/ProductMediaGallery.vue';
-import VariantModal from '@/components/VariantModal.vue';
+import ProductMediaGallery from '@/components/organisms/ProductMediaGallery.vue';
+import VariantModal from '@/components/organisms/VariantModal.vue';
 import ProductHeader from '@/components/organisms/product/ProductHeader.vue';
 import ProductInfoCard from '@/components/organisms/product/ProductInfoCard.vue';
 import ProductVariantsCard from '@/components/organisms/product/ProductVariantsCard.vue';

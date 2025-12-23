@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 import type { Category, CategoryNode, CategoryFormData } from '@/composables/categories';
 import Modal from '@/components/atoms/Modal.vue';
 import Button from '@/components/atoms/Button.vue';
-import MediaPicker from '@/components/MediaPicker.vue';
+import MediaPicker from '@/components/molecules/MediaPicker.vue';
 
 const props = defineProps<{
   category: Category | null; // null = création
