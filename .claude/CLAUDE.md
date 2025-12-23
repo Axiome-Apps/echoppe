@@ -84,6 +84,14 @@ bun run db:seed    # Seed data
 bun run db:studio  # Drizzle Studio
 ```
 
+## Git
+
+**INTERDICTION ABSOLUE** dans les messages de commit :
+- Toute mention de Claude, IA, ou assistant
+- Jamais de "Generated with Claude Code"
+- Jamais de "Co-Authored-By: Claude"
+- Seul le nom de l'utilisateur doit apparaître
+
 ## Credentials Dev
 
 - Admin : `admin@echoppe.dev` / `admin123`

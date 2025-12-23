@@ -58,7 +58,7 @@
 - [ ] Webhooks
 - [ ] Notifications email (confirmation commande, expédition, facture client)
 - [ ] Export/Import CSV
-- [ ] Logs d'audit
+- [ ] Logs d'audit + nettoyage RBAC ([plan détaillé](docs/audit-rbac-plan.md))
 
 ### Docker / Déploiement
 - [ ] Auto-génération ENCRYPTION_KEY au premier lancement
