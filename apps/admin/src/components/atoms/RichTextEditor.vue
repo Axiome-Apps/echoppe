@@ -28,14 +28,15 @@ const props = withDefaults(
   }
 );
 
-const editor = useEditor({
-  content: props.content,
-  editable: !props.disabled,
-  extensions: [
+function createExtensions() {
+  return [
     StarterKit.configure({
       heading: {
         levels: [2, 3, 4],
       },
+      // Désactiver si inclus dans StarterKit v3
+      link: false,
+      underline: false,
     }),
     Placeholder.configure({
       placeholder: props.placeholder,
@@ -54,12 +55,21 @@ const editor = useEditor({
     TextAlign.configure({
       types: ['heading', 'paragraph'],
     }),
-    Underline,
-  ],
-  onUpdate: ({ editor }) => {
-    props.onChange?.(editor.getHTML());
+    Underline.configure({}),
+  ];
+}
+
+const editor = useEditor(
+  {
+    content: props.content,
+    editable: !props.disabled,
+    extensions: createExtensions(),
+    onUpdate: ({ editor }) => {
+      props.onChange?.(editor.getHTML());
+    },
   },
-});
+  [],
+);
 
 watch(
   () => props.content,
@@ -78,7 +88,10 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  editor.value?.destroy();
+  if (editor.value) {
+    editor.value.destroy();
+    editor.value = undefined;
+  }
 });
 
 // Modal states
