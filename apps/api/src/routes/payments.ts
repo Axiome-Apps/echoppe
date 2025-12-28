@@ -1,6 +1,8 @@
 import {
   db,
   eq,
+  and,
+  cart,
   getPaymentAdapter,
   getProviderStatus,
   isEncryptionConfigured,
@@ -438,6 +440,20 @@ async function handlePaymentResult(
 
   // Mettre à jour le statut de la commande si paiement réussi
   if (result.status === 'completed') {
+    // Get the order to find the customer
+    const [orderData] = await db
+      .select({ customer: order.customer })
+      .from(order)
+      .where(eq(order.id, orderId));
+
+    if (orderData) {
+      // Convert customer's active cart
+      await db
+        .update(cart)
+        .set({ status: 'converted', dateUpdated: new Date() })
+        .where(and(eq(cart.customer, orderData.customer), eq(cart.status, 'active')));
+    }
+
     await db
       .update(order)
       .set({ status: 'confirmed', dateUpdated: new Date() })

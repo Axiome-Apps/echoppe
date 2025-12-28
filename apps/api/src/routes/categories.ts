@@ -1,7 +1,8 @@
 import { Elysia, t } from 'elysia';
-import { db, category, eq } from '@echoppe/core';
+import { db, category, product, variant, productMedia, eq, and, inArray, count } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
+import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 
 // Schema de réponse pour les catégories
 const categorySchema = t.Object({
@@ -50,6 +51,27 @@ const errorSchema = t.Object({ message: t.String() });
 const successSchema = t.Object({ success: t.Boolean() });
 const batchSuccessSchema = t.Object({ success: t.Boolean(), count: t.Number() });
 
+// Schema pour les produits (liste)
+const defaultVariantSchema = t.Object({
+  priceHt: t.String(),
+  compareAtPriceHt: t.Nullable(t.String()),
+  quantity: t.Number(),
+});
+
+const productListSchema = t.Object({
+  id: t.String(),
+  category: t.String(),
+  taxRate: t.String(),
+  name: t.String(),
+  slug: t.String(),
+  description: t.Nullable(t.String()),
+  status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
+  dateCreated: t.Date(),
+  dateUpdated: t.Date(),
+  featuredImage: t.Nullable(t.String()),
+  defaultVariant: t.Nullable(defaultVariantSchema),
+});
+
 export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { tags: ['Categories'] } })
 
   // === PUBLIC ROUTES ===
@@ -70,6 +92,80 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
     {
       params: categoryParams,
       response: { 200: categorySchema, 404: errorSchema },
+    }
+  )
+
+  // GET /categories/by-slug/:slug - Get one by slug (public)
+  .get(
+    '/by-slug/:slug',
+    async ({ params, status }) => {
+      const [found] = await db.select().from(category).where(eq(category.slug, params.slug));
+      if (!found) return status(404, { message: 'Category not found' });
+      return found;
+    },
+    {
+      params: t.Object({ slug: t.String() }),
+      response: { 200: categorySchema, 404: errorSchema },
+    }
+  )
+
+  // GET /categories/:id/products - Get products in category with pagination (public)
+  .get(
+    '/:id/products',
+    async ({ params, query, status }) => {
+      const [categoryExists] = await db.select().from(category).where(eq(category.id, params.id));
+      if (!categoryExists) return status(404, { message: 'Category not found' });
+
+      const { page, limit, offset } = getPaginationParams(query);
+
+      const [products, [{ total }]] = await Promise.all([
+        db.select().from(product).where(eq(product.category, params.id)).orderBy(product.dateCreated).limit(limit).offset(offset),
+        db.select({ total: count(product.id) }).from(product).where(eq(product.category, params.id)),
+      ]);
+
+      // Fetch featured images and default variants
+      const productIds = products.map((p) => p.id);
+
+      const [featuredImages, defaultVariants] = await Promise.all([
+        productIds.length > 0
+          ? db
+              .select({ productId: productMedia.product, mediaId: productMedia.media })
+              .from(productMedia)
+              .where(and(inArray(productMedia.product, productIds), eq(productMedia.isFeatured, true)))
+          : [],
+        productIds.length > 0
+          ? db
+              .select({
+                productId: variant.product,
+                priceHt: variant.priceHt,
+                compareAtPriceHt: variant.compareAtPriceHt,
+                quantity: variant.quantity,
+              })
+              .from(variant)
+              .where(and(inArray(variant.product, productIds), eq(variant.isDefault, true)))
+          : [],
+      ]);
+
+      const featuredImageMap = new Map(featuredImages.map((fi) => [fi.productId, fi.mediaId]));
+      const defaultVariantMap = new Map(
+        defaultVariants.map((dv) => [
+          dv.productId,
+          { priceHt: dv.priceHt, compareAtPriceHt: dv.compareAtPriceHt, quantity: dv.quantity },
+        ])
+      );
+
+      const enrichedProducts = products.map((p) => ({
+        ...p,
+        featuredImage: featuredImageMap.get(p.id) ?? null,
+        defaultVariant: defaultVariantMap.get(p.id) ?? null,
+      }));
+
+      return buildPaginatedResponse(enrichedProducts, total, page, limit);
+    },
+    {
+      params: categoryParams,
+      query: paginationQuery,
+      response: { 200: paginatedResponse(productListSchema), 404: errorSchema },
     }
   )
 

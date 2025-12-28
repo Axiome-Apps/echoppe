@@ -14,7 +14,6 @@
   "dependencies": {
     "@echoppe/api": "workspace:*",
     "@echoppe/shared": "workspace:*",
-    "@elysiajs/eden": "^1.4.5",
     "@tanstack/vue-table": "^8.21.3",
     "@tiptap/extension-image": "^3.13.0",
     "@tiptap/extension-link": "^3.13.0",

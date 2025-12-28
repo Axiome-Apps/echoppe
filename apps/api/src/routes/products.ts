@@ -1,10 +1,32 @@
 import { Elysia, t } from 'elysia';
-import { db, product, variant, option, optionValue, variantOptionValue, productOption, productMedia, eq, and, count, ilike } from '@echoppe/core';
+import { db, product, variant, option, optionValue, variantOptionValue, productOption, productMedia, eq, and, or, count, ilike, inArray, gte, lte, gt, asc, desc, sql } from '@echoppe/core';
+import type { SQL } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
-import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+import { paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 
-// Schema du produit pour les réponses
+// Schema du produit pour les réponses (liste)
+const defaultVariantSchema = t.Object({
+  priceHt: t.String(),
+  compareAtPriceHt: t.Nullable(t.String()),
+  quantity: t.Number(),
+});
+
+const productListSchema = t.Object({
+  id: t.String(),
+  category: t.String(),
+  taxRate: t.String(),
+  name: t.String(),
+  slug: t.String(),
+  description: t.Nullable(t.String()),
+  status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
+  dateCreated: t.Date(),
+  dateUpdated: t.Date(),
+  featuredImage: t.Nullable(t.String()),
+  defaultVariant: t.Nullable(defaultVariantSchema),
+});
+
+// Schema du produit pour les réponses (création/modification)
 const productSchema = t.Object({
   id: t.String(),
   category: t.String(),
@@ -105,6 +127,19 @@ const optionValueBody = t.Object({
 const errorSchema = t.Object({ message: t.String() });
 const successSchema = t.Object({ success: t.Boolean() });
 
+// Query schema pour recherche/filtres/tri
+const productSearchQuery = t.Object({
+  page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
+  limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100, default: 20 })),
+  search: t.Optional(t.String()),
+  category: t.Optional(t.String({ format: 'uuid' })),
+  minPrice: t.Optional(t.Numeric({ minimum: 0 })),
+  maxPrice: t.Optional(t.Numeric({ minimum: 0 })),
+  inStock: t.Optional(t.BooleanString()),
+  sort: t.Optional(t.Union([t.Literal('price'), t.Literal('name'), t.Literal('date')])),
+  order: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
+});
+
 // Schema option
 const optionSchema = t.Object({
   id: t.String(),
@@ -152,20 +187,214 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
   // === PUBLIC ROUTES ===
 
-  // GET /products - List all with pagination (public)
+  // GET /products - List all with pagination, search, filters, sort (public)
   .get(
     '/',
     async ({ query }) => {
       const { page, limit, offset } = getPaginationParams(query);
+      const { search, category, minPrice, maxPrice, inStock, sort, order } = query;
 
+      // Build WHERE conditions
+      const conditions: SQL[] = [];
+
+      // Search by name or description
+      if (search) {
+        const searchPattern = `%${search}%`;
+        conditions.push(or(ilike(product.name, searchPattern), ilike(product.description, searchPattern))!);
+      }
+
+      // Filter by category
+      if (category) {
+        conditions.push(eq(product.category, category));
+      }
+
+      // For price and stock filters, we need to join with variant
+      // First, get filtered product IDs based on variant conditions
+      let filteredProductIds: string[] | null = null;
+
+      if (minPrice !== undefined || maxPrice !== undefined || inStock) {
+        const variantConditions: SQL[] = [eq(variant.isDefault, true)];
+
+        if (minPrice !== undefined) {
+          variantConditions.push(gte(sql`CAST(${variant.priceHt} AS DECIMAL)`, minPrice));
+        }
+        if (maxPrice !== undefined) {
+          variantConditions.push(lte(sql`CAST(${variant.priceHt} AS DECIMAL)`, maxPrice));
+        }
+        if (inStock) {
+          variantConditions.push(gt(variant.quantity, 0));
+        }
+
+        const matchingVariants = await db
+          .select({ productId: variant.product })
+          .from(variant)
+          .where(and(...variantConditions));
+
+        filteredProductIds = matchingVariants.map((v) => v.productId);
+
+        if (filteredProductIds.length === 0) {
+          return buildPaginatedResponse([], 0, page, limit);
+        }
+
+        conditions.push(inArray(product.id, filteredProductIds));
+      }
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      // Build ORDER BY
+      let orderByClause;
+      const sortOrder = order === 'desc' ? desc : asc;
+
+      switch (sort) {
+        case 'name':
+          orderByClause = sortOrder(product.name);
+          break;
+        case 'date':
+          orderByClause = sortOrder(product.dateCreated);
+          break;
+        case 'price':
+          // Price sorting needs special handling (done after enrichment)
+          orderByClause = sortOrder(product.dateCreated);
+          break;
+        default:
+          orderByClause = desc(product.dateCreated);
+      }
+
+      // Query products
       const [products, [{ total }]] = await Promise.all([
-        db.select().from(product).orderBy(product.dateCreated).limit(limit).offset(offset),
-        db.select({ total: count(product.id) }).from(product),
+        db.select().from(product).where(whereClause).orderBy(orderByClause).limit(limit).offset(offset),
+        db.select({ total: count(product.id) }).from(product).where(whereClause),
       ]);
 
-      return buildPaginatedResponse(products, total, page, limit);
+      // Fetch featured images and default variants for all products
+      const productIds = products.map((p) => p.id);
+
+      const [featuredImages, defaultVariants] = await Promise.all([
+        productIds.length > 0
+          ? db
+              .select({ productId: productMedia.product, mediaId: productMedia.media })
+              .from(productMedia)
+              .where(and(
+                inArray(productMedia.product, productIds),
+                eq(productMedia.isFeatured, true)
+              ))
+          : [],
+        productIds.length > 0
+          ? db
+              .select({
+                productId: variant.product,
+                priceHt: variant.priceHt,
+                compareAtPriceHt: variant.compareAtPriceHt,
+                quantity: variant.quantity,
+              })
+              .from(variant)
+              .where(and(
+                inArray(variant.product, productIds),
+                eq(variant.isDefault, true)
+              ))
+          : [],
+      ]);
+
+      // Create lookup maps
+      const featuredImageMap = new Map(featuredImages.map((fi) => [fi.productId, fi.mediaId]));
+      const defaultVariantMap = new Map(defaultVariants.map((dv) => [dv.productId, {
+        priceHt: dv.priceHt,
+        compareAtPriceHt: dv.compareAtPriceHt,
+        quantity: dv.quantity,
+      }]));
+
+      // Enrich products
+      let enrichedProducts = products.map((p) => ({
+        ...p,
+        featuredImage: featuredImageMap.get(p.id) ?? null,
+        defaultVariant: defaultVariantMap.get(p.id) ?? null,
+      }));
+
+      // Sort by price if requested (post-enrichment)
+      if (sort === 'price') {
+        enrichedProducts = enrichedProducts.sort((a, b) => {
+          const priceA = a.defaultVariant ? parseFloat(a.defaultVariant.priceHt) : 0;
+          const priceB = b.defaultVariant ? parseFloat(b.defaultVariant.priceHt) : 0;
+          return order === 'desc' ? priceB - priceA : priceA - priceB;
+        });
+      }
+
+      return buildPaginatedResponse(enrichedProducts, total, page, limit);
     },
-    { query: paginationQuery, response: paginatedResponse(productSchema) }
+    { query: productSearchQuery, response: paginatedResponse(productListSchema) }
+  )
+
+  // GET /products/by-slug/:slug - Get one by slug with variants (public, for storefront)
+  .get(
+    '/by-slug/:slug',
+    async ({ params, status }) => {
+      const [found] = await db.select().from(product).where(eq(product.slug, params.slug));
+      if (!found) return status(404, { message: 'Product not found' });
+
+      const variants = await db.select().from(variant).where(eq(variant.product, found.id)).orderBy(variant.sortOrder);
+
+      // Get featured image
+      const [featuredMedia] = await db
+        .select({ mediaId: productMedia.media })
+        .from(productMedia)
+        .where(and(eq(productMedia.product, found.id), eq(productMedia.isFeatured, true)));
+
+      // Get all product images
+      const allMedia = await db
+        .select({ mediaId: productMedia.media, sortOrder: productMedia.sortOrder })
+        .from(productMedia)
+        .where(eq(productMedia.product, found.id))
+        .orderBy(productMedia.sortOrder);
+
+      // Get all option values used by this product's variants
+      const variantIds = variants.map(v => v.id);
+      const usedOptionValues = variantIds.length > 0
+        ? await db
+            .select({ optionValueId: variantOptionValue.optionValue })
+            .from(variantOptionValue)
+            .where(inArray(variantOptionValue.variant, variantIds))
+        : [];
+      const usedOptionValueIds = new Set(usedOptionValues.map(ov => ov.optionValueId));
+
+      // Get options for this product (only those with used values)
+      const productOptions = await db
+        .select({
+          option: option,
+          sortOrder: productOption.sortOrder,
+        })
+        .from(productOption)
+        .innerJoin(option, eq(productOption.option, option.id))
+        .where(eq(productOption.product, found.id))
+        .orderBy(productOption.sortOrder);
+
+      const optionsWithValues = await Promise.all(
+        productOptions.map(async (po) => {
+          const allValues = await db.select().from(optionValue).where(eq(optionValue.option, po.option.id)).orderBy(optionValue.sortOrder);
+          // Filter to only values used by this product's variants
+          const values = allValues.filter(v => usedOptionValueIds.has(v.id));
+          return { ...po.option, sortOrder: po.sortOrder, values };
+        })
+      );
+
+      // Filter out options with no values (shouldn't happen, but safety check)
+      const filteredOptions = optionsWithValues.filter(o => o.values.length > 0);
+
+      const variantsWithOptions = await Promise.all(
+        variants.map(async (v) => {
+          const optionValues = await db.select().from(variantOptionValue).where(eq(variantOptionValue.variant, v.id));
+          return { ...v, optionValues: optionValues.map(ov => ov.optionValue) };
+        })
+      );
+
+      return {
+        ...found,
+        featuredImage: featuredMedia?.mediaId ?? null,
+        images: allMedia.map(m => m.mediaId),
+        variants: variantsWithOptions,
+        options: filteredOptions,
+      };
+    },
+    { params: t.Object({ slug: t.String() }), response: { 404: errorSchema } }
   )
 
   // GET /products/:id - Get one with variants (public)

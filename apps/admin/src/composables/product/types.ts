@@ -2,7 +2,10 @@ import { api } from '@/lib/api';
 import type { ApiItem, ApiPaginatedItem } from '@/types/api';
 
 // Types inférés depuis Eden
-export type Product = ApiPaginatedItem<ReturnType<typeof api.products.get>>;
+// ProductListItem = type avec featuredImage/defaultVariant (pour affichage liste)
+export type ProductListItem = ApiPaginatedItem<ReturnType<typeof api.products.get>>;
+// Product = type de base (pour édition)
+export type Product = Omit<ProductListItem, 'featuredImage' | 'defaultVariant'>;
 export type TaxRate = ApiItem<ReturnType<typeof api['tax-rates']['get']>>;
 export type Collection = ApiPaginatedItem<ReturnType<typeof api.collections.get>>;
 
