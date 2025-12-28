@@ -73,7 +73,7 @@
 
 ### Autres
 - [ ] Webhooks
-- [ ] Notifications email (confirmation commande, expédition, facture client)
+- [x] Notifications email (confirmation commande, expédition, welcome)
 - [ ] Export/Import CSV
 - [ ] Logs d'audit + nettoyage RBAC ([plan détaillé](docs/audit-rbac-plan.md))
 
