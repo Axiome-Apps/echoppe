@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
+import { api } from "@/lib/api";
 
 export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,11 +24,19 @@ export default function ContactForm() {
       message: formData.get("message") as string,
     };
 
-    // TODO: Envoyer le message à l'API quand l'endpoint sera créé
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const { error: apiError } = await api.contact.post(data);
 
-    console.log("Contact form data:", data);
     setIsSubmitting(false);
+
+    if (apiError) {
+      setError(
+        apiError.value && typeof apiError.value === "object" && "message" in apiError.value
+          ? (apiError.value as { message: string }).message
+          : "Une erreur est survenue. Veuillez réessayer."
+      );
+      return;
+    }
+
     setIsSubmitted(true);
   }
 

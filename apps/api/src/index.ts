@@ -21,6 +21,7 @@ import { checkoutRoutes } from './routes/checkout';
 import { communicationsRoutes } from './routes/communications';
 import { customersRoutes } from './routes/customers';
 import { usersRoutes } from './routes/users';
+import { contactRoutes } from './routes/contact';
 import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
 
 const port = process.env.API_PORT ?? 7532;
@@ -71,6 +72,7 @@ const app = new Elysia()
           { name: 'Communications', description: 'Configuration emails' },
           { name: 'Customers', description: 'Gestion des clients' },
           { name: 'Users', description: 'Gestion des utilisateurs admin' },
+          { name: 'Contact', description: 'Formulaire de contact' },
         ],
       },
     })
@@ -103,6 +105,7 @@ const app = new Elysia()
   .use(communicationsRoutes)
   .use(customersRoutes)
   .use(usersRoutes)
+  .use(contactRoutes)
   .listen(port);
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);
