@@ -1,9 +1,11 @@
 import { Elysia, t } from 'elysia';
+import { rateLimit } from 'elysia-rate-limit';
 import { db, customer, customerSession, eq, and, gt, sendWelcomeEmail } from '@echoppe/core';
 import { randomBytes } from 'crypto';
+import { strictRateLimitOptions, authRateLimitOptions } from '../utils/rate-limit';
 
 const COOKIE_NAME = 'echoppe_customer_session';
-const SESSION_DURATION_DAYS = 30;
+const SESSION_DURATION_DAYS = 7;
 
 const cookieSchema = t.Cookie({
   [COOKIE_NAME]: t.Optional(t.String()),
@@ -52,11 +54,9 @@ function getExpiresAt(): Date {
   return date;
 }
 
-export const customerAuthRoutes = new Elysia({
-  prefix: '/customer/auth',
-  detail: { tags: ['Customer Auth'] },
-})
-  // POST /customer/auth/register
+// Rate-limited register route (strict: 5 requests / 15 min)
+const registerRoute = new Elysia()
+  .use(rateLimit(strictRateLimitOptions))
   .post(
     '/register',
     async ({ body, cookie, request, status }) => {
@@ -118,7 +118,7 @@ export const customerAuthRoutes = new Elysia({
         value: token,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict',
         path: '/',
         maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
       });
@@ -148,11 +148,14 @@ export const customerAuthRoutes = new Elysia({
       response: {
         200: registerResponseSchema,
         409: errorSchema,
+        429: errorSchema,
       },
-    },
-  )
+    }
+  );
 
-  // POST /customer/auth/login
+// Rate-limited login route (auth: 10 requests / 15 min)
+const loginRoute = new Elysia()
+  .use(rateLimit(authRateLimitOptions))
   .post(
     '/login',
     async ({ body, cookie, request, status }) => {
@@ -200,7 +203,7 @@ export const customerAuthRoutes = new Elysia({
         value: token,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict',
         path: '/',
         maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
       });
@@ -223,11 +226,20 @@ export const customerAuthRoutes = new Elysia({
       response: {
         200: loginResponseSchema,
         401: errorSchema,
+        429: errorSchema,
       },
-    },
-  )
+    }
+  );
 
-  // POST /customer/auth/logout
+export const customerAuthRoutes = new Elysia({
+  prefix: '/customer/auth',
+  detail: { tags: ['Customer Auth'] },
+})
+  // Rate-limited routes
+  .use(registerRoute)
+  .use(loginRoute)
+
+  // POST /customer/auth/logout (no rate limit)
   .post(
     '/logout',
     async ({ cookie }) => {
@@ -244,10 +256,10 @@ export const customerAuthRoutes = new Elysia({
     {
       cookie: cookieSchema,
       response: { 200: successSchema },
-    },
+    }
   )
 
-  // GET /customer/auth/me
+  // GET /customer/auth/me (no rate limit)
   .get(
     '/me',
     async ({ cookie, status }) => {
@@ -292,5 +304,67 @@ export const customerAuthRoutes = new Elysia({
         200: meResponseSchema,
         401: errorSchema,
       },
+    }
+  )
+
+  // POST /customer/auth/refresh - Refresh session token
+  .post(
+    '/refresh',
+    async ({ cookie, request, status }) => {
+      const token = cookie[COOKIE_NAME].value;
+
+      if (!token) {
+        return status(401, { message: 'Non authentifié' });
+      }
+
+      // Find valid session
+      const [sessionData] = await db
+        .select({
+          id: customerSession.id,
+          customerId: customerSession.customer,
+        })
+        .from(customerSession)
+        .where(and(eq(customerSession.token, token), gt(customerSession.expiresAt, new Date())));
+
+      if (!sessionData) {
+        cookie[COOKIE_NAME].remove();
+        return status(401, { message: 'Session invalide ou expirée' });
+      }
+
+      // Generate new token and extend expiry
+      const newToken = generateToken();
+      const newExpiresAt = getExpiresAt();
+      const ipAddress =
+        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+      const userAgent = request.headers.get('user-agent') || 'unknown';
+
+      await db
+        .update(customerSession)
+        .set({
+          token: newToken,
+          expiresAt: newExpiresAt,
+          ipAddress,
+          userAgent,
+        })
+        .where(eq(customerSession.id, sessionData.id));
+
+      // Set new cookie
+      cookie[COOKIE_NAME].set({
+        value: newToken,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
+      });
+
+      return { success: true };
     },
+    {
+      cookie: cookieSchema,
+      response: {
+        200: successSchema,
+        401: errorSchema,
+      },
+    }
   );

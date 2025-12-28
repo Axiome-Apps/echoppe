@@ -17,6 +17,20 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: echoppe-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - echoppe-redis:/var/lib/redis/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: .
@@ -25,13 +39,16 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
+      REDIS_URL: redis://redis:6379
       ADMIN_URL: http://localhost:3000
     ports:
-      - '8000:8000'
+      - '7532:7532'
     volumes:
       - ./uploads:/app/uploads
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   admin:
@@ -49,3 +66,4 @@ services:
 
 volumes:
   echoppe-data:
+  echoppe-redis:

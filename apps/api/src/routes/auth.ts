@@ -1,9 +1,11 @@
 import { Elysia, t } from 'elysia';
+import { rateLimit } from 'elysia-rate-limit';
 import { db, user, session, role, eq, and, gt } from '@echoppe/core';
 import { randomBytes } from 'crypto';
+import { authRateLimitOptions } from '../utils/rate-limit';
 
 const COOKIE_NAME = 'echoppe_admin_session';
-const SESSION_DURATION_DAYS = 30;
+const SESSION_DURATION_DAYS = 7;
 
 // Schema cookie pour le typage
 const cookieSchema = t.Cookie({
@@ -57,8 +59,9 @@ function getExpiresAt(): Date {
   return date;
 }
 
-export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth'] } })
-  // POST /auth/login
+// Rate-limited login route
+const loginRoute = new Elysia()
+  .use(rateLimit(authRateLimitOptions))
   .post(
     '/login',
     async ({ body, cookie, request, status }) => {
@@ -136,9 +139,14 @@ export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth']
         200: loginResponseSchema,
         401: errorSchema,
         403: errorSchema,
+        429: errorSchema,
       },
     }
-  )
+  );
+
+export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth'] } })
+  // Rate-limited login
+  .use(loginRoute)
 
   // POST /auth/logout
   .post(

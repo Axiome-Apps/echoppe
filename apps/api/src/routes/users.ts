@@ -170,6 +170,8 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
     },
     {
       permission: true,
+      query: userSearchQuery,
+      response: { 200: paginatedUsersSchema },
     },
   )
 

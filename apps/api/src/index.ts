@@ -21,6 +21,7 @@ import { checkoutRoutes } from './routes/checkout';
 import { communicationsRoutes } from './routes/communications';
 import { customersRoutes } from './routes/customers';
 import { usersRoutes } from './routes/users';
+import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
 
 const port = process.env.API_PORT ?? 7532;
 
@@ -105,5 +106,18 @@ const app = new Elysia()
   .listen(port);
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);
+
+// Run cleanup job every 15 minutes
+const CLEANUP_INTERVAL_MS = 15 * 60 * 1000;
+setInterval(() => {
+  cleanupExpiredOrders().catch((err) => {
+    console.error('[Cleanup] Error:', err);
+  });
+}, CLEANUP_INTERVAL_MS);
+
+// Run once at startup
+cleanupExpiredOrders().catch((err) => {
+  console.error('[Cleanup] Initial run error:', err);
+});
 
 export type App = typeof app;

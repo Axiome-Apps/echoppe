@@ -78,20 +78,22 @@
 
 ### Sécurité
 **Critique**
-- [ ] Rate limiting sur login/register/checkout (protection brute force)
+- [x] Rate limiting sur login/register/checkout (Redis + elysia-rate-limit)
 
 **Haute**
-- [ ] Vérification propriétaire sur `/payments/checkout`
-- [ ] Transaction atomique pour réservation stock (race condition)
+- [x] Vérification propriétaire sur `/payments/checkout`
+- [x] Décrémentation stock atomique au paiement réussi (transaction DB)
+- [x] Cleanup job commandes expirées (>1h → cancelled)
 
 **Moyenne**
-- [ ] Whitelist domaines pour URLs de redirection (open redirect)
-- [ ] CSRF token ou SameSite=strict sur checkout
+- [x] Whitelist domaines pour URLs de redirection (open redirect)
+- [x] SameSite=strict sur cookies session (admin + customer)
+- [ ] Vérification signature webhook PayPal
 
 **Basse**
-- [ ] Réduire durée session (30j → 7j + refresh token)
-- [ ] Vérification IP/User-Agent sur sessions sensibles
-- [ ] Logger structuré pour erreurs webhook (éviter fuite infos)
+- [x] Réduire durée session (30j → 7j + refresh token)
+- [x] Vérification User-Agent sur sessions admin + customer (+ log IP changes)
+- [x] Logger structuré pour erreurs webhook
 
 ### Docker / Déploiement
 - [ ] Auto-génération ENCRYPTION_KEY au premier lancement

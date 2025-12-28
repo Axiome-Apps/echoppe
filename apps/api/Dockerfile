@@ -7,6 +7,8 @@ COPY package.json bun.lock ./
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
+COPY apps/admin/package.json ./apps/admin/
+COPY apps/store/package.json ./apps/store/
 RUN bun install --frozen-lockfile
 
 # Build
@@ -25,5 +27,5 @@ ENV NODE_ENV=production
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 
-EXPOSE 3000
+EXPOSE 7532
 CMD ["bun", "run", "dist/index.js"]

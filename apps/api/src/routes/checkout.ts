@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia';
+import { rateLimit } from 'elysia-rate-limit';
 import {
   db,
   cart,
@@ -21,6 +22,8 @@ import {
   customerAuthPlugin,
   type SessionCustomer,
 } from '../plugins/customerAuth';
+import { checkoutRateLimitOptions } from '../utils/rate-limit';
+import { validateCheckoutUrls } from '../utils/url-validation';
 
 const addressInputSchema = t.Object({
   firstName: t.String({ minLength: 1, maxLength: 100 }),
@@ -147,14 +150,21 @@ export const checkoutRoutes = new Elysia({
     { response: { 200: t.Array(providerInfoSchema) } },
   )
 
-  // Use customer auth for checkout
+  // Use customer auth and rate limiting for checkout
   .use(customerAuthPlugin)
+  .use(rateLimit(checkoutRateLimitOptions))
 
   // POST /checkout - Create order from cart and initiate payment
   .post(
     '/',
     async ({ body, currentCustomer, status }) => {
       const customer = currentCustomer as SessionCustomer;
+
+      // 0. Validate redirect URLs (prevent open redirect)
+      const urlError = validateCheckoutUrls(body.successUrl, body.cancelUrl);
+      if (urlError) {
+        return status(400, { message: urlError });
+      }
 
       // 1. Get customer's active cart
       const [cartData] = await db
@@ -371,6 +381,7 @@ export const checkoutRoutes = new Elysia({
       response: {
         200: checkoutResultSchema,
         400: errorSchema,
+        429: errorSchema,
       },
     },
   );

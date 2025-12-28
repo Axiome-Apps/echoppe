@@ -2,21 +2,27 @@ import {
   db,
   eq,
   and,
+  sql,
   cart,
   customer,
   getPaymentAdapter,
   getProviderStatus,
   isEncryptionConfigured,
   order,
+  orderItem,
   payment,
   paymentEvent,
   resetPaymentAdapters,
   saveProviderCredentials,
   sendOrderConfirmation,
+  stockMove,
+  variant,
 } from '@echoppe/core';
 import type { PaymentProvider, PayPalCredentials, StripeCredentials } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
+import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
+import { validateCheckoutUrls } from '../utils/url-validation';
 
 const checkoutBody = t.Object({
   orderId: t.String({ format: 'uuid' }),
@@ -185,12 +191,21 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     { permission: true, body: paypalConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
 
-  // === PUBLIC ROUTES (no auth needed) ===
+  // === CUSTOMER CHECKOUT (requires customer auth) ===
+  .use(customerAuthPlugin)
 
-  // POST /payments/checkout - Créer une session de paiement (public for checkout flow)
+  // POST /payments/checkout - Créer une session de paiement (customer auth required)
   .post(
     '/checkout',
-    async ({ body, status }) => {
+    async ({ body, currentCustomer, status }) => {
+      const customerData = currentCustomer as SessionCustomer;
+
+      // Validate redirect URLs (prevent open redirect)
+      const urlError = validateCheckoutUrls(body.successUrl, body.cancelUrl);
+      if (urlError) {
+        return status(400, { message: urlError });
+      }
+
       const adapter = getPaymentAdapter(body.provider);
 
       if (!(await adapter.isConfigured())) {
@@ -199,12 +214,22 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       // Récupérer la commande
       const [orderData] = await db
-        .select()
+        .select({
+          id: order.id,
+          customer: order.customer,
+          orderNumber: order.orderNumber,
+          totalTtc: order.totalTtc,
+        })
         .from(order)
         .where(eq(order.id, body.orderId));
 
       if (!orderData) {
         return status(404, { message: 'Commande introuvable' });
+      }
+
+      // SECURITY: Verify order belongs to the authenticated customer
+      if (orderData.customer !== customerData.id) {
+        return status(403, { message: 'Accès non autorisé à cette commande' });
       }
 
       // Vérifier qu'il n'y a pas déjà un paiement complété
@@ -271,7 +296,12 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         provider: session.provider,
       };
     },
-    { body: checkoutBody, response: { 200: checkoutSessionSchema, 400: errorSchema, 404: errorSchema } },
+    {
+      customerAuth: true,
+      cookie: t.Cookie({ echoppe_customer_session: t.Optional(t.String()) }),
+      body: checkoutBody,
+      response: { 200: checkoutSessionSchema, 400: errorSchema, 403: errorSchema, 404: errorSchema },
+    },
   )
 
   // POST /payments/webhook/stripe - Webhook Stripe (public)
@@ -280,6 +310,9 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     async ({ request, status }) => {
       const signature = request.headers.get('stripe-signature');
       if (!signature) {
+        console.warn('[Webhook Stripe] Missing signature header', {
+          timestamp: new Date().toISOString(),
+        });
         return status(400, { message: 'Missing signature' });
       }
 
@@ -289,13 +322,23 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       try {
         const result = await adapter.verifyWebhook(payload, signature);
 
+        console.log('[Webhook Stripe] Event received', {
+          orderId: result.orderId ?? 'N/A',
+          status: result.status,
+          transactionId: result.transactionId,
+          timestamp: new Date().toISOString(),
+        });
+
         if (result.orderId && result.status !== 'pending') {
           await handlePaymentResult(result.orderId, 'stripe', result);
         }
 
         return { received: true };
       } catch (error) {
-        console.error('Stripe webhook error:', error);
+        console.error('[Webhook Stripe] Verification failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+        });
         return status(400, { message: 'Webhook verification failed' });
       }
     },
@@ -313,13 +356,23 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       try {
         const result = await adapter.verifyWebhook(payload, signature);
 
+        console.log('[Webhook PayPal] Event received', {
+          orderId: result.orderId ?? 'N/A',
+          status: result.status,
+          transactionId: result.transactionId,
+          timestamp: new Date().toISOString(),
+        });
+
         if (result.orderId && result.status !== 'pending') {
           await handlePaymentResult(result.orderId, 'paypal', result);
         }
 
         return { received: true };
       } catch (error) {
-        console.error('PayPal webhook error:', error);
+        console.error('[Webhook PayPal] Verification failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+        });
         return status(400, { message: 'Webhook verification failed' });
       }
     },
@@ -453,6 +506,40 @@ async function handlePaymentResult(
       .where(eq(order.id, orderId));
 
     if (orderData) {
+      // Decrement stock in a transaction
+      const items = await db
+        .select({
+          variantId: orderItem.variant,
+          quantity: orderItem.quantity,
+          label: orderItem.label,
+        })
+        .from(orderItem)
+        .where(eq(orderItem.order, orderId));
+
+      await db.transaction(async (tx) => {
+        for (const item of items) {
+          // Skip items without a variant (should not happen in practice)
+          if (!item.variantId) continue;
+
+          // Decrement variant quantity
+          await tx
+            .update(variant)
+            .set({
+              quantity: sql`${variant.quantity} - ${item.quantity}`,
+            })
+            .where(eq(variant.id, item.variantId));
+
+          // Create stock movement record
+          await tx.insert(stockMove).values({
+            variant: item.variantId,
+            label: item.label,
+            quantity: -item.quantity,
+            type: 'sale',
+            reference: orderData.orderNumber,
+          });
+        }
+      });
+
       // Convert customer's active cart
       await db
         .update(cart)

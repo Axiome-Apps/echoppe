@@ -15,7 +15,9 @@
     "@echoppe/shared": "workspace:*",
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/openapi": "^1.4.12",
-    "elysia": "^1.4.19"
+    "elysia": "^1.4.19",
+    "elysia-rate-limit": "^4.4.2",
+    "ioredis": "^5.8.2"
   },
   "devDependencies": {
     "bun-types": "^1.3.4",

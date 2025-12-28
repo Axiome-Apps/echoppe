@@ -111,6 +111,12 @@ export class PayPalAdapter implements PaymentAdapter {
       throw new Error('PayPal is not configured.');
     }
 
+    // TODO: Implement proper PayPal webhook signature verification
+    // This requires the webhook_id in credentials and all PayPal-specific headers
+    // (paypal-auth-algo, paypal-cert-url, paypal-transmission-id, paypal-transmission-sig, paypal-transmission-time)
+    // For now, we rely on the webhook URL being secret and HTTPS
+    console.warn('[PayPal] Webhook signature verification not implemented - ensure webhook URL is secret');
+
     const event = JSON.parse(payload);
 
     switch (event.event_type) {

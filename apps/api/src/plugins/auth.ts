@@ -29,10 +29,15 @@ export type AuthContext = {
   isAuthenticated: boolean;
 };
 
+type SessionWithMeta = AuthContext & {
+  storedUserAgent: string | null;
+  storedIpAddress: string | null;
+};
+
 // Fonction réutilisable pour vérifier la session
-export async function getSessionFromToken(token: string | undefined): Promise<AuthContext> {
+export async function getSessionFromToken(token: string | undefined): Promise<SessionWithMeta> {
   if (!token) {
-    return { currentUser: null, currentRole: null, isAuthenticated: false };
+    return { currentUser: null, currentRole: null, isAuthenticated: false, storedUserAgent: null, storedIpAddress: null };
   }
 
   const [sessionData] = await db
@@ -50,6 +55,10 @@ export async function getSessionFromToken(token: string | undefined): Promise<Au
         name: role.name,
         scope: role.scope,
       },
+      session: {
+        userAgent: session.userAgent,
+        ipAddress: session.ipAddress,
+      },
     })
     .from(session)
     .innerJoin(user, eq(session.user, user.id))
@@ -57,13 +66,15 @@ export async function getSessionFromToken(token: string | undefined): Promise<Au
     .where(and(eq(session.token, token), gt(session.expiresAt, new Date())));
 
   if (!sessionData || !sessionData.user.isActive) {
-    return { currentUser: null, currentRole: null, isAuthenticated: false };
+    return { currentUser: null, currentRole: null, isAuthenticated: false, storedUserAgent: null, storedIpAddress: null };
   }
 
   return {
     currentUser: sessionData.user as SessionUser,
     currentRole: sessionData.role as SessionRole,
     isAuthenticated: true,
+    storedUserAgent: sessionData.session.userAgent,
+    storedIpAddress: sessionData.session.ipAddress,
   };
 }
 
@@ -75,17 +86,41 @@ export async function getSessionFromToken(token: string | undefined): Promise<Au
 export const authPlugin = new Elysia({ name: 'auth' })
   .macro({
     auth: {
-      async resolve({ cookie, status }) {
+      async resolve({ cookie, request, status }) {
         const token = (cookie as Record<string, { value?: string }>)[COOKIE_NAME]?.value;
-        const session = await getSessionFromToken(token);
+        const sessionData = await getSessionFromToken(token);
 
-        if (!session.isAuthenticated) {
+        if (!sessionData.isAuthenticated) {
           return status(401, { message: 'Non authentifié' });
         }
 
+        // Verify User-Agent matches (strict check for session hijacking)
+        const currentUserAgent = request.headers.get('user-agent') ?? 'unknown';
+        if (sessionData.storedUserAgent && sessionData.storedUserAgent !== currentUserAgent) {
+          console.warn('[Security] User-Agent mismatch for admin session', {
+            userId: sessionData.currentUser?.id,
+            stored: sessionData.storedUserAgent?.substring(0, 50),
+            current: currentUserAgent.substring(0, 50),
+          });
+          return status(401, { message: 'Session invalide' });
+        }
+
+        // Log IP changes (warning only, don't block)
+        const currentIp =
+          request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+          request.headers.get('x-real-ip') ??
+          'unknown';
+        if (sessionData.storedIpAddress && sessionData.storedIpAddress !== currentIp) {
+          console.info('[Security] IP change detected for admin session', {
+            userId: sessionData.currentUser?.id,
+            stored: sessionData.storedIpAddress,
+            current: currentIp,
+          });
+        }
+
         return {
-          currentUser: session.currentUser,
-          currentRole: session.currentRole,
+          currentUser: sessionData.currentUser,
+          currentRole: sessionData.currentRole,
         };
       },
     },

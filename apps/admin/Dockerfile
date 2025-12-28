@@ -8,6 +8,7 @@ COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
 COPY apps/admin/package.json ./apps/admin/
+COPY apps/store/package.json ./apps/store/
 RUN bun install --frozen-lockfile
 
 # Build
