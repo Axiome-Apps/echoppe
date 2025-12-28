@@ -72,7 +72,6 @@
 - [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
 
 ### Autres
-- [ ] Webhooks
 - [x] Notifications email (confirmation commande, expédition, welcome)
 - [ ] Export/Import CSV
 - [ ] Logs d'audit + nettoyage RBAC ([plan détaillé](docs/audit-rbac-plan.md))
@@ -104,6 +103,7 @@
 
 ## V2
 
+- [ ] Webhooks sortants (notifications externes, intégration Zapier/n8n/Make)
 - [ ] Conformité RGPD (bannière cookies, CGU/CGV personnalisables, consentement)
 - [ ] Page builder intégré (blocs, drag & drop, génération Next.js)
 - [ ] Stats / Dashboard insight (CA, top produits, tendances)
