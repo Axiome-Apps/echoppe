@@ -72,8 +72,7 @@ const router = createRouter({
         },
         {
           path: 'roles',
-          name: 'roles',
-          component: () => import('../views/RolesView.vue'),
+          redirect: '/parametres?tab=roles',
         },
         {
           path: 'roles/nouveau',
@@ -97,8 +96,7 @@ const router = createRouter({
         },
         {
           path: 'utilisateurs',
-          name: 'users',
-          component: () => import('../views/UsersView.vue'),
+          redirect: '/parametres?tab=users',
         },
         {
           path: 'utilisateurs/nouveau',
@@ -109,6 +107,11 @@ const router = createRouter({
           path: 'utilisateurs/:id',
           name: 'user-edit',
           component: () => import('../views/UserEditView.vue'),
+        },
+        {
+          path: 'audit',
+          name: 'audit',
+          component: () => import('../views/AuditLogsView.vue'),
         },
       ],
     },

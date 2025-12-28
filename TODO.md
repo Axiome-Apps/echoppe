@@ -60,7 +60,8 @@
 - [x] Pages légales (CGV, mentions légales, contact)
 - [x] Endpoint API pour formulaire de contact (envoi email)
 - [x] Checkout (tunnel paiement)
-- [ ] Documentation API Headless
+- [x] Documentation API Headless
+- [ ] Doc SDK
 
 ### Clients
 - [x] Gestion Customers (Admin) - liste, détail, désactivation, anonymisation RGPD
@@ -73,7 +74,7 @@
 
 ### Autres
 - [x] Notifications email (confirmation commande, expédition, welcome)
-- [ ] Logs d'audit + nettoyage RBAC ([plan détaillé](docs/audit-rbac-plan.md))
+- [x] Logs d'audit + nettoyage RBAC ([plan détaillé](docs/audit-rbac-plan.md))
 
 ### Documentation
 - [ ] Documentation complète (dev + user)
