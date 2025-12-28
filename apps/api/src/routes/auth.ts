@@ -3,6 +3,7 @@ import { rateLimit } from 'elysia-rate-limit';
 import { db, user, session, role, eq, and, gt } from '@echoppe/core';
 import { randomBytes } from 'crypto';
 import { authRateLimitOptions } from '../utils/rate-limit';
+import { successSchema, unauthorizedResponse, forbiddenResponse, rateLimitResponse } from '../utils/responses';
 
 const COOKIE_NAME = 'echoppe_admin_session';
 const SESSION_DURATION_DAYS = 7;
@@ -44,10 +45,6 @@ const loginUserSchema = t.Object({
 const loginResponseSchema = t.Object({
   user: loginUserSchema,
 });
-
-// Schema générique
-const successSchema = t.Object({ success: t.Boolean() });
-const errorSchema = t.Object({ message: t.String() });
 
 function generateToken(): string {
   return randomBytes(32).toString('hex');
@@ -137,9 +134,9 @@ const loginRoute = new Elysia()
       cookie: cookieSchema,
       response: {
         200: loginResponseSchema,
-        401: errorSchema,
-        403: errorSchema,
-        429: errorSchema,
+        401: unauthorizedResponse,
+        403: forbiddenResponse,
+        429: rateLimitResponse,
       },
     }
   );
@@ -222,7 +219,7 @@ export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth']
     cookie: cookieSchema,
     response: {
       200: meResponseSchema,
-      401: t.Object({ message: t.String() }),
-      403: t.Object({ message: t.String() }),
+      401: unauthorizedResponse,
+      403: forbiddenResponse,
     },
   });

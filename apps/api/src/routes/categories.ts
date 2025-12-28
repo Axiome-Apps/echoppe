@@ -3,6 +3,7 @@ import { db, category, product, variant, productMedia, eq, and, inArray, count }
 import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+import { successSchema, withCrudErrors, withNotFound } from '../utils/responses';
 
 // Schema de réponse pour les catégories
 const categorySchema = t.Object({
@@ -46,9 +47,7 @@ const categoryParams = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
-// Schemas de réponse
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
+// Schemas de réponse spécifiques
 const batchSuccessSchema = t.Object({ success: t.Boolean(), count: t.Number() });
 
 // Schema pour les produits (liste)
@@ -91,7 +90,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
     },
     {
       params: categoryParams,
-      response: { 200: categorySchema, 404: errorSchema },
+      response: withNotFound({ 200: categorySchema }),
     }
   )
 
@@ -105,7 +104,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
     },
     {
       params: t.Object({ slug: t.String() }),
-      response: { 200: categorySchema, 404: errorSchema },
+      response: withNotFound({ 200: categorySchema }),
     }
   )
 
@@ -165,7 +164,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
     {
       params: categoryParams,
       query: paginationQuery,
-      response: { 200: paginatedResponse(productListSchema), 404: errorSchema },
+      response: withNotFound({ 200: paginatedResponse(productListSchema) }),
     }
   )
 
@@ -217,7 +216,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       permission: true,
       params: categoryParams,
       body: categoryUpdateBody,
-      response: { 200: categorySchema, 404: errorSchema },
+      response: withCrudErrors({ 200: categorySchema }),
     }
   )
 
@@ -253,6 +252,6 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
     {
       permission: true,
       params: categoryParams,
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     }
   );

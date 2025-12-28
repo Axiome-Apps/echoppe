@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { db, cart, cartItem, variant, customer, customerSession, product, productMedia, eq, and, gt, inArray } from '@echoppe/core';
 import { randomBytes } from 'crypto';
+import { successSchema, badRequestResponse, forbiddenResponse, notFoundResponse, unauthorizedResponse } from '../utils/responses';
 
 const CART_COOKIE_NAME = 'echoppe_cart_session';
 const CUSTOMER_COOKIE_NAME = 'echoppe_customer_session';
@@ -48,8 +49,6 @@ const cartResponseSchema = t.Object({
   dateUpdated: t.Union([t.Date(), t.Null()]),
 });
 
-const successSchema = t.Object({ success: t.Boolean() });
-const errorSchema = t.Object({ message: t.String() });
 const mergeResponseSchema = t.Object({
   success: t.Boolean(),
   merged: t.Optional(t.Number()),
@@ -326,8 +325,8 @@ export const cartRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: cartResponseSchema,
-        400: errorSchema,
-        404: errorSchema,
+        400: badRequestResponse,
+        404: notFoundResponse,
       },
     }
   )
@@ -394,9 +393,9 @@ export const cartRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: cartResponseSchema,
-        400: errorSchema,
-        403: errorSchema,
-        404: errorSchema,
+        400: badRequestResponse,
+        403: forbiddenResponse,
+        404: notFoundResponse,
       },
     }
   )
@@ -447,8 +446,8 @@ export const cartRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: cartResponseSchema,
-        403: errorSchema,
-        404: errorSchema,
+        403: forbiddenResponse,
+        404: notFoundResponse,
       },
     }
   )
@@ -584,7 +583,7 @@ export const cartRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: mergeResponseSchema,
-        401: errorSchema,
+        401: unauthorizedResponse,
       },
     }
   );

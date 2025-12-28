@@ -1,10 +1,9 @@
 import { Elysia, t } from 'elysia';
 import { db, media, eq } from '@echoppe/core';
 import { join } from 'path';
+import { errorSchema } from '../utils/responses';
 
 const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
-
-const errorSchema = t.Object({ message: t.String() });
 
 export const assetsRoutes = new Elysia({ prefix: '/assets', detail: { tags: ['Assets'] } })
   .get(

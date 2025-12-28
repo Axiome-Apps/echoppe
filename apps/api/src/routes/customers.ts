@@ -21,6 +21,7 @@ import {
   buildPaginatedResponse,
   getPaginationParams,
 } from '../utils/pagination';
+import { successSchema, withCrudErrors } from '../utils/responses';
 
 // Query schemas
 const customerSearchQuery = t.Object({
@@ -51,8 +52,6 @@ const uuidParam = t.Object({
 });
 
 // Response schemas
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 const customerListItemSchema = t.Object({
   id: t.String(),
@@ -303,7 +302,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
     {
       permission: true,
       params: uuidParam,
-      response: { 200: customerDetailSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: customerDetailSchema }),
     },
   )
 
@@ -340,7 +339,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
       permission: true,
       params: uuidParam,
       body: customerUpdateBody,
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     },
   )
 
@@ -376,7 +375,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
       permission: true,
       params: uuidParam,
       body: statusBody,
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     },
   )
 
@@ -422,6 +421,6 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
     {
       permission: true,
       params: uuidParam,
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     },
   );

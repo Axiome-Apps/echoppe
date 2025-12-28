@@ -17,6 +17,7 @@ import {
   buildPaginatedResponse,
   getPaginationParams,
 } from '../utils/pagination';
+import { successSchema, badRequestResponse, withCrudErrors } from '../utils/responses';
 
 // Query schemas
 const userSearchQuery = t.Object({
@@ -54,8 +55,6 @@ const uuidParam = t.Object({
 });
 
 // Response schemas
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 const roleSchema = t.Object({
   id: t.String(),
@@ -207,7 +206,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
     {
       permission: true,
       params: uuidParam,
-      response: { 200: userDetailSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: userDetailSchema }),
     },
   )
 
@@ -260,7 +259,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
     {
       permission: true,
       body: userCreateBody,
-      response: { 200: userCreatedSchema, 400: errorSchema },
+      response: withCrudErrors({ 200: userCreatedSchema, 400: badRequestResponse }),
     },
   )
 
@@ -331,7 +330,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       permission: true,
       params: uuidParam,
       body: userUpdateBody,
-      response: { 200: successSchema, 400: errorSchema, 403: errorSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema, 400: badRequestResponse }),
     },
   )
 
@@ -371,7 +370,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       permission: true,
       params: uuidParam,
       body: statusBody,
-      response: { 200: successSchema, 403: errorSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     },
   )
 
@@ -412,6 +411,6 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
     {
       permission: true,
       params: uuidParam,
-      response: { 200: successSchema, 403: errorSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     },
   );

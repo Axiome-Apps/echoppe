@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { db, address, country, eq, and } from '@echoppe/core';
+import { successSchema, errorSchema } from '../utils/responses';
 import {
   customerAuthPlugin,
   customerCookieSchema,
@@ -41,8 +42,6 @@ const addressBodySchema = t.Object({
   isDefault: t.Optional(t.Boolean()),
 });
 
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 export const customerAddressesRoutes = new Elysia({
   prefix: '/customer/addresses',

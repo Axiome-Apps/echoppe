@@ -66,15 +66,17 @@
 - [x] Gestion Customers (Admin) - liste, détail, désactivation, anonymisation RGPD
 
 ### API Documentation
-- [ ] Helper pour ajouter les réponses d'erreur communes (401/400/500) automatiquement dans OpenAPI
+- [x] Helper pour ajouter les réponses d'erreur communes (401/400/500) automatiquement dans OpenAPI
 
 ### Users
 - [x] Gestion Users (API + Admin) - CRUD utilisateurs admin
 
 ### Autres
 - [x] Notifications email (confirmation commande, expédition, welcome)
-- [ ] Export/Import CSV
 - [ ] Logs d'audit + nettoyage RBAC ([plan détaillé](docs/audit-rbac-plan.md))
+
+### Documentation
+- [ ] Documentation complète (dev + user)
 
 ### Sécurité
 **Critique**
@@ -105,6 +107,7 @@
 
 ## V2
 
+- [ ] Export/Import CSV
 - [ ] Webhooks sortants (notifications externes, intégration Zapier/n8n/Make)
 - [ ] Conformité RGPD (bannière cookies, CGU/CGV personnalisables, consentement)
 - [ ] Page builder intégré (blocs, drag & drop, génération Next.js)

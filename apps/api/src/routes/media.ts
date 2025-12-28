@@ -17,6 +17,7 @@ import { Elysia, t } from 'elysia';
 import { mkdir, unlink } from 'fs/promises';
 import { join } from 'path';
 import { permissionGuard } from '../plugins/rbac';
+import { successSchema, errorSchema } from '../utils/responses';
 import {
   buildPaginatedResponse,
   DEFAULT_LIMIT,
@@ -99,8 +100,6 @@ const batchDeleteBody = t.Object({
 });
 
 // Schemas génériques
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 const batchResultSchema = t.Object({ moved: t.Array(t.String()), count: t.Number() });
 const batchDeleteResultSchema = t.Object({ deleted: t.Array(t.String()), count: t.Number() });
 

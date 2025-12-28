@@ -3,6 +3,7 @@ import { db, collection, product, productCollection, variant, productMedia, eq, 
 import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+import { successSchema, withCrudErrors, withNotFound } from '../utils/responses';
 
 // Schema de réponse pour les collections
 const collectionSchema = t.Object({
@@ -33,9 +34,6 @@ const collectionParams = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
-// Schemas génériques
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 // Schema pour les produits (liste)
 const defaultVariantSchema = t.Object({
@@ -88,10 +86,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
     },
     {
       params: collectionParams,
-      response: {
-        200: collectionSchema,
-        404: t.Object({ message: t.String() }),
-      },
+      response: withNotFound({ 200: collectionSchema }),
     }
   )
 
@@ -105,7 +100,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
     },
     {
       params: t.Object({ slug: t.String() }),
-      response: { 200: collectionSchema, 404: errorSchema },
+      response: withNotFound({ 200: collectionSchema }),
     }
   )
 
@@ -177,7 +172,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
     {
       params: collectionParams,
       query: paginationQuery,
-      response: { 200: paginatedResponse(productListSchema), 404: errorSchema },
+      response: withNotFound({ 200: paginatedResponse(productListSchema) }),
     }
   )
 
@@ -225,7 +220,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       permission: true,
       params: collectionParams,
       body: collectionUpdateBody,
-      response: { 200: collectionSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: collectionSchema }),
     }
   )
 
@@ -241,6 +236,6 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
     {
       permission: true,
       params: collectionParams,
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     }
   );

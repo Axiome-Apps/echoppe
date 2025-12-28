@@ -1,6 +1,7 @@
 import { db, desc, eq, product, sql, stockMove, variant } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
+import { withCrudErrors } from '../utils/responses';
 
 const stockMoveCreateBody = t.Object({
   variant: t.String({ format: 'uuid' }),
@@ -24,7 +25,6 @@ const paginationQuery = t.Object({
 });
 
 // Schemas
-const errorSchema = t.Object({ message: t.String() });
 const stockMoveSchema = t.Object({
   id: t.String(),
   variant: t.Nullable(t.String()),
@@ -196,6 +196,6 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
     {
       permission: true,
       body: stockMoveCreateBody,
-      response: { 200: stockMoveSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: stockMoveSchema }),
     },
   );

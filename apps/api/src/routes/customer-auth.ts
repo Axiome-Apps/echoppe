@@ -3,6 +3,7 @@ import { rateLimit } from 'elysia-rate-limit';
 import { db, customer, customerSession, eq, and, gt, sendWelcomeEmail } from '@echoppe/core';
 import { randomBytes } from 'crypto';
 import { strictRateLimitOptions, authRateLimitOptions } from '../utils/rate-limit';
+import { successSchema, conflictResponse, unauthorizedResponse, rateLimitResponse } from '../utils/responses';
 
 const COOKIE_NAME = 'echoppe_customer_session';
 const SESSION_DURATION_DAYS = 7;
@@ -41,8 +42,6 @@ const meResponseSchema = t.Object({
   customer: customerSchema,
 });
 
-const successSchema = t.Object({ success: t.Boolean() });
-const errorSchema = t.Object({ message: t.String() });
 
 function generateToken(): string {
   return randomBytes(32).toString('hex');
@@ -147,8 +146,8 @@ const registerRoute = new Elysia()
       cookie: cookieSchema,
       response: {
         200: registerResponseSchema,
-        409: errorSchema,
-        429: errorSchema,
+        409: conflictResponse,
+        429: rateLimitResponse,
       },
     }
   );
@@ -225,8 +224,8 @@ const loginRoute = new Elysia()
       cookie: cookieSchema,
       response: {
         200: loginResponseSchema,
-        401: errorSchema,
-        429: errorSchema,
+        401: unauthorizedResponse,
+        429: rateLimitResponse,
       },
     }
   );
@@ -302,7 +301,7 @@ export const customerAuthRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: meResponseSchema,
-        401: errorSchema,
+        401: unauthorizedResponse,
       },
     }
   )
@@ -364,7 +363,7 @@ export const customerAuthRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: successSchema,
-        401: errorSchema,
+        401: unauthorizedResponse,
       },
     }
   );

@@ -16,6 +16,7 @@ import type {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
+import { successSchema, errorSchema } from '../utils/responses';
 
 // Body schemas
 const resendConfigBody = t.Object({
@@ -52,8 +53,6 @@ const testEmailBody = t.Object({
 });
 
 // Response schemas
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 const providerFieldSchema = t.Object({
   key: t.String(),

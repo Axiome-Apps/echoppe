@@ -18,6 +18,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
+import { successSchema, errorSchema } from '../utils/responses';
 
 const colissimoConfigBody = t.Object({
   contractNumber: t.String({ minLength: 1 }),
@@ -76,8 +77,6 @@ const labelBody = t.Object({
 });
 
 // Response schemas
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 const providerFieldSchema = t.Object({
   key: t.String(),

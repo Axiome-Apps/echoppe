@@ -28,6 +28,7 @@ import { randomUUID } from 'crypto';
 import { Elysia, t } from 'elysia';
 import { join } from 'path';
 import { permissionGuard } from '../plugins/rbac';
+import { successSchema, withCrudErrors } from '../utils/responses';
 
 const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
 
@@ -64,8 +65,6 @@ const uuidParam = t.Object({
 });
 
 // Response schemas
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 const orderStatusEnum = t.Union([
   t.Literal('pending'),
@@ -392,7 +391,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         shipment: shipmentData ?? null,
       };
     },
-    { permission: true, params: uuidParam, response: { 200: orderDetailSchema, 404: errorSchema } },
+    { permission: true, params: uuidParam, response: withCrudErrors({ 200: orderDetailSchema }) },
   )
 
   // === ORDER UPDATE ===
@@ -473,7 +472,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       return { success: true, previousStatus, newStatus };
     },
-    { permission: true, params: uuidParam, body: statusBody, response: { 200: statusChangeResultSchema, 404: errorSchema } },
+    { permission: true, params: uuidParam, body: statusBody, response: withCrudErrors({ 200: statusChangeResultSchema }) },
   )
 
   // PATCH /orders/:id/notes - Modifier notes
@@ -504,7 +503,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       return { success: true };
     },
-    { permission: true, params: uuidParam, body: notesBody, response: { 200: successSchema, 404: errorSchema } },
+    { permission: true, params: uuidParam, body: notesBody, response: withCrudErrors({ 200: successSchema }) },
   )
 
   // === ORDER READ (stats) ===
@@ -571,7 +570,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         hasPdf: !!inv.pdf,
       }));
     },
-    { permission: true, params: uuidParam, response: { 200: t.Array(invoiceSummarySchema), 404: errorSchema } },
+    { permission: true, params: uuidParam, response: withCrudErrors({ 200: t.Array(invoiceSummarySchema) }) },
   )
 
   // === INVOICES (CREATE) ===
@@ -646,7 +645,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
           dateDue: t.Optional(t.String()),
         }),
       ),
-      response: { 200: invoiceCreatedSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: invoiceCreatedSchema }),
     },
   )
 

@@ -23,6 +23,7 @@ import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
 import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
 import { validateCheckoutUrls } from '../utils/url-validation';
+import { successSchema, errorSchema } from '../utils/responses';
 
 const checkoutBody = t.Object({
   orderId: t.String({ format: 'uuid' }),
@@ -49,8 +50,6 @@ const paypalConfigBody = t.Object({
 });
 
 // Response schemas
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 const providerFieldSchema = t.Object({
   key: t.String(),

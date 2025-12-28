@@ -4,6 +4,7 @@ import type { SQL } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+import { successSchema, conflictResponse, withCrudErrors, withNotFound } from '../utils/responses';
 
 // Schema du produit pour les réponses (liste)
 const defaultVariantSchema = t.Object({
@@ -123,9 +124,6 @@ const optionValueBody = t.Object({
   sortOrder: t.Optional(t.Number({ default: 0 })),
 });
 
-// Schemas génériques
-const errorSchema = t.Object({ message: t.String() });
-const successSchema = t.Object({ success: t.Boolean() });
 
 // Query schema pour recherche/filtres/tri
 const productSearchQuery = t.Object({
@@ -394,7 +392,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         options: filteredOptions,
       };
     },
-    { params: t.Object({ slug: t.String() }), response: { 404: errorSchema } }
+    { params: t.Object({ slug: t.String() }), response: withNotFound({}) }
   )
 
   // GET /products/:id - Get one with variants (public)
@@ -435,7 +433,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return { ...found, variants: variantsWithOptions, options: optionsWithValues };
     },
-    { params: productParams, response: { 404: errorSchema } }
+    { params: productParams, response: withNotFound({}) }
   )
 
   // GET /products/:id/variants (public)
@@ -495,7 +493,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: productUpdateBody,
-      response: { 200: productSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: productSchema }),
     }
   )
 
@@ -525,7 +523,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: productPatchBody,
-      response: { 200: productSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: productSchema }),
     }
   )
 
@@ -541,7 +539,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
     {
       permission: true,
       params: productParams,
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     }
   )
 
@@ -581,7 +579,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: variantBody,
-      response: { 200: variantSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: variantSchema }),
     }
   )
 
@@ -617,7 +615,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: variantParams,
       body: variantBody,
-      response: { 200: variantSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: variantSchema }),
     }
   )
 
@@ -636,7 +634,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
     {
       permission: true,
       params: variantParams,
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     }
   )
 
@@ -670,7 +668,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: variantParams,
       body: t.Object({ optionValueIds: t.Array(t.String({ format: 'uuid' })) }),
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     }
   )
 
@@ -723,7 +721,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: productMediaBody,
-      response: { 200: productMediaSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: productMediaSchema }),
     }
   )
 
@@ -764,7 +762,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: mediaParams,
       body: productMediaUpdateBody,
-      response: { 200: productMediaSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: productMediaSchema }),
     }
   )
 
@@ -783,7 +781,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
     {
       permission: true,
       params: mediaParams,
-      response: { 200: successSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: successSchema }),
     }
   )
 
@@ -841,7 +839,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: optionBody,
-      response: { 200: optionSchema, 404: errorSchema, 409: errorSchema },
+      response: withCrudErrors({ 200: optionSchema, 409: conflictResponse }),
     }
   )
 
@@ -876,6 +874,6 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: optionParams,
       body: optionValueBody,
-      response: { 200: optionValueSchema, 404: errorSchema },
+      response: withCrudErrors({ 200: optionValueSchema }),
     }
   );

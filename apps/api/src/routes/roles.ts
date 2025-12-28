@@ -1,6 +1,7 @@
 import { db, role, permission, user, eq, and, RESOURCES } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard, invalidatePermissionCache } from '../plugins/rbac';
+import { successSchema, errorSchema } from '../utils/responses';
 
 // Schemas
 const roleSchema = t.Object({
@@ -53,13 +54,6 @@ const permissionsUpdateBody = t.Object({
   permissions: t.Array(permissionBody),
 });
 
-const errorSchema = t.Object({
-  message: t.String(),
-});
-
-const successSchema = t.Object({
-  success: t.Boolean(),
-});
 
 const resourcesSchema = t.Object({
   resources: t.Array(t.String()),

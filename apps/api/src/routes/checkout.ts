@@ -24,6 +24,7 @@ import {
 } from '../plugins/customerAuth';
 import { checkoutRateLimitOptions } from '../utils/rate-limit';
 import { validateCheckoutUrls } from '../utils/url-validation';
+import { errorSchema } from '../utils/responses';
 
 const addressInputSchema = t.Object({
   firstName: t.String({ minLength: 1, maxLength: 100 }),
@@ -47,7 +48,6 @@ const checkoutBodySchema = t.Object({
   cancelUrl: t.String({ format: 'uri' }),
 });
 
-const errorSchema = t.Object({ message: t.String() });
 
 const providerInfoSchema = t.Object({
   id: t.String(),
