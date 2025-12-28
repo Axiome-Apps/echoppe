@@ -58,7 +58,7 @@
 - [x] Recherche produits (API + composants)
 - [x] Filtres et tri catalogue (catégorie, prix, stock, tri)
 - [x] Pages légales (CGV, mentions légales, contact)
-- [ ] Endpoint API pour formulaire de contact (envoi email)
+- [x] Endpoint API pour formulaire de contact (envoi email)
 - [x] Checkout (tunnel paiement)
 - [ ] Documentation API Headless
 
