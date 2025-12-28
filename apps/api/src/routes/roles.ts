@@ -1,7 +1,7 @@
 import { db, role, permission, user, eq, and, RESOURCES } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard, invalidatePermissionCache } from '../plugins/rbac';
-import { successSchema, errorSchema } from '../utils/responses';
+import { successSchema, errorSchema, withAuthErrors } from '../utils/responses';
 
 // Schemas
 const roleSchema = t.Object({
@@ -127,7 +127,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
     {
       permission: true,
       body: roleCreateBody,
-      response: { 200: roleSchema },
+      response: withAuthErrors({ 200: roleSchema }),
     },
   )
 

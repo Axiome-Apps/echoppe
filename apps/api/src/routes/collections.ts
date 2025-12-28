@@ -3,7 +3,7 @@ import { db, collection, product, productCollection, variant, productMedia, eq, 
 import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
-import { successSchema, withCrudErrors, withNotFound } from '../utils/responses';
+import { successSchema, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
 
 // Schema de réponse pour les collections
 const collectionSchema = t.Object({
@@ -195,7 +195,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
         .returning();
       return created;
     },
-    { permission: true, body: collectionCreateBody, response: { 200: collectionSchema } }
+    { permission: true, body: collectionCreateBody, response: withAuthErrors({ 200: collectionSchema }) }
   )
 
   // PUT /collections/:id - Update (slug immutable)

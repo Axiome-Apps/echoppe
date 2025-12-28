@@ -1,6 +1,7 @@
 import { company, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
+import { withAuthErrors } from '../utils/responses';
 
 const companyBody = t.Object({
   shopName: t.String({ minLength: 1, maxLength: 255 }),
@@ -133,5 +134,5 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
       const [created] = await db.insert(company).values(values).returning();
       return created;
     },
-    { permission: true, body: companyBody, response: { 200: companySchema } },
+    { permission: true, body: companyBody, response: withAuthErrors({ 200: companySchema }) },
   );

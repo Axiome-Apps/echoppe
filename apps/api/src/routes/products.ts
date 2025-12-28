@@ -4,7 +4,7 @@ import type { SQL } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
-import { successSchema, conflictResponse, withCrudErrors, withNotFound } from '../utils/responses';
+import { successSchema, conflictResponse, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
 
 // Schema du produit pour les réponses (liste)
 const defaultVariantSchema = t.Object({
@@ -466,7 +466,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .returning();
       return created;
     },
-    { permission: true, body: productCreateBody, response: { 200: productSchema } }
+    { permission: true, body: productCreateBody, response: withAuthErrors({ 200: productSchema }) }
   )
 
   // PUT /products/:id - Update (full, slug immutable)

@@ -3,7 +3,7 @@ import { db, category, product, variant, productMedia, eq, and, inArray, count }
 import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
-import { successSchema, withCrudErrors, withNotFound } from '../utils/responses';
+import { successSchema, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
 
 // Schema de réponse pour les catégories
 const categorySchema = t.Object({
@@ -189,7 +189,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
         .returning();
       return created;
     },
-    { permission: true, body: categoryCreateBody, response: { 200: categorySchema } }
+    { permission: true, body: categoryCreateBody, response: withAuthErrors({ 200: categorySchema }) }
   )
 
   // PUT /categories/:id - Update (slug immutable)
@@ -237,7 +237,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       });
       return { success: true, count: body.length };
     },
-    { permission: true, body: batchOrderBody, response: { 200: batchSuccessSchema } }
+    { permission: true, body: batchOrderBody, response: withAuthErrors({ 200: batchSuccessSchema }) }
   )
 
   // DELETE /categories/:id - Delete

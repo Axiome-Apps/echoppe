@@ -18,7 +18,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
-import { successSchema, errorSchema } from '../utils/responses';
+import { successSchema, errorSchema, withAuthErrors } from '../utils/responses';
 
 const colissimoConfigBody = t.Object({
   contractNumber: t.String({ minLength: 1 }),
@@ -206,7 +206,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return allRates.sort((a, b) => a.price - b.price);
     },
-    { permission: true, body: ratesBody, response: { 200: t.Array(rateSchema) } },
+    { permission: true, body: ratesBody, response: withAuthErrors({ 200: t.Array(rateSchema) }) },
   )
 
   // GET /shipping/tracking/:trackingNumber

@@ -17,7 +17,7 @@ import { Elysia, t } from 'elysia';
 import { mkdir, unlink } from 'fs/promises';
 import { join } from 'path';
 import { permissionGuard } from '../plugins/rbac';
-import { successSchema, errorSchema } from '../utils/responses';
+import { successSchema, errorSchema, withAuthErrors } from '../utils/responses';
 import {
   buildPaginatedResponse,
   DEFAULT_LIMIT,
@@ -136,7 +136,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
         .returning();
       return created;
     },
-    { permission: true, body: folderBody, response: { 200: folderSchema } },
+    { permission: true, body: folderBody, response: withAuthErrors({ 200: folderSchema }) },
   )
 
   // === FOLDERS - UPDATE ===
@@ -355,7 +355,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return results.length === 1 ? results[0] : results;
     },
-    { permission: true, body: uploadBody, response: { 200: t.Union([mediaSchema, t.Array(mediaSchema)]) } },
+    { permission: true, body: uploadBody, response: withAuthErrors({ 200: t.Union([mediaSchema, t.Array(mediaSchema)]) }) },
   )
 
   // === MEDIA - UPDATE ===
@@ -406,7 +406,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return { moved, count: moved.length };
     },
-    { permission: true, body: batchMoveBody, response: { 200: batchResultSchema } },
+    { permission: true, body: batchMoveBody, response: withAuthErrors({ 200: batchResultSchema }) },
   )
 
   // === MEDIA - DELETE ===
@@ -460,5 +460,5 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return { deleted, count: deleted.length };
     },
-    { permission: true, body: batchDeleteBody, response: { 200: batchDeleteResultSchema } },
+    { permission: true, body: batchDeleteBody, response: withAuthErrors({ 200: batchDeleteResultSchema }) },
   );
