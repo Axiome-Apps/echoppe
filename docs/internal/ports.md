@@ -1,6 +1,4 @@
----
-
-# Configuration des ports — Échoppe by Axiome
+# Configuration des ports
 
 ## Ports par défaut
 

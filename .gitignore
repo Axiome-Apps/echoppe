@@ -36,5 +36,9 @@ drizzle/meta/
 tmp/
 .temp/
 
+# VitePress
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
 # Uploads
 /apps/api/uploads/

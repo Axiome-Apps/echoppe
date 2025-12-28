@@ -6,11 +6,11 @@ Documentation de l'API REST pour la plateforme e-commerce Échoppe.
 
 | Paramètre | Valeur par défaut |
 |-----------|-------------------|
-| Base URL | `http://localhost:8000` |
-| Port | `8000` (env: `API_PORT`) |
+| Base URL | `http://localhost:7532` |
+| Port | `7532` (env: `API_PORT`) |
 | Runtime | Bun |
 | Framework | Elysia |
-| CORS | `http://localhost:3000` (env: `ADMIN_URL`) |
+| CORS | `http://localhost:3211` (env: `ADMIN_URL`), `http://localhost:3141` (env: `STORE_URL`) |
 
 ## Authentification
 
@@ -472,7 +472,7 @@ Format standard des erreurs :
 ### Login
 
 ```bash
-curl -X POST http://localhost:8000/auth/login \
+curl -X POST http://localhost:7532/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@echoppe.dev","password":"admin123"}' \
   -c cookies.txt
@@ -481,14 +481,14 @@ curl -X POST http://localhost:8000/auth/login \
 ### Requête authentifiée
 
 ```bash
-curl http://localhost:8000/auth/me \
+curl http://localhost:7532/auth/me \
   -b cookies.txt
 ```
 
 ### Upload de fichier
 
 ```bash
-curl -X POST http://localhost:8000/media/upload \
+curl -X POST http://localhost:7532/media/upload \
   -b cookies.txt \
   -F "file=@image.jpg" \
   -F "folder=uuid-du-dossier"
@@ -497,7 +497,7 @@ curl -X POST http://localhost:8000/media/upload \
 ### Créer un produit
 
 ```bash
-curl -X POST http://localhost:8000/products \
+curl -X POST http://localhost:7532/products \
   -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
