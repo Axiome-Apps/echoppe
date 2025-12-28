@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import PaymentsView from '@/views/PaymentsView.vue';
 import ShippingView from '@/views/ShippingView.vue';
+import CommunicationsView from '@/views/CommunicationsView.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -10,6 +11,7 @@ const router = useRouter();
 const tabs = [
   { id: 'paiement', label: 'Paiement' },
   { id: 'livraison', label: 'Livraison' },
+  { id: 'communication', label: 'Communication' },
 ] as const;
 
 type TabId = (typeof tabs)[number]['id'];
@@ -50,5 +52,6 @@ const activeTab = computed<TabId>({
     <!-- Tab content -->
     <PaymentsView v-if="activeTab === 'paiement'" />
     <ShippingView v-else-if="activeTab === 'livraison'" />
+    <CommunicationsView v-else-if="activeTab === 'communication'" />
   </div>
 </template>

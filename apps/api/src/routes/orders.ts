@@ -17,6 +17,7 @@ import {
   orderItem,
   payment,
   regenerateInvoicePdf,
+  sendShipmentNotification,
   shipment,
   shippingProvider,
   sql,
@@ -435,6 +436,39 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
       // Handle stock increment when refunded (return from customer)
       if (newStatus === 'refunded' && previousStatus === 'delivered') {
         await incrementStock(params.id, 'Commande remboursée');
+      }
+
+      // Send shipment notification email when shipped
+      if (newStatus === 'shipped' && previousStatus !== 'shipped') {
+        const [orderData] = await db
+          .select({
+            orderNumber: order.orderNumber,
+            customerId: order.customer,
+          })
+          .from(order)
+          .where(eq(order.id, params.id));
+
+        if (orderData) {
+          const [customerData] = await db
+            .select({ email: customer.email, firstName: customer.firstName })
+            .from(customer)
+            .where(eq(customer.id, orderData.customerId));
+
+          const [shipmentData] = await db
+            .select({ trackingNumber: shipment.trackingNumber, trackingUrl: shipment.trackingUrl })
+            .from(shipment)
+            .where(eq(shipment.order, params.id));
+
+          if (customerData) {
+            await sendShipmentNotification({
+              customerEmail: customerData.email,
+              customerName: customerData.firstName ?? undefined,
+              orderNumber: orderData.orderNumber,
+              trackingNumber: shipmentData?.trackingNumber ?? undefined,
+              trackingUrl: shipmentData?.trackingUrl ?? undefined,
+            });
+          }
+        }
       }
 
       return { success: true, previousStatus, newStatus };

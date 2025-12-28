@@ -1,4 +1,4 @@
-import { db, role, permission, user, eq, RESOURCES } from '@echoppe/core';
+import { db, role, permission, user, eq, and, RESOURCES } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard, invalidatePermissionCache } from '../plugins/rbac';
 
@@ -21,6 +21,7 @@ const permissionSchema = t.Object({
   canUpdate: t.Boolean(),
   canDelete: t.Boolean(),
   selfOnly: t.Boolean(),
+  locked: t.Boolean(),
 });
 
 const roleWithPermissionsSchema = t.Object({
@@ -226,13 +227,26 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
         return status(404, { message: 'Rôle non trouvé' });
       }
 
-      // Supprimer les permissions existantes
-      await db.delete(permission).where(eq(permission.role, params.id));
+      // Récupérer les permissions verrouillées existantes (on ne les touche pas)
+      const lockedPerms = await db
+        .select()
+        .from(permission)
+        .where(and(eq(permission.role, params.id), eq(permission.locked, true)));
 
-      // Insérer les nouvelles permissions
-      if (body.permissions.length > 0) {
+      const lockedResources = new Set(lockedPerms.map((p) => p.resource));
+
+      // Supprimer uniquement les permissions NON verrouillées
+      await db
+        .delete(permission)
+        .where(and(eq(permission.role, params.id), eq(permission.locked, false)));
+
+      // Filtrer les permissions soumises pour exclure celles qui sont verrouillées
+      const newPermissions = body.permissions.filter((p) => !lockedResources.has(p.resource));
+
+      // Insérer les nouvelles permissions (non verrouillées uniquement)
+      if (newPermissions.length > 0) {
         await db.insert(permission).values(
-          body.permissions.map((p) => ({
+          newPermissions.map((p) => ({
             role: params.id,
             resource: p.resource,
             canCreate: p.canCreate,
@@ -240,6 +254,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
             canUpdate: p.canUpdate,
             canDelete: p.canDelete,
             selfOnly: p.selfOnly ?? false,
+            locked: false,
           })),
         );
       }

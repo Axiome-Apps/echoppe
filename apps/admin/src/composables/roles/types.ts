@@ -13,6 +13,7 @@ export type Permission = {
   canUpdate: boolean;
   canDelete: boolean;
   selfOnly: boolean;
+  locked: boolean;
 };
 
 export type RoleWithPermissions = Role & {
@@ -33,6 +34,7 @@ export interface PermissionFormData {
   canUpdate: boolean;
   canDelete: boolean;
   selfOnly: boolean;
+  locked: boolean;
 }
 
 // Groupes de ressources pour l'UI
@@ -44,7 +46,7 @@ export interface ResourceGroup {
 export const RESOURCE_GROUPS: ResourceGroup[] = [
   {
     name: 'Catalogue',
-    resources: ['product', 'category', 'collection', 'variant', 'option', 'tax_rate'],
+    resources: ['product', 'category', 'collection', 'variant', 'option'],
   },
   {
     name: 'Medias',
@@ -60,11 +62,11 @@ export const RESOURCE_GROUPS: ResourceGroup[] = [
   },
   {
     name: 'Administration',
-    resources: ['user', 'role', 'permission', 'company', 'stock', 'shipping_provider', 'payment_config', 'audit_log'],
+    resources: ['stock', 'user', 'role', 'permission', 'company', 'shipping_provider', 'payment_config', 'communication_config', 'audit_log'],
   },
   {
     name: 'Referentiel',
-    resources: ['country'],
+    resources: ['country', 'tax_rate'],
   },
 ];
 
@@ -91,6 +93,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
   stock: 'Stock',
   shipping_provider: 'Transporteurs',
   payment_config: 'Paiements',
+  communication_config: 'Communications',
   audit_log: "Journal d'audit",
   country: 'Pays',
 };

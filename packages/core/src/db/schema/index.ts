@@ -12,3 +12,4 @@ export * from './shipping';
 export * from './document';
 export * from './engagement';
 export * from './stock';
+export * from './communication';

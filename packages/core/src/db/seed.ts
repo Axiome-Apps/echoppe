@@ -237,6 +237,7 @@ async function seed() {
     canUpdate?: boolean;
     canDelete?: boolean;
     selfOnly?: boolean;
+    locked?: boolean; // Si true, permission non modifiable par le propriétaire
   };
 
   async function setPermissions(roleName: string, perms: PermDef[]) {
@@ -254,13 +255,47 @@ async function seed() {
           canUpdate: p.canUpdate ?? false,
           canDelete: p.canDelete ?? false,
           selfOnly: p.selfOnly ?? false,
+          locked: p.locked ?? false,
         })
-        .onConflictDoNothing();
+        .onConflictDoUpdate({
+          target: [permission.role, permission.resource],
+          set: {
+            canCreate: p.canCreate ?? false,
+            canRead: p.canRead ?? false,
+            canUpdate: p.canUpdate ?? false,
+            canDelete: p.canDelete ?? false,
+            selfOnly: p.selfOnly ?? false,
+            locked: p.locked ?? false,
+          },
+        });
     }
   }
 
-  // Propriétaire: Full access (bypass dans le code, mais permissions définies pour cohérence)
+  // =============================================
+  // PROPRIÉTAIRE
+  // =============================================
+  // - Tables système (natif Échoppe): lecture/update, pas de delete, LOCKED
+  // - Tables compliance (RGPD): pas de delete
+  // - Tables business: CRUD normal, modifiable
   await setPermissions('Propriétaire', [
+    // --- Tables système (LOCKED) ---
+    { resource: 'company', canRead: true, canUpdate: true, locked: true }, // Config boutique unique
+    { resource: 'country', canRead: true, locked: true }, // Référentiel fixe
+    { resource: 'tax_rate', canRead: true, canUpdate: true, locked: true }, // Taux légaux
+    { resource: 'payment_config', canRead: true, canUpdate: true, locked: true }, // Credentials paiement
+    { resource: 'shipping_provider', canRead: true, canUpdate: true, locked: true }, // Config transporteurs
+    { resource: 'communication_config', canRead: true, canUpdate: true, locked: true }, // Credentials email
+    { resource: 'role', canRead: true, locked: true }, // Rôles système
+    { resource: 'permission', canRead: true, locked: true }, // Permissions système
+    { resource: 'audit_log', canRead: true, locked: true }, // Journal non modifiable
+
+    // --- Tables compliance (pas de delete) ---
+    { resource: 'order', canCreate: true, canRead: true, canUpdate: true }, // Historique obligatoire
+    { resource: 'invoice', canCreate: true, canRead: true }, // Documents comptables
+    { resource: 'user', canCreate: true, canRead: true, canUpdate: true }, // Traçabilité
+    { resource: 'customer', canCreate: true, canRead: true, canUpdate: true }, // RGPD (anonymisation)
+
+    // --- Tables business (CRUD, modifiable) ---
     { resource: 'product', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'category', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'collection', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
@@ -268,26 +303,37 @@ async function seed() {
     { resource: 'option', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'media', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'folder', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'order', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'customer', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'user', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'role', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'permission', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'company', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'shipping_provider', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'payment_config', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'tax_rate', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'country', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'wishlist', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'invoice', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'audit_log', canRead: true },
+    { resource: 'wishlist', canRead: true },
   ]);
 
-  // Administrateur: Presque tout sauf rôles/permissions
+  // =============================================
+  // ADMINISTRATEUR
+  // =============================================
+  // - Pas d'accès aux credentials (payment, communication)
+  // - Pas de gestion des users
+  // - Gestion catalogue, commandes, clients
   await setPermissions('Administrateur', [
+    // --- Tables système (lecture seule ou aucun accès) ---
+    { resource: 'company', canRead: true, locked: true },
+    { resource: 'country', canRead: true, locked: true },
+    { resource: 'tax_rate', canRead: true, locked: true },
+    { resource: 'shipping_provider', canRead: true, locked: true },
+    { resource: 'role', canRead: true, locked: true },
+    { resource: 'permission', canRead: true, locked: true },
+    { resource: 'audit_log', canRead: true, locked: true },
+    // payment_config: aucun accès
+    // communication_config: aucun accès
+
+    // --- Tables compliance (pas de delete) ---
+    { resource: 'order', canCreate: true, canRead: true, canUpdate: true },
+    { resource: 'invoice', canCreate: true, canRead: true },
+    { resource: 'customer', canCreate: true, canRead: true, canUpdate: true },
+    // user: aucun accès
+
+    // --- Tables business ---
     { resource: 'product', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'category', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'collection', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
@@ -295,47 +341,44 @@ async function seed() {
     { resource: 'option', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'media', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'folder', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'order', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'customer', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'user', canCreate: true, canRead: true, canUpdate: true },
-    { resource: 'role', canRead: true },
-    { resource: 'permission', canRead: true },
-    { resource: 'company', canRead: true, canUpdate: true },
     { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'shipping_provider', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'payment_config', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'tax_rate', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'country', canRead: true },
-    { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'invoice', canCreate: true, canRead: true },
-    { resource: 'audit_log', canRead: true },
+    { resource: 'address', canCreate: true, canRead: true, canUpdate: true },
+    { resource: 'cart', canRead: true },
   ]);
 
-  // Client: Ses propres données (selfOnly)
+  // =============================================
+  // CLIENT
+  // =============================================
+  // Ses propres données uniquement (selfOnly)
   await setPermissions('Client', [
-    { resource: 'product', canRead: true },
-    { resource: 'category', canRead: true },
-    { resource: 'collection', canRead: true },
-    { resource: 'variant', canRead: true },
-    { resource: 'option', canRead: true },
-    { resource: 'tax_rate', canRead: true },
-    { resource: 'country', canRead: true },
-    { resource: 'order', canRead: true, selfOnly: true },
-    { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true },
-    { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true },
-    { resource: 'wishlist', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true },
-    { resource: 'invoice', canRead: true, selfOnly: true },
+    { resource: 'product', canRead: true, locked: true },
+    { resource: 'category', canRead: true, locked: true },
+    { resource: 'collection', canRead: true, locked: true },
+    { resource: 'variant', canRead: true, locked: true },
+    { resource: 'option', canRead: true, locked: true },
+    { resource: 'tax_rate', canRead: true, locked: true },
+    { resource: 'country', canRead: true, locked: true },
+    { resource: 'company', canRead: true, locked: true }, // Pour afficher infos boutique
+    { resource: 'order', canRead: true, selfOnly: true, locked: true },
+    { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true, locked: true },
+    { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true, locked: true },
+    { resource: 'wishlist', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true, locked: true },
+    { resource: 'invoice', canRead: true, selfOnly: true, locked: true },
   ]);
 
-  // Public: Lecture seule catalogue
+  // =============================================
+  // PUBLIC
+  // =============================================
+  // Lecture seule catalogue (non authentifié)
   await setPermissions('Public', [
-    { resource: 'product', canRead: true },
-    { resource: 'category', canRead: true },
-    { resource: 'collection', canRead: true },
-    { resource: 'variant', canRead: true },
-    { resource: 'option', canRead: true },
-    { resource: 'tax_rate', canRead: true },
-    { resource: 'country', canRead: true },
+    { resource: 'product', canRead: true, locked: true },
+    { resource: 'category', canRead: true, locked: true },
+    { resource: 'collection', canRead: true, locked: true },
+    { resource: 'variant', canRead: true, locked: true },
+    { resource: 'option', canRead: true, locked: true },
+    { resource: 'tax_rate', canRead: true, locked: true },
+    { resource: 'country', canRead: true, locked: true },
+    { resource: 'company', canRead: true, locked: true }, // Pour afficher infos boutique
   ]);
 
   console.log('    ✓ Permissions created');

@@ -48,3 +48,9 @@ export const shippingProviderTypeEnum = pgEnum('shipping_provider_type', [
   'mondialrelay',
   'sendcloud',
 ]);
+
+export const communicationProviderEnum = pgEnum('communication_provider', [
+  'resend',
+  'brevo',
+  'smtp',
+]);

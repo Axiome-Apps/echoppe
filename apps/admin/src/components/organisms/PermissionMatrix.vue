@@ -34,13 +34,18 @@ function getPermission(resource: string): PermissionFormData {
       canUpdate: false,
       canDelete: false,
       selfOnly: false,
+      locked: false,
     }
   );
 }
 
+function isLocked(resource: string): boolean {
+  return getPermission(resource).locked;
+}
+
 function togglePermission(resource: string, action: keyof PermissionFormData) {
-  if (props.readonly) return;
-  if (action === 'resource') return;
+  if (props.readonly || isLocked(resource)) return;
+  if (action === 'resource' || action === 'locked') return;
 
   const current = getPermission(resource);
   const updated: PermissionFormData = {
@@ -60,7 +65,7 @@ function togglePermission(resource: string, action: keyof PermissionFormData) {
 }
 
 function toggleAll(resource: string, value: boolean) {
-  if (props.readonly) return;
+  if (props.readonly || isLocked(resource)) return;
 
   const newPermissions = props.permissions.filter((p) => p.resource !== resource);
 
@@ -72,6 +77,7 @@ function toggleAll(resource: string, value: boolean) {
       canUpdate: true,
       canDelete: true,
       selfOnly: getPermission(resource).selfOnly,
+      locked: false,
     });
   }
 
@@ -129,68 +135,224 @@ function hasAllPermissions(resource: string): boolean {
             <tr
               v-for="resource in group.resources"
               :key="resource"
-              class="border-b border-gray-100 hover:bg-gray-50"
+              class="border-b border-gray-100"
+              :class="isLocked(resource) ? 'bg-gray-50' : 'hover:bg-gray-50'"
             >
-              <td class="py-2 px-3 text-sm text-gray-900">
+              <td class="py-2 px-3 text-sm text-gray-900 flex items-center gap-2">
                 {{ RESOURCE_LABELS[resource] || resource }}
+                <svg
+                  v-if="isLocked(resource)"
+                  class="w-3.5 h-3.5 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
               </td>
-              <td class="py-2 px-3 text-center">
-                <input
-                  type="checkbox"
-                  :checked="hasAllPermissions(resource)"
-                  :disabled="readonly"
-                  class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                  @change="toggleAll(resource, ($event.target as HTMLInputElement).checked)"
-                />
-              </td>
-              <td class="py-2 px-3 text-center">
-                <input
-                  type="checkbox"
-                  :checked="getPermission(resource).canCreate"
-                  :disabled="readonly"
-                  class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                  @change="togglePermission(resource, 'canCreate')"
-                />
-              </td>
-              <td class="py-2 px-3 text-center">
-                <input
-                  type="checkbox"
-                  :checked="getPermission(resource).canRead"
-                  :disabled="readonly"
-                  class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                  @change="togglePermission(resource, 'canRead')"
-                />
-              </td>
-              <td class="py-2 px-3 text-center">
-                <input
-                  type="checkbox"
-                  :checked="getPermission(resource).canUpdate"
-                  :disabled="readonly"
-                  class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                  @change="togglePermission(resource, 'canUpdate')"
-                />
-              </td>
-              <td class="py-2 px-3 text-center">
-                <input
-                  type="checkbox"
-                  :checked="getPermission(resource).canDelete"
-                  :disabled="readonly"
-                  class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                  @change="togglePermission(resource, 'canDelete')"
-                />
-              </td>
-              <td
-                v-if="showSelfOnly"
-                class="py-2 px-3 text-center"
-              >
-                <input
-                  type="checkbox"
-                  :checked="getPermission(resource).selfOnly"
-                  :disabled="readonly"
-                  class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                  @change="togglePermission(resource, 'selfOnly')"
-                />
-              </td>
+
+              <!-- Locked: affichage statique -->
+              <template v-if="isLocked(resource)">
+                <td class="py-2 px-3 text-center">
+                  <span
+                    v-if="hasAllPermissions(resource)"
+                    class="text-green-600"
+                  >
+                    <svg
+                      class="w-4 h-4 mx-auto"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                  <span
+                    v-else
+                    class="text-gray-300"
+                  >-</span>
+                </td>
+                <td class="py-2 px-3 text-center">
+                  <span
+                    v-if="getPermission(resource).canCreate"
+                    class="text-green-600"
+                  >
+                    <svg
+                      class="w-4 h-4 mx-auto"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                  <span
+                    v-else
+                    class="text-gray-300"
+                  >-</span>
+                </td>
+                <td class="py-2 px-3 text-center">
+                  <span
+                    v-if="getPermission(resource).canRead"
+                    class="text-green-600"
+                  >
+                    <svg
+                      class="w-4 h-4 mx-auto"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                  <span
+                    v-else
+                    class="text-gray-300"
+                  >-</span>
+                </td>
+                <td class="py-2 px-3 text-center">
+                  <span
+                    v-if="getPermission(resource).canUpdate"
+                    class="text-green-600"
+                  >
+                    <svg
+                      class="w-4 h-4 mx-auto"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                  <span
+                    v-else
+                    class="text-gray-300"
+                  >-</span>
+                </td>
+                <td class="py-2 px-3 text-center">
+                  <span
+                    v-if="getPermission(resource).canDelete"
+                    class="text-green-600"
+                  >
+                    <svg
+                      class="w-4 h-4 mx-auto"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                  <span
+                    v-else
+                    class="text-gray-300"
+                  >-</span>
+                </td>
+                <td
+                  v-if="showSelfOnly"
+                  class="py-2 px-3 text-center"
+                >
+                  <span
+                    v-if="getPermission(resource).selfOnly"
+                    class="text-green-600"
+                  >
+                    <svg
+                      class="w-4 h-4 mx-auto"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                  <span
+                    v-else
+                    class="text-gray-300"
+                  >-</span>
+                </td>
+              </template>
+
+              <!-- Non locked: checkboxes editables -->
+              <template v-else>
+                <td class="py-2 px-3 text-center">
+                  <input
+                    type="checkbox"
+                    :checked="hasAllPermissions(resource)"
+                    :disabled="readonly"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                    @change="toggleAll(resource, ($event.target as HTMLInputElement).checked)"
+                  />
+                </td>
+                <td class="py-2 px-3 text-center">
+                  <input
+                    type="checkbox"
+                    :checked="getPermission(resource).canCreate"
+                    :disabled="readonly"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                    @change="togglePermission(resource, 'canCreate')"
+                  />
+                </td>
+                <td class="py-2 px-3 text-center">
+                  <input
+                    type="checkbox"
+                    :checked="getPermission(resource).canRead"
+                    :disabled="readonly"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                    @change="togglePermission(resource, 'canRead')"
+                  />
+                </td>
+                <td class="py-2 px-3 text-center">
+                  <input
+                    type="checkbox"
+                    :checked="getPermission(resource).canUpdate"
+                    :disabled="readonly"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                    @change="togglePermission(resource, 'canUpdate')"
+                  />
+                </td>
+                <td class="py-2 px-3 text-center">
+                  <input
+                    type="checkbox"
+                    :checked="getPermission(resource).canDelete"
+                    :disabled="readonly"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                    @change="togglePermission(resource, 'canDelete')"
+                  />
+                </td>
+                <td
+                  v-if="showSelfOnly"
+                  class="py-2 px-3 text-center"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="getPermission(resource).selfOnly"
+                    :disabled="readonly"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                    @change="togglePermission(resource, 'selfOnly')"
+                  />
+                </td>
+              </template>
             </tr>
           </tbody>
         </table>

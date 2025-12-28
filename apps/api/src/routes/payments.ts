@@ -3,6 +3,7 @@ import {
   eq,
   and,
   cart,
+  customer,
   getPaymentAdapter,
   getProviderStatus,
   isEncryptionConfigured,
@@ -11,6 +12,7 @@ import {
   paymentEvent,
   resetPaymentAdapters,
   saveProviderCredentials,
+  sendOrderConfirmation,
 } from '@echoppe/core';
 import type { PaymentProvider, PayPalCredentials, StripeCredentials } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
@@ -440,9 +442,13 @@ async function handlePaymentResult(
 
   // Mettre à jour le statut de la commande si paiement réussi
   if (result.status === 'completed') {
-    // Get the order to find the customer
+    // Get the order with customer info
     const [orderData] = await db
-      .select({ customer: order.customer })
+      .select({
+        customerId: order.customer,
+        orderNumber: order.orderNumber,
+        totalTtc: order.totalTtc,
+      })
       .from(order)
       .where(eq(order.id, orderId));
 
@@ -451,7 +457,23 @@ async function handlePaymentResult(
       await db
         .update(cart)
         .set({ status: 'converted', dateUpdated: new Date() })
-        .where(and(eq(cart.customer, orderData.customer), eq(cart.status, 'active')));
+        .where(and(eq(cart.customer, orderData.customerId), eq(cart.status, 'active')));
+
+      // Get customer email
+      const [customerData] = await db
+        .select({ email: customer.email, firstName: customer.firstName })
+        .from(customer)
+        .where(eq(customer.id, orderData.customerId));
+
+      // Send order confirmation email
+      if (customerData) {
+        await sendOrderConfirmation({
+          customerEmail: customerData.email,
+          customerName: customerData.firstName ?? undefined,
+          orderNumber: orderData.orderNumber,
+          total: orderData.totalTtc,
+        });
+      }
     }
 
     await db

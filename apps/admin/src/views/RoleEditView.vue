@@ -57,6 +57,7 @@ onMounted(async () => {
         canUpdate: p.canUpdate,
         canDelete: p.canDelete,
         selfOnly: p.selfOnly,
+        locked: p.locked,
       }));
     } else {
       toast.error('Role non trouve');

@@ -27,6 +27,7 @@ export const permission = pgTable(
     canUpdate: boolean('can_update').notNull().default(false),
     canDelete: boolean('can_delete').notNull().default(false),
     selfOnly: boolean('self_only').notNull().default(false), // Auto ownership filter
+    locked: boolean('locked').notNull().default(false), // If true, permission cannot be modified by owner
   },
   (table) => [unique().on(table.role, table.resource)],
 );

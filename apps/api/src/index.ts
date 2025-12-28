@@ -18,6 +18,7 @@ import { rolesRoutes } from './routes/roles';
 import { cartRoutes } from './routes/cart';
 import { customerAddressesRoutes } from './routes/customer-addresses';
 import { checkoutRoutes } from './routes/checkout';
+import { communicationsRoutes } from './routes/communications';
 
 const port = process.env.API_PORT ?? 7532;
 
@@ -64,6 +65,7 @@ const app = new Elysia()
           { name: 'Cart', description: 'Panier client' },
           { name: 'Customer Addresses', description: 'Adresses client' },
           { name: 'Checkout', description: 'Tunnel de paiement' },
+          { name: 'Communications', description: 'Configuration emails' },
         ],
       },
     })
@@ -93,6 +95,7 @@ const app = new Elysia()
   .use(cartRoutes)
   .use(customerAddressesRoutes)
   .use(checkoutRoutes)
+  .use(communicationsRoutes)
   .listen(port);
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);

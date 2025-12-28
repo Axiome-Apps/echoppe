@@ -36,6 +36,7 @@ export const RESOURCES = {
   STOCK: 'stock',
   SHIPPING_PROVIDER: 'shipping_provider',
   PAYMENT_CONFIG: 'payment_config',
+  COMMUNICATION_CONFIG: 'communication_config',
   AUDIT_LOG: 'audit_log',
 } as const;
 

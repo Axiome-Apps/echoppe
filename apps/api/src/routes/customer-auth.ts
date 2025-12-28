@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia';
-import { db, customer, customerSession, eq, and, gt } from '@echoppe/core';
+import { db, customer, customerSession, eq, and, gt, sendWelcomeEmail } from '@echoppe/core';
 import { randomBytes } from 'crypto';
 
 const COOKIE_NAME = 'echoppe_customer_session';
@@ -106,6 +106,12 @@ export const customerAuthRoutes = new Elysia({
 
       // Update lastLogin
       await db.update(customer).set({ lastLogin: new Date() }).where(eq(customer.id, created.id));
+
+      // Send welcome email
+      await sendWelcomeEmail({
+        customerEmail: created.email,
+        customerName: created.firstName,
+      });
 
       // Set cookie
       cookie[COOKIE_NAME].set({

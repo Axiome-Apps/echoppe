@@ -104,6 +104,7 @@
 
 ## V2
 
+- [ ] Conformité RGPD (bannière cookies, CGU/CGV personnalisables, consentement)
 - [ ] Page builder intégré (blocs, drag & drop, génération Next.js)
 - [ ] Stats / Dashboard insight (CA, top produits, tendances)
 - [ ] Mode caisse simplifié (vente rapide en boutique/marché)

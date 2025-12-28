@@ -78,10 +78,10 @@ type Product = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>
 ## Commandes
 
 ```bash
-bun run dev        # API + Admin
-bun run db:push    # Push schema
-bun run db:seed    # Seed data
-bun run db:studio  # Drizzle Studio
+bun run dev              # API + Admin
+bun run db:push --force  # Push schema (--force obligatoire, évite le prompt interactif)
+bun run db:seed          # Seed data
+bun run db:studio        # Drizzle Studio
 ```
 
 ## Git
