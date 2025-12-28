@@ -63,13 +63,13 @@
 - [ ] Documentation API Headless
 
 ### Clients
-- [ ] Gestion Customers (Admin) - liste, détail, désactivation
+- [x] Gestion Customers (Admin) - liste, détail, désactivation, anonymisation RGPD
 
 ### API Documentation
 - [ ] Helper pour ajouter les réponses d'erreur communes (401/400/500) automatiquement dans OpenAPI
 
 ### Users
-- [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
+- [x] Gestion Users (API + Admin) - CRUD utilisateurs admin
 
 ### Autres
 - [x] Notifications email (confirmation commande, expédition, welcome)

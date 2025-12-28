@@ -85,6 +85,31 @@ const router = createRouter({
           name: 'role-edit',
           component: () => import('../views/RoleEditView.vue'),
         },
+        {
+          path: 'clients',
+          name: 'customers',
+          component: () => import('../views/CustomersView.vue'),
+        },
+        {
+          path: 'clients/:id',
+          name: 'customer-detail',
+          component: () => import('../views/CustomerDetailView.vue'),
+        },
+        {
+          path: 'utilisateurs',
+          name: 'users',
+          component: () => import('../views/UsersView.vue'),
+        },
+        {
+          path: 'utilisateurs/nouveau',
+          name: 'user-create',
+          component: () => import('../views/UserEditView.vue'),
+        },
+        {
+          path: 'utilisateurs/:id',
+          name: 'user-edit',
+          component: () => import('../views/UserEditView.vue'),
+        },
       ],
     },
   ],
