@@ -6,8 +6,8 @@ import Button from '@/components/atoms/Button.vue';
 import MediaPicker from '@/components/molecules/MediaPicker.vue';
 import type { ApiData, ApiItem } from '@/types/api';
 
-type Settings = ApiData<ReturnType<typeof api.settings.get>>;
-type Country = ApiItem<ReturnType<typeof api.settings.countries.get>>;
+type Company = ApiData<ReturnType<typeof api.company.get>>;
+type Country = ApiItem<ReturnType<typeof api.company.countries.get>>;
 
 const toast = useToast();
 const loading = ref(true);
@@ -46,6 +46,10 @@ const form = ref({
   documentPrefix: 'REC',
   invoicePrefix: 'FA',
   taxExempt: false,
+  publisherName: '',
+  hostingProvider: '',
+  hostingAddress: '',
+  hostingPhone: '',
 });
 
 const hasChanges = computed(() => {
@@ -53,40 +57,44 @@ const hasChanges = computed(() => {
   return JSON.stringify(form.value) !== initialState.value;
 });
 
-async function loadSettings() {
+async function loadCompany() {
   loading.value = true;
 
-  const [settingsRes, countriesRes] = await Promise.all([
-    api.settings.get(),
-    api.settings.countries.get(),
+  const [companyRes, countriesRes] = await Promise.all([
+    api.company.get(),
+    api.company.countries.get(),
   ]);
 
   if (countriesRes.data) {
     countries.value = countriesRes.data;
   }
 
-  if (settingsRes.data) {
-    const s = settingsRes.data as Settings;
+  if (companyRes.data) {
+    const c = companyRes.data as Company;
     form.value = {
-      shopName: s.shopName,
-      logo: s.logo,
-      publicEmail: s.publicEmail,
-      publicPhone: s.publicPhone ?? '',
-      legalName: s.legalName,
-      legalForm: s.legalForm ?? '',
-      siren: s.siren ?? '',
-      siret: s.siret ?? '',
-      tvaIntra: s.tvaIntra ?? '',
-      rcsCity: s.rcsCity ?? '',
-      shareCapital: s.shareCapital ?? '',
-      street: s.street,
-      street2: s.street2 ?? '',
-      postalCode: s.postalCode,
-      city: s.city,
-      country: s.country,
-      documentPrefix: s.documentPrefix,
-      invoicePrefix: s.invoicePrefix,
-      taxExempt: s.taxExempt,
+      shopName: c.shopName,
+      logo: c.logo,
+      publicEmail: c.publicEmail,
+      publicPhone: c.publicPhone ?? '',
+      legalName: c.legalName,
+      legalForm: c.legalForm ?? '',
+      siren: c.siren ?? '',
+      siret: c.siret ?? '',
+      tvaIntra: c.tvaIntra ?? '',
+      rcsCity: c.rcsCity ?? '',
+      shareCapital: c.shareCapital ?? '',
+      street: c.street,
+      street2: c.street2 ?? '',
+      postalCode: c.postalCode,
+      city: c.city,
+      country: c.country,
+      documentPrefix: c.documentPrefix,
+      invoicePrefix: c.invoicePrefix,
+      taxExempt: c.taxExempt,
+      publisherName: c.publisherName ?? '',
+      hostingProvider: c.hostingProvider ?? '',
+      hostingAddress: c.hostingAddress ?? '',
+      hostingPhone: c.hostingPhone ?? '',
     };
     initialState.value = JSON.stringify(form.value);
   }
@@ -94,7 +102,7 @@ async function loadSettings() {
   loading.value = false;
 }
 
-onMounted(loadSettings);
+onMounted(loadCompany);
 
 async function save() {
   saving.value = true;
@@ -120,9 +128,13 @@ async function save() {
       documentPrefix: form.value.documentPrefix,
       invoicePrefix: form.value.invoicePrefix,
       taxExempt: form.value.taxExempt,
+      publisherName: form.value.publisherName || null,
+      hostingProvider: form.value.hostingProvider || null,
+      hostingAddress: form.value.hostingAddress || null,
+      hostingPhone: form.value.hostingPhone || null,
     };
 
-    const { error } = await api.settings.put(payload);
+    const { error } = await api.company.put(payload);
 
     if (error) {
       toast.error('Erreur lors de la sauvegarde');
@@ -376,6 +388,53 @@ async function save() {
                 {{ c.name }}
               </option>
             </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Pages légales -->
+      <section class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">
+          Informations pour pages légales
+        </h2>
+        <p class="text-sm text-gray-500 mb-4">
+          Ces informations sont affichées sur les pages légales du site (mentions légales, CGV, contact).
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Directeur de publication</label>
+            <input
+              v-model="form.publisherName"
+              type="text"
+              placeholder="Prénom Nom"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Hébergeur</label>
+            <input
+              v-model="form.hostingProvider"
+              type="text"
+              placeholder="Nom de l'hébergeur"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Adresse hébergeur</label>
+            <input
+              v-model="form.hostingAddress"
+              type="text"
+              placeholder="Adresse complète"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone hébergeur</label>
+            <input
+              v-model="form.hostingPhone"
+              type="tel"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
         </div>
       </section>

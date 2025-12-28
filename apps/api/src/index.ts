@@ -8,20 +8,26 @@ import { mediaRoutes } from './routes/media';
 import { collectionsRoutes } from './routes/collections';
 import { taxRatesRoutes } from './routes/tax-rates';
 import { assetsRoutes } from './routes/assets';
-import { settingsRoutes } from './routes/settings';
+import { companyRoutes } from './routes/company';
 import { stockRoutes } from './routes/stock';
 import { paymentsRoutes } from './routes/payments';
 import { shippingRoutes } from './routes/shipping';
 import { ordersRoutes } from './routes/orders';
 import { customerAuthRoutes } from './routes/customer-auth';
 import { rolesRoutes } from './routes/roles';
+import { cartRoutes } from './routes/cart';
+import { customerAddressesRoutes } from './routes/customer-addresses';
+import { checkoutRoutes } from './routes/checkout';
 
-const port = process.env.API_PORT ?? 8000;
+const port = process.env.API_PORT ?? 7532;
 
 const app = new Elysia()
   .use(
     cors({
-      origin: process.env.ADMIN_URL || 'http://localhost:3000',
+      origin: [
+        process.env.ADMIN_URL || 'http://localhost:3211',
+        process.env.STORE_URL || 'http://localhost:3141',
+      ],
       credentials: true,
     })
   )
@@ -51,10 +57,13 @@ const app = new Elysia()
           { name: 'Stock', description: 'Gestion du stock' },
           { name: 'Payments', description: 'Paiements' },
           { name: 'Shipping', description: 'Livraison' },
-          { name: 'Settings', description: 'Paramètres' },
+          { name: 'Company', description: 'Informations entreprise' },
           { name: 'Tax Rates', description: 'Taux de TVA' },
           { name: 'Assets', description: 'Fichiers statiques' },
           { name: 'Roles', description: 'Gestion des rôles et permissions' },
+          { name: 'Cart', description: 'Panier client' },
+          { name: 'Customer Addresses', description: 'Adresses client' },
+          { name: 'Checkout', description: 'Tunnel de paiement' },
         ],
       },
     })
@@ -75,12 +84,15 @@ const app = new Elysia()
   .use(collectionsRoutes)
   .use(taxRatesRoutes)
   .use(assetsRoutes)
-  .use(settingsRoutes)
+  .use(companyRoutes)
   .use(stockRoutes)
   .use(paymentsRoutes)
   .use(shippingRoutes)
   .use(ordersRoutes)
   .use(rolesRoutes)
+  .use(cartRoutes)
+  .use(customerAddressesRoutes)
+  .use(checkoutRoutes)
   .listen(port);
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);

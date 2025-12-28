@@ -68,7 +68,6 @@ const editor = useEditor(
       props.onChange?.(editor.getHTML());
     },
   },
-  [],
 );
 
 watch(

@@ -2,7 +2,7 @@ import { company, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
 
-const settingsBody = t.Object({
+const companyBody = t.Object({
   shopName: t.String({ minLength: 1, maxLength: 255 }),
   logo: t.Optional(t.Nullable(t.String({ format: 'uuid' }))),
   publicEmail: t.String({ format: 'email', maxLength: 255 }),
@@ -22,6 +22,10 @@ const settingsBody = t.Object({
   documentPrefix: t.Optional(t.String({ minLength: 1, maxLength: 10 })),
   invoicePrefix: t.Optional(t.String({ minLength: 1, maxLength: 10 })),
   taxExempt: t.Optional(t.Boolean()),
+  publisherName: t.Optional(t.Nullable(t.String({ maxLength: 255 }))),
+  hostingProvider: t.Optional(t.Nullable(t.String({ maxLength: 255 }))),
+  hostingAddress: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
+  hostingPhone: t.Optional(t.Nullable(t.String({ maxLength: 20 }))),
 });
 
 const countrySchema = t.Object({
@@ -52,24 +56,28 @@ const companySchema = t.Object({
   documentPrefix: t.String(),
   invoicePrefix: t.String(),
   taxExempt: t.Boolean(),
+  publisherName: t.Nullable(t.String()),
+  hostingProvider: t.Nullable(t.String()),
+  hostingAddress: t.Nullable(t.String()),
+  hostingPhone: t.Nullable(t.String()),
 });
 
-export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: ['Settings'] } })
+export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['Company'] } })
 
-  // === COMPANY READ ===
-  .use(permissionGuard('company', 'read'))
-
-  // GET /settings - Get company settings (singleton)
+  // GET /company - Public: get company info
   .get(
     '/',
     async () => {
-      const [settings] = await db.select().from(company).limit(1);
-      return settings ?? null;
+      const [info] = await db.select().from(company).limit(1);
+      return info ?? null;
     },
-    { permission: true, response: { 200: t.Union([companySchema, t.Null()]) } },
+    { response: { 200: t.Union([companySchema, t.Null()]) } },
   )
 
-  // GET /settings/countries - List countries for select
+  // === ADMIN ROUTES ===
+  .use(permissionGuard('company', 'read'))
+
+  // GET /company/countries - List countries for select (admin)
   .get(
     '/countries',
     async () => {
@@ -81,7 +89,7 @@ export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: 
   // === COMPANY UPDATE ===
   .use(permissionGuard('company', 'update'))
 
-  // PUT /settings - Create or update (upsert)
+  // PUT /company - Create or update (upsert)
   .put(
     '/',
     async ({ body }) => {
@@ -107,6 +115,10 @@ export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: 
         documentPrefix: body.documentPrefix ?? 'REC',
         invoicePrefix: body.invoicePrefix ?? 'FA',
         taxExempt: body.taxExempt ?? false,
+        publisherName: body.publisherName ?? null,
+        hostingProvider: body.hostingProvider ?? null,
+        hostingAddress: body.hostingAddress ?? null,
+        hostingPhone: body.hostingPhone ?? null,
       };
 
       if (existing) {
@@ -121,5 +133,5 @@ export const settingsRoutes = new Elysia({ prefix: '/settings', detail: { tags: 
       const [created] = await db.insert(company).values(values).returning();
       return created;
     },
-    { permission: true, body: settingsBody, response: { 200: companySchema } },
+    { permission: true, body: companyBody, response: { 200: companySchema } },
   );

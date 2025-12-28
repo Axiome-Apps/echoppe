@@ -152,6 +152,10 @@ async function seed() {
         country: france.id,
         documentPrefix: 'REC',
         invoicePrefix: 'FA',
+        publisherName: 'Marie Artisan',
+        hostingProvider: 'OVH SAS',
+        hostingAddress: '2 rue Kellermann, 59100 Roubaix, France',
+        hostingPhone: '1007',
       });
       console.log('    ✓ Company settings created');
     } else {

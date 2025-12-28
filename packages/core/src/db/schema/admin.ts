@@ -81,4 +81,9 @@ export const company = pgTable('company', {
   invoicePrefix: varchar('invoice_prefix', { length: 10 }).notNull().default('FA'),
   invoiceNextNumber: integer('invoice_next_number').notNull().default(1),
   taxExempt: boolean('tax_exempt').notNull().default(false),
+  // Legal pages info
+  publisherName: varchar('publisher_name', { length: 255 }),
+  hostingProvider: varchar('hosting_provider', { length: 255 }),
+  hostingAddress: varchar('hosting_address', { length: 500 }),
+  hostingPhone: varchar('hosting_phone', { length: 20 }),
 });

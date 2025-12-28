@@ -44,9 +44,23 @@
 - [x] Permissions RBAC (middleware + admin)
 
 ### Front Store
-- [ ] Pages vitrine (accueil, catégories, produits)
-- [ ] Panier + Checkout
-- [ ] Espace client (commandes, adresses)
+- [x] Setup Next.js 16 + React 19 + Tailwind 4
+- [x] API Cart (routes Elysia, sessions anonymes/client)
+- [x] Composants réutilisables (Button, Input, Price, Badge, ProductCard, etc.)
+- [x] Header/Footer + Providers (Cart, Auth)
+- [x] Pages: accueil, catalogue, détail produit, panier
+- [x] Auth client: connexion, inscription
+- [x] Espace client: dashboard, commandes, adresses, profil
+- [x] Pages catégories (/categories, /categories/[slug])
+- [x] Pages collections (/collections, /collections/[slug])
+- [x] Header amélioré (menu catégories, badge panier, état auth, autocomplétion recherche)
+- [x] Fil d'ariane (breadcrumb)
+- [x] Recherche produits (API + composants)
+- [x] Filtres et tri catalogue (catégorie, prix, stock, tri)
+- [x] Pages légales (CGV, mentions légales, contact)
+- [ ] Endpoint API pour formulaire de contact (envoi email)
+- [x] Checkout (tunnel paiement)
+- [ ] Documentation API Headless
 
 ### Clients
 - [ ] Gestion Customers (Admin) - liste, détail, désactivation
@@ -54,11 +68,31 @@
 ### API Documentation
 - [ ] Helper pour ajouter les réponses d'erreur communes (401/400/500) automatiquement dans OpenAPI
 
+### Users
+- [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
+
 ### Autres
 - [ ] Webhooks
 - [ ] Notifications email (confirmation commande, expédition, facture client)
 - [ ] Export/Import CSV
 - [ ] Logs d'audit + nettoyage RBAC ([plan détaillé](docs/audit-rbac-plan.md))
+
+### Sécurité
+**Critique**
+- [ ] Rate limiting sur login/register/checkout (protection brute force)
+
+**Haute**
+- [ ] Vérification propriétaire sur `/payments/checkout`
+- [ ] Transaction atomique pour réservation stock (race condition)
+
+**Moyenne**
+- [ ] Whitelist domaines pour URLs de redirection (open redirect)
+- [ ] CSRF token ou SameSite=strict sur checkout
+
+**Basse**
+- [ ] Réduire durée session (30j → 7j + refresh token)
+- [ ] Vérification IP/User-Agent sur sessions sensibles
+- [ ] Logger structuré pour erreurs webhook (éviter fuite infos)
 
 ### Docker / Déploiement
 - [ ] Auto-génération ENCRYPTION_KEY au premier lancement
@@ -70,7 +104,7 @@
 
 ## V2
 
-- [ ] Gestion Users (API + Admin) - CRUD utilisateurs admin
+- [ ] Page builder intégré (blocs, drag & drop, génération Next.js)
 - [ ] Stats / Dashboard insight (CA, top produits, tendances)
 - [ ] Mode caisse simplifié (vente rapide en boutique/marché)
 - [ ] Multi-langue

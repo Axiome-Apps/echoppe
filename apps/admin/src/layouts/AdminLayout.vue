@@ -13,15 +13,15 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const router = useRouter();
 const auth = useAuth();
 
-type Settings = ApiData<ReturnType<typeof api.settings.get>>;
-const settings = ref<Settings | null>(null);
+type Company = ApiData<ReturnType<typeof api.company.get>>;
+const company = ref<Company | null>(null);
 
-const shopName = computed(() => settings.value?.shopName || 'Échoppe');
-const logoUrl = computed(() => settings.value?.logo ? `${API_URL}/assets/${settings.value.logo}` : null);
+const shopName = computed(() => company.value?.shopName || 'Échoppe');
+const logoUrl = computed(() => company.value?.logo ? `${API_URL}/assets/${company.value.logo}` : null);
 
 onMounted(async () => {
-  const { data } = await api.settings.get();
-  if (data) settings.value = data;
+  const { data } = await api.company.get();
+  if (data) company.value = data;
 });
 
 async function handleLogout() {
