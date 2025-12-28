@@ -77,7 +77,11 @@
 - [x] Logs d'audit + nettoyage RBAC ([plan détaillé](docs/audit-rbac-plan.md))
 
 ### Documentation
-- [ ] Documentation complète (dev + user)
+- [x] Documentation POC (VitePress)
+- [ ] Contenu exhaustif + images / vidéos
+
+### UI/UX
+- [ ] Polish UI/UX Admin/Store
 
 ### Sécurité
 **Critique**
