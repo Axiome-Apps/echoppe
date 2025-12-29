@@ -2,6 +2,8 @@
 
 > Framework e-commerce pour artisans français — 10x plus simple que Shopify
 
+**[Documentation](https://axiome-apps.github.io/echoppe/)** · **[API Docs](http://localhost:7532/docs)**
+
 ## Déploiement rapide (Docker)
 
 **1. Créez un fichier `docker-compose.yaml` :**
