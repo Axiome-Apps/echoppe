@@ -4,6 +4,7 @@ import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 import { successSchema, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
+import { logAudit, getClientIp } from '../lib/audit';
 
 // Schema de réponse pour les catégories
 const categorySchema = t.Object({
@@ -174,7 +175,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
   .use(permissionGuard('category', 'create'))
   .post(
     '/',
-    async ({ body }) => {
+    async ({ body, currentUser, request }) => {
       const [created] = await db
         .insert(category)
         .values({
@@ -187,6 +188,16 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
           isVisible: body.isVisible ?? true,
         })
         .returning();
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'category.create',
+        entityType: 'category',
+        entityId: created.id,
+        data: { name: created.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return created;
     },
     { permission: true, body: categoryCreateBody, response: withAuthErrors({ 200: categorySchema }) }
@@ -196,7 +207,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
   .use(permissionGuard('category', 'update'))
   .put(
     '/:id',
-    async ({ params, body, status }) => {
+    async ({ params, body, status, currentUser, request }) => {
       const [updated] = await db
         .update(category)
         .set({
@@ -210,6 +221,16 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
         .where(eq(category.id, params.id))
         .returning();
       if (!updated) return status(404, { message: 'Category not found' });
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'category.update',
+        entityType: 'category',
+        entityId: params.id,
+        data: { name: updated.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return updated;
     },
     {
@@ -244,9 +265,19 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
   .use(permissionGuard('category', 'delete'))
   .delete(
     '/:id',
-    async ({ params, status }) => {
+    async ({ params, status, currentUser, request }) => {
       const [deleted] = await db.delete(category).where(eq(category.id, params.id)).returning();
       if (!deleted) return status(404, { message: 'Category not found' });
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'category.delete',
+        entityType: 'category',
+        entityId: params.id,
+        data: { name: deleted.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return { success: true };
     },
     {

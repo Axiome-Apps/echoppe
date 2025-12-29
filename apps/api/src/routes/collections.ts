@@ -4,6 +4,7 @@ import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 import { successSchema, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
+import { logAudit, getClientIp } from '../lib/audit';
 
 // Schema de réponse pour les collections
 const collectionSchema = t.Object({
@@ -182,7 +183,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
   .use(permissionGuard('collection', 'create'))
   .post(
     '/',
-    async ({ body }) => {
+    async ({ body, currentUser, request }) => {
       const [created] = await db
         .insert(collection)
         .values({
@@ -193,6 +194,16 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
           isVisible: body.isVisible ?? true,
         })
         .returning();
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'collection.create',
+        entityType: 'collection',
+        entityId: created.id,
+        data: { name: created.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return created;
     },
     { permission: true, body: collectionCreateBody, response: withAuthErrors({ 200: collectionSchema }) }
@@ -202,7 +213,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
   .use(permissionGuard('collection', 'update'))
   .put(
     '/:id',
-    async ({ params, body, status }) => {
+    async ({ params, body, status, currentUser, request }) => {
       const [updated] = await db
         .update(collection)
         .set({
@@ -214,6 +225,16 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
         .where(eq(collection.id, params.id))
         .returning();
       if (!updated) return status(404, { message: 'Collection non trouvee' });
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'collection.update',
+        entityType: 'collection',
+        entityId: params.id,
+        data: { name: updated.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return updated;
     },
     {
@@ -228,9 +249,19 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
   .use(permissionGuard('collection', 'delete'))
   .delete(
     '/:id',
-    async ({ params, status }) => {
+    async ({ params, status, currentUser, request }) => {
       const [deleted] = await db.delete(collection).where(eq(collection.id, params.id)).returning();
       if (!deleted) return status(404, { message: 'Collection non trouvee' });
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'collection.delete',
+        entityType: 'collection',
+        entityId: params.id,
+        data: { name: deleted.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return { success: true };
     },
     {

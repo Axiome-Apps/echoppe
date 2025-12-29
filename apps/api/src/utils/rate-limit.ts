@@ -1,38 +1,15 @@
-import type { Context, Options } from 'elysia-rate-limit';
+import type { Context, Options, Generator } from 'elysia-rate-limit';
 import Redis from 'ioredis';
 
+// Redis client singleton
 const redis = process.env.REDIS_URL ? new Redis(process.env.REDIS_URL) : null;
 
 /**
- * Custom generator to extract client IP from request headers.
- * Uses request.headers directly since server.requestIP() isn't available
- * in detached Elysia instances.
- */
-const ipGenerator = (request: Request, server: unknown): string => {
-  // Try server.requestIP() first if available
-  if (server && typeof server === 'object' && 'requestIP' in server) {
-    const serverWithIP = server as { requestIP: (req: Request) => { address: string } | null };
-    const ip = serverWithIP.requestIP(request)?.address;
-    if (ip) return ip;
-  }
-
-  // Fallback to headers
-  const headers = request.headers;
-  return (
-    headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    headers.get('x-real-ip') ??
-    headers.get('cf-connecting-ip') ??
-    '127.0.0.1'
-  );
-};
-
-/**
  * Redis-backed rate limit context for distributed rate limiting.
- * Falls back to in-memory (DefaultContext) if Redis is not configured.
  */
-export class RedisRateLimitContext implements Context {
-  private prefix: string;
+class RedisContext implements Context {
   private duration = 60_000;
+  private prefix: string;
 
   constructor(prefix = 'rl:') {
     this.prefix = prefix;
@@ -43,86 +20,115 @@ export class RedisRateLimitContext implements Context {
   }
 
   async increment(key: string): Promise<{ count: number; nextReset: Date }> {
-    const fullKey = this.prefix + key;
+    const redisKey = `${this.prefix}${key}`;
     const now = Date.now();
-    const durationSec = Math.ceil(this.duration / 1000);
 
     if (!redis) {
       // Fallback: no limit if Redis not available
       return { count: 0, nextReset: new Date(now + this.duration) };
     }
 
-    const multi = redis.multi();
-    multi.incr(fullKey);
-    multi.pttl(fullKey);
-    const results = await multi.exec();
-
-    const count = (results?.[0]?.[1] as number) ?? 1;
-    const ttl = (results?.[1]?.[1] as number) ?? -1;
+    const count = await redis.incr(redisKey);
 
     // Set expiry on first request
-    if (ttl === -1) {
-      await redis.expire(fullKey, durationSec);
+    if (count === 1) {
+      await redis.expire(redisKey, Math.ceil(this.duration / 1000));
     }
 
-    const nextReset = ttl > 0
-      ? new Date(now + ttl)
-      : new Date(now + this.duration);
+    const ttl = await redis.ttl(redisKey);
+    const nextReset = new Date(now + ttl * 1000);
 
     return { count, nextReset };
   }
 
   async decrement(key: string): Promise<void> {
     if (!redis) return;
-    const fullKey = this.prefix + key;
-    await redis.decr(fullKey);
+    const redisKey = `${this.prefix}${key}`;
+    await redis.decr(redisKey);
   }
 
   async reset(key?: string): Promise<void> {
     if (!redis) return;
     if (key) {
-      await redis.del(this.prefix + key);
+      await redis.del(`${this.prefix}${key}`);
     }
-    // If no key, reset all (not implemented for safety)
   }
 
   async kill(): Promise<void> {
-    // Cleanup if needed
+    // Connection cleanup if needed
   }
 }
 
+/**
+ * IP generator from request headers (works behind proxies).
+ */
+const ipGenerator: Generator = (request, server): string => {
+  // Try server.requestIP() first
+  if (server) {
+    const ip = server.requestIP(request)?.address;
+    if (ip) return ip;
+  }
+
+  // Fallback to headers (behind proxy)
+  const headers = request.headers;
+  return (
+    headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    headers.get('x-real-ip') ??
+    headers.get('cf-connecting-ip') ??
+    '127.0.0.1'
+  );
+};
+
+/**
+ * Create rate limit options with scoped context.
+ */
+function createRateLimitOptions(config: {
+  prefix: string;
+  duration: number;
+  max: number;
+  message: string;
+}): Partial<Options> {
+  return {
+    scoping: 'scoped',
+    duration: config.duration,
+    max: config.max,
+    generator: ipGenerator,
+    context: new RedisContext(config.prefix),
+    errorResponse: new Response(
+      JSON.stringify({ message: config.message }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } }
+    ),
+  };
+}
+
 /** Strict rate limit: 5 requests per 15 minutes (for register) */
-export const strictRateLimitOptions: Partial<Options> = {
+export const strictRateLimitOptions = createRateLimitOptions({
+  prefix: 'rl:strict:',
   duration: 60_000 * 15,
   max: 5,
-  generator: ipGenerator,
-  context: new RedisRateLimitContext('rl:strict:'),
-  errorResponse: new Response(
-    JSON.stringify({ message: 'Trop de tentatives. Veuillez réessayer dans 15 minutes.' }),
-    { status: 429, headers: { 'Content-Type': 'application/json' } }
-  ),
-};
+  message: 'Trop de tentatives. Veuillez réessayer dans 15 minutes.',
+});
 
 /** Auth rate limit: 10 requests per 15 minutes (for login) */
-export const authRateLimitOptions: Partial<Options> = {
+export const authRateLimitOptions = createRateLimitOptions({
+  prefix: 'rl:auth:',
   duration: 60_000 * 15,
   max: 10,
-  generator: ipGenerator,
-  context: new RedisRateLimitContext('rl:auth:'),
-  errorResponse: new Response(
-    JSON.stringify({ message: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.' }),
-    { status: 429, headers: { 'Content-Type': 'application/json' } }
-  ),
-};
+  message: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.',
+});
 
 /** Checkout rate limit: 5 requests per minute */
-export const checkoutRateLimitOptions: Partial<Options> = {
+export const checkoutRateLimitOptions = createRateLimitOptions({
+  prefix: 'rl:checkout:',
   duration: 60_000,
   max: 5,
-  generator: ipGenerator,
-  context: new RedisRateLimitContext('rl:checkout:'),
-  errorResponse: new Response(
-    JSON.stringify({ message: 'Trop de tentatives de paiement. Veuillez réessayer dans une minute.' }),
-    { status: 429, headers: { 'Content-Type': 'application/json' } }
-  ),
-};
+  message: 'Trop de tentatives de paiement. Veuillez réessayer dans une minute.',
+});
+
+/** Contact form rate limit: 3 requests per 10 minutes */
+export const contactRateLimitOptions = createRateLimitOptions({
+  prefix: 'rl:contact:',
+  duration: 60_000 * 10,
+  max: 3,
+  message: 'Trop de messages envoyés. Veuillez réessayer dans 10 minutes.',
+});

@@ -22,7 +22,9 @@ import { communicationsRoutes } from './routes/communications';
 import { customersRoutes } from './routes/customers';
 import { usersRoutes } from './routes/users';
 import { contactRoutes } from './routes/contact';
+import { auditLogsRoutes } from './routes/audit-logs';
 import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
+import { initAdmin } from './lib/init-admin';
 
 const port = process.env.API_PORT ?? 7532;
 
@@ -73,6 +75,7 @@ const app = new Elysia()
           { name: 'Customers', description: 'Gestion des clients' },
           { name: 'Users', description: 'Gestion des utilisateurs admin' },
           { name: 'Contact', description: 'Formulaire de contact' },
+          { name: 'Audit', description: 'Journal d\'audit' },
         ],
       },
     })
@@ -106,9 +109,15 @@ const app = new Elysia()
   .use(customersRoutes)
   .use(usersRoutes)
   .use(contactRoutes)
-  .listen(port);
+  .use(auditLogsRoutes)
+  .listen({ port: Number(port), hostname: '0.0.0.0' });
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);
+
+// Create admin user if ADMIN_EMAIL and ADMIN_PASSWORD are set
+initAdmin().catch((err) => {
+  console.error('[Init] Admin creation error:', err);
+});
 
 // Run cleanup job every 15 minutes
 const CLEANUP_INTERVAL_MS = 15 * 60 * 1000;

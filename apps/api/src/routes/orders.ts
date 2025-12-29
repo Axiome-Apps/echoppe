@@ -29,8 +29,7 @@ import { Elysia, t } from 'elysia';
 import { join } from 'path';
 import { permissionGuard } from '../plugins/rbac';
 import { successSchema, withCrudErrors } from '../utils/responses';
-
-const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
+import { UPLOAD_DIR } from '../lib/config';
 
 const paginationQuery = t.Object({
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),

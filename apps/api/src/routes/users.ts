@@ -18,6 +18,7 @@ import {
   getPaginationParams,
 } from '../utils/pagination';
 import { successSchema, badRequestResponse, withCrudErrors } from '../utils/responses';
+import { logAudit, getClientIp } from '../lib/audit';
 
 // Query schemas
 const userSearchQuery = t.Object({
@@ -216,7 +217,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // POST /users - Créer utilisateur
   .post(
     '/',
-    async ({ body, status }) => {
+    async ({ body, status, currentUser, request }) => {
       // Check if email already exists
       const [existing] = await db
         .select({ id: user.id })
@@ -254,6 +255,15 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         })
         .returning({ id: user.id, email: user.email });
 
+      logAudit({
+        userId: currentUser?.id,
+        action: 'user.create',
+        entityType: 'user',
+        entityId: newUser.id,
+        data: { email: newUser.email },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return newUser;
     },
     {
@@ -269,7 +279,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // PATCH /users/:id - Modifier utilisateur
   .patch(
     '/:id',
-    async ({ params, body, status, currentUser }) => {
+    async ({ params, body, status, currentUser, request }) => {
       const [existing] = await db
         .select({ id: user.id, isOwner: user.isOwner })
         .from(user)
@@ -322,6 +332,15 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
       if (Object.keys(updates).length > 0) {
         await db.update(user).set(updates).where(eq(user.id, params.id));
+
+        logAudit({
+          userId: currentUser?.id,
+          action: 'user.update',
+          entityType: 'user',
+          entityId: params.id,
+          data: { fieldsUpdated: Object.keys(updates).filter(k => k !== 'passwordHash') },
+          ipAddress: getClientIp(request.headers),
+        });
       }
 
       return { success: true };
@@ -380,7 +399,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // DELETE /users/:id - Supprimer utilisateur
   .delete(
     '/:id',
-    async ({ params, status, currentUser }) => {
+    async ({ params, status, currentUser, request }) => {
       const [existing] = await db
         .select({ id: user.id, isOwner: user.isOwner })
         .from(user)
@@ -405,6 +424,14 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
       // Delete user
       await db.delete(user).where(eq(user.id, params.id));
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'user.delete',
+        entityType: 'user',
+        entityId: params.id,
+        ipAddress: getClientIp(request.headers),
+      });
 
       return { success: true };
     },

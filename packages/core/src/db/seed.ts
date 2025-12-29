@@ -302,7 +302,6 @@ async function seed() {
     { resource: 'variant', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'option', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'media', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'folder', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
@@ -340,7 +339,6 @@ async function seed() {
     { resource: 'variant', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'option', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'media', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'folder', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'address', canCreate: true, canRead: true, canUpdate: true },
     { resource: 'cart', canRead: true },
@@ -1361,7 +1359,7 @@ async function seed() {
   // === DEFAULT ADMIN USER ===
   console.log('  → Default admin user...');
 
-  const [ownerRole] = await db.select().from(role).where(eq(role.name, 'Owner'));
+  const [ownerRole] = await db.select().from(role).where(eq(role.name, 'Propriétaire'));
 
   if (ownerRole) {
     const [existingAdmin] = await db.select().from(user).where(eq(user.email, 'admin@echoppe.dev'));

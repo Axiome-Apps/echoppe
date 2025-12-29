@@ -22,7 +22,7 @@ const stripeForm = ref({ secretKey: '', webhookSecret: '' });
 const paypalForm = ref({ clientId: '', clientSecret: '', mode: 'sandbox' as 'sandbox' | 'live' });
 
 const apiBaseUrl = computed(() => {
-  const url = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const url = import.meta.env.VITE_API_URL || 'http://localhost:7532';
   return url.replace(/\/$/, '');
 });
 

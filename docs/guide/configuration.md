@@ -29,8 +29,18 @@
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `ENCRYPTION_KEY` | Clé de chiffrement (32 caractères) | - |
-| `SESSION_SECRET` | Secret pour les sessions | - |
+| `ENCRYPTION_KEY` | Clé de chiffrement AES-256 (32 bytes base64) | - |
+
+::: warning ENCRYPTION_KEY obligatoire
+Cette clé est requise pour chiffrer les credentials des prestataires (Stripe, PayPal, SMTP...).
+
+Générez-la avec :
+```bash
+openssl rand -base64 32
+```
+
+**Important :** Conservez cette clé précieusement. Si vous la perdez, vous devrez reconfigurer tous vos prestataires.
+:::
 
 ### Email
 
@@ -75,9 +85,8 @@ API_URL=http://localhost:7532
 ADMIN_URL=http://localhost:3211
 STORE_URL=http://localhost:3141
 
-# Security
-ENCRYPTION_KEY=your-32-character-encryption-key
-SESSION_SECRET=your-session-secret
+# Security (generate with: openssl rand -base64 32)
+ENCRYPTION_KEY=votre-cle-base64-de-32-bytes
 
 # Email (development)
 SMTP_HOST=localhost

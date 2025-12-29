@@ -2,6 +2,7 @@ import { company, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
 import { withAuthErrors } from '../utils/responses';
+import { logAudit, getClientIp } from '../lib/audit';
 
 const companyBody = t.Object({
   shopName: t.String({ minLength: 1, maxLength: 255 }),
@@ -93,7 +94,7 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
   // PUT /company - Create or update (upsert)
   .put(
     '/',
-    async ({ body }) => {
+    async ({ body, currentUser, request }) => {
       const [existing] = await db.select({ id: company.id }).from(company).limit(1);
 
       const values = {
@@ -128,10 +129,30 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
           .set(values)
           .where(eq(company.id, existing.id))
           .returning();
+
+        logAudit({
+          userId: currentUser?.id,
+          action: 'company.update',
+          entityType: 'company',
+          entityId: updated.id,
+          data: { shopName: updated.shopName },
+          ipAddress: getClientIp(request.headers),
+        });
+
         return updated;
       }
 
       const [created] = await db.insert(company).values(values).returning();
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'company.update',
+        entityType: 'company',
+        entityId: created.id,
+        data: { shopName: created.shopName },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return created;
     },
     { permission: true, body: companyBody, response: withAuthErrors({ 200: companySchema }) },

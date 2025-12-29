@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import type { Product, ProductDetail, ProductFormState, Variant, Option, ProductMedia } from './types';
 import { type Media } from '@/composables/media';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
 
 interface UseProductFormOptions {
   onProductLoaded?: (product: ProductDetail) => void;

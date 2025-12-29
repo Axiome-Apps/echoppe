@@ -1,76 +1,97 @@
 # Installation
 
-## Prérequis
+## Déploiement rapide (Production)
 
-- [Bun](https://bun.sh/) >= 1.0
-- [Docker](https://www.docker.com/) et Docker Compose
-- [Node.js](https://nodejs.org/) >= 20 (pour le store Next.js)
-
-## Installation rapide (Docker)
+Déployez Échoppe en 3 commandes :
 
 ```bash
-# Cloner le projet
-git clone https://github.com/your-org/echoppe.git
-cd echoppe
+# Télécharger le fichier compose
+curl -O https://raw.githubusercontent.com/Axiome-Apps/echoppe/main/docker-compose.dist.yaml
 
-# Copier la configuration
-cp .env.example .env
+# Générer la clé de chiffrement (obligatoire)
+export ENCRYPTION_KEY=$(openssl rand -base64 32)
 
-# Lancer les services (PostgreSQL, Redis)
-docker compose up -d
-
-# Installer les dépendances
-bun install
-
-# Initialiser la base de données
-bun run db:push --force
-bun run db:seed
-
-# Lancer en développement
-bun run dev
+# Lancer tous les services
+docker compose -f docker-compose.dist.yaml up -d
 ```
 
-## Accès aux services
+::: tip Premier démarrage
+Les migrations sont automatiquement appliquées et un compte admin est créé avec les identifiants par défaut.
+:::
+
+### Accès aux services
 
 | Service | URL | Identifiants |
 |---------|-----|--------------|
-| API | http://localhost:7532 | - |
-| Admin | http://localhost:3211 | admin@echoppe.dev / admin123 |
+| Admin | http://localhost:3211 | `admin@echoppe.dev` / `admin123` |
 | Store | http://localhost:3141 | - |
-| Swagger | http://localhost:7532/swagger | - |
+| API | http://localhost:7532 | - |
+| API Docs | http://localhost:7532/docs | - |
 
-## Installation en production
+### Variables d'environnement
 
-### Avec Docker Compose
+Personnalisez votre installation avec ces variables :
 
 ```bash
-# Construire les images
-docker compose -f compose.yaml build
+# Obligatoire
+export ENCRYPTION_KEY=$(openssl rand -base64 32)
 
-# Lancer en production
+# Optionnel - personnaliser l'admin
+export ADMIN_EMAIL=mon@email.com
+export ADMIN_PASSWORD=monsupermotdepasse
+
+# Optionnel - changer les ports
+export API_PORT=8080
+export ADMIN_PORT=8081
+export STORE_PORT=8082
+
+# Lancer
+docker compose -f docker-compose.dist.yaml up -d
+```
+
+### Images Docker
+
+| Image | Taille | Description |
+|-------|--------|-------------|
+| `axiomeapp/echoppe-api` | ~200MB | API Elysia (binaire compilé) |
+| `axiomeapp/echoppe-admin` | ~50MB | Dashboard Vue (Caddy + static) |
+| `axiomeapp/echoppe-store` | ~180MB | Boutique Next.js |
+| `axiomeapp/echoppe-init` | ~155MB | Migrations Drizzle |
+
+---
+
+## Installation développement
+
+### Prérequis
+
+- [Bun](https://bun.sh/) >= 1.0
+- [Docker](https://www.docker.com/) et Docker Compose
+
+### Étapes
+
+```bash
+# 1. Cloner le projet
+git clone https://github.com/Axiome-Apps/echoppe.git
+cd echoppe
+
+# 2. Installer les dépendances
+bun install
+
+# 3. Copier la configuration
+cp .env.example .env
+
+# 4. Lancer PostgreSQL + Redis
 docker compose up -d
+
+# 5. Initialiser la base de données
+bun run db:push --force
+bun run db:seed
+
+# 6. Lancer en développement
+bun run dev
 ```
 
-### Variables d'environnement requises
-
-Voir la page [Configuration](/guide/configuration) pour la liste complète des variables d'environnement.
-
-## Structure du projet
-
-```
-echoppe/
-├── apps/
-│   ├── api/          # API Elysia
-│   ├── admin/        # Dashboard Vue 3
-│   └── store/        # Boutique Next.js
-├── packages/
-│   ├── core/         # DB, schemas, utils partagés
-│   └── shared/       # Types partagés
-├── docs/             # Cette documentation
-└── uploads/          # Fichiers uploadés
-```
-
-## Commandes utiles
+### Commandes utiles
 
 ```bash
 # Développement
@@ -87,8 +108,19 @@ bun run db:studio        # Interface Drizzle Studio
 # Build
 bun run build            # Construire tous les services
 bun run type-check       # Vérifier les types
+```
 
-# Qualité
-bun run lint             # Linter
-bun run lint:fix         # Corriger automatiquement
+## Structure du projet
+
+```
+echoppe/
+├── apps/
+│   ├── api/          # API Elysia
+│   ├── admin/        # Dashboard Vue 3
+│   └── store/        # Boutique Next.js
+├── packages/
+│   ├── core/         # DB, schemas, utils partagés
+│   └── shared/       # Types partagés
+├── docs/             # Cette documentation
+└── uploads/          # Fichiers uploadés
 ```

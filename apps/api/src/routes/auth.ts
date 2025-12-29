@@ -4,9 +4,20 @@ import { db, user, session, role, eq, and, gt } from '@echoppe/core';
 import { randomBytes } from 'crypto';
 import { authRateLimitOptions } from '../utils/rate-limit';
 import { successSchema, unauthorizedResponse, forbiddenResponse, rateLimitResponse } from '../utils/responses';
+import { logAudit, getClientIp } from '../lib/audit';
 
 const COOKIE_NAME = 'echoppe_admin_session';
 const SESSION_DURATION_DAYS = 7;
+
+function generateToken(): string {
+  return randomBytes(32).toString('hex');
+}
+
+function getExpiresAt(): Date {
+  const date = new Date();
+  date.setDate(date.getDate() + SESSION_DURATION_DAYS);
+  return date;
+}
 
 // Schema cookie pour le typage
 const cookieSchema = t.Cookie({
@@ -46,17 +57,7 @@ const loginResponseSchema = t.Object({
   user: loginUserSchema,
 });
 
-function generateToken(): string {
-  return randomBytes(32).toString('hex');
-}
-
-function getExpiresAt(): Date {
-  const date = new Date();
-  date.setDate(date.getDate() + SESSION_DURATION_DAYS);
-  return date;
-}
-
-// Rate-limited login route
+// Rate-limited login route (separate instance for scoped rate limiting)
 const loginRoute = new Elysia()
   .use(rateLimit(authRateLimitOptions))
   .post(
@@ -112,9 +113,18 @@ const loginRoute = new Elysia()
         value: token,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         path: '/',
         maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
+      });
+
+      // Log successful login
+      logAudit({
+        userId: foundUser.id,
+        action: 'user.login',
+        entityType: 'user',
+        entityId: foundUser.id,
+        ipAddress: ipAddress !== 'unknown' ? ipAddress : undefined,
       });
 
       return {
@@ -142,32 +152,8 @@ const loginRoute = new Elysia()
   );
 
 export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth'] } })
-  // Rate-limited login
-  .use(loginRoute)
 
-  // POST /auth/logout
-  .post(
-    '/logout',
-    async ({ cookie }) => {
-      const token = cookie[COOKIE_NAME].value;
-
-      if (token) {
-        // Delete session from DB
-        await db.delete(session).where(eq(session.token, token));
-      }
-
-      // Clear cookie
-      cookie[COOKIE_NAME].remove();
-
-      return { success: true };
-    },
-    {
-      cookie: cookieSchema,
-      response: { 200: successSchema },
-    }
-  )
-
-  // GET /auth/me
+  // GET /auth/me - NO rate limit
   .get('/me', async ({ cookie, status }) => {
     const token = cookie[COOKIE_NAME].value;
 
@@ -222,4 +208,46 @@ export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth']
       401: unauthorizedResponse,
       403: forbiddenResponse,
     },
-  });
+  })
+
+  // POST /auth/logout - NO rate limit
+  .post(
+    '/logout',
+    async ({ cookie, request }) => {
+      const token = cookie[COOKIE_NAME].value;
+
+      if (token) {
+        // Get user ID before deleting session for audit
+        const [sessionData] = await db
+          .select({ userId: session.user })
+          .from(session)
+          .where(eq(session.token, token));
+
+        // Delete session from DB
+        await db.delete(session).where(eq(session.token, token));
+
+        // Log logout
+        if (sessionData) {
+          logAudit({
+            userId: sessionData.userId,
+            action: 'user.logout',
+            entityType: 'user',
+            entityId: sessionData.userId,
+            ipAddress: getClientIp(request.headers),
+          });
+        }
+      }
+
+      // Clear cookie
+      cookie[COOKIE_NAME].remove();
+
+      return { success: true };
+    },
+    {
+      cookie: cookieSchema,
+      response: { 200: successSchema },
+    }
+  )
+
+  // POST /auth/login - WITH rate limit (scoped instance)
+  .use(loginRoute);

@@ -2,6 +2,7 @@ import { db, role, permission, user, eq, and, RESOURCES } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard, invalidatePermissionCache } from '../plugins/rbac';
 import { successSchema, errorSchema, withAuthErrors } from '../utils/responses';
+import { logAudit, getClientIp } from '../lib/audit';
 
 // Schemas
 const roleSchema = t.Object({
@@ -112,7 +113,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
   .use(permissionGuard('role', 'create'))
   .post(
     '/',
-    async ({ body }) => {
+    async ({ body, currentUser, request }) => {
       const [created] = await db
         .insert(role)
         .values({
@@ -122,6 +123,16 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
           isSystem: false,
         })
         .returning();
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'role.create',
+        entityType: 'role',
+        entityId: created.id,
+        data: { name: created.name, scope: created.scope },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return created;
     },
     {
@@ -135,7 +146,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
   .use(permissionGuard('role', 'update'))
   .put(
     '/:id',
-    async ({ params, body, status }) => {
+    async ({ params, body, status, currentUser, request }) => {
       const [existing] = await db.select().from(role).where(eq(role.id, params.id));
       if (!existing) {
         return status(404, { message: 'Rôle non trouvé' });
@@ -153,6 +164,15 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
         })
         .where(eq(role.id, params.id))
         .returning();
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'role.update',
+        entityType: 'role',
+        entityId: params.id,
+        data: { name: updated.name, scope: updated.scope },
+        ipAddress: getClientIp(request.headers),
+      });
 
       return updated;
     },
@@ -172,7 +192,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
   .use(permissionGuard('role', 'delete'))
   .delete(
     '/:id',
-    async ({ params, status }) => {
+    async ({ params, status, currentUser, request }) => {
       const [existing] = await db.select().from(role).where(eq(role.id, params.id));
       if (!existing) {
         return status(404, { message: 'Rôle non trouvé' });
@@ -196,6 +216,15 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       await db.delete(permission).where(eq(permission.role, params.id));
       await db.delete(role).where(eq(role.id, params.id));
 
+      logAudit({
+        userId: currentUser?.id,
+        action: 'role.delete',
+        entityType: 'role',
+        entityId: params.id,
+        data: { name: existing.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       invalidatePermissionCache(params.id);
       return { success: true };
     },
@@ -215,7 +244,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
   .use(permissionGuard('permission', 'update'))
   .put(
     '/:id/permissions',
-    async ({ params, body, status }) => {
+    async ({ params, body, status, currentUser, request }) => {
       const [existing] = await db.select().from(role).where(eq(role.id, params.id));
       if (!existing) {
         return status(404, { message: 'Rôle non trouvé' });
@@ -252,6 +281,15 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
           })),
         );
       }
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'permission.update',
+        entityType: 'role',
+        entityId: params.id,
+        data: { permissionsCount: body.permissions.length },
+        ipAddress: getClientIp(request.headers),
+      });
 
       invalidatePermissionCache(params.id);
 

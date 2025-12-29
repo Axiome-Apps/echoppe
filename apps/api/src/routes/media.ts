@@ -18,6 +18,7 @@ import { mkdir, unlink } from 'fs/promises';
 import { join } from 'path';
 import { permissionGuard } from '../plugins/rbac';
 import { successSchema, errorSchema, withAuthErrors } from '../utils/responses';
+import { logAudit, getClientIp } from '../lib/audit';
 import {
   buildPaginatedResponse,
   DEFAULT_LIMIT,
@@ -25,6 +26,7 @@ import {
   MAX_LIMIT,
   paginatedResponse,
 } from '../utils/pagination';
+import { UPLOAD_DIR } from '../lib/config';
 
 // Schema de réponse pour les médias
 const mediaSchema = t.Object({
@@ -49,8 +51,6 @@ const folderSchema = t.Object({
   name: t.String(),
   sortOrder: t.Number(),
 });
-
-const UPLOAD_DIR = join(import.meta.dir, '../../uploads');
 
 // Ensure upload directory exists
 await mkdir(UPLOAD_DIR, { recursive: true });
@@ -126,7 +126,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
   // POST /media/folders - Create folder
   .post(
     '/folders',
-    async ({ body }) => {
+    async ({ body, currentUser, request }) => {
       const [created] = await db
         .insert(folder)
         .values({
@@ -134,6 +134,16 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
           parent: body.parent || null,
         })
         .returning();
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'folder.create',
+        entityType: 'folder',
+        entityId: created.id,
+        data: { name: created.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return created;
     },
     { permission: true, body: folderBody, response: withAuthErrors({ 200: folderSchema }) },
@@ -169,7 +179,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
   // DELETE /media/folders/:id - Delete folder
   .delete(
     '/folders/:id',
-    async ({ params, status }) => {
+    async ({ params, status, currentUser, request }) => {
       // Move child folders to parent
       const [currentFolder] = await db.select().from(folder).where(eq(folder.id, params.id));
       if (currentFolder) {
@@ -186,6 +196,16 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
       const [deleted] = await db.delete(folder).where(eq(folder.id, params.id)).returning();
 
       if (!deleted) return status(404, { message: 'Dossier non trouvé' });
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'folder.delete',
+        entityType: 'folder',
+        entityId: params.id,
+        data: { name: deleted.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return { success: true };
     },
     {
@@ -300,7 +320,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
   // POST /media/upload - Upload file(s)
   .post(
     '/upload',
-    async ({ body }) => {
+    async ({ body, currentUser, request }) => {
       const files = Array.isArray(body.file) ? body.file : [body.file];
       let folderId = body.folder || null;
 
@@ -351,6 +371,15 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
           .returning();
 
         results.push(created);
+
+        logAudit({
+          userId: currentUser?.id,
+          action: 'media.upload',
+          entityType: 'media',
+          entityId: created.id,
+          data: { filename: created.filenameOriginal, mimeType: created.mimeType },
+          ipAddress: getClientIp(request.headers),
+        });
       }
 
       return results.length === 1 ? results[0] : results;
@@ -415,7 +444,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
   // DELETE /media/:id - Delete media
   .delete(
     '/:id',
-    async ({ params, status }) => {
+    async ({ params, status, currentUser, request }) => {
       const [item] = await db.select().from(media).where(eq(media.id, params.id));
 
       if (!item) return status(404, { message: 'Média non trouvé' });
@@ -428,6 +457,15 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
       }
 
       await db.delete(media).where(eq(media.id, params.id));
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'media.delete',
+        entityType: 'media',
+        entityId: params.id,
+        data: { filename: item.filenameOriginal },
+        ipAddress: getClientIp(request.headers),
+      });
 
       return { success: true };
     },

@@ -63,7 +63,7 @@ async function loadOrder() {
   }
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
 
 async function loadInvoices() {
   try {
@@ -103,7 +103,7 @@ async function createInvoice() {
 
 function downloadInvoice(invoiceId: string) {
   // Ouvrir le PDF dans un nouvel onglet (l'API gère la régénération si fichier manquant)
-  const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/orders/${orderId.value}/invoices/${invoiceId}/pdf`;
+  const url = `${API_URL}/orders/${orderId.value}/invoices/${invoiceId}/pdf`;
   window.open(url, '_blank');
 }
 

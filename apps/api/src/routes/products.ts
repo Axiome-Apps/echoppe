@@ -5,6 +5,7 @@ import { slugify } from '@echoppe/shared';
 import { permissionGuard } from '../plugins/rbac';
 import { paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
 import { successSchema, conflictResponse, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
+import { logAudit, getClientIp } from '../lib/audit';
 
 // Schema du produit pour les réponses (liste)
 const defaultVariantSchema = t.Object({
@@ -452,7 +453,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   .use(permissionGuard('product', 'create'))
   .post(
     '/',
-    async ({ body }) => {
+    async ({ body, currentUser, request }) => {
       const [created] = await db
         .insert(product)
         .values({
@@ -464,6 +465,16 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
           status: body.status ?? 'draft',
         })
         .returning();
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'product.create',
+        entityType: 'product',
+        entityId: created.id,
+        data: { name: created.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return created;
     },
     { permission: true, body: productCreateBody, response: withAuthErrors({ 200: productSchema }) }
@@ -473,7 +484,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   .use(permissionGuard('product', 'update'))
   .put(
     '/:id',
-    async ({ params, body, status }) => {
+    async ({ params, body, status, currentUser, request }) => {
       const [updated] = await db
         .update(product)
         .set({
@@ -487,6 +498,16 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .where(eq(product.id, params.id))
         .returning();
       if (!updated) return status(404, { message: 'Product not found' });
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'product.update',
+        entityType: 'product',
+        entityId: params.id,
+        data: { name: updated.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return updated;
     },
     {
@@ -531,9 +552,19 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   .use(permissionGuard('product', 'delete'))
   .delete(
     '/:id',
-    async ({ params, status }) => {
+    async ({ params, status, currentUser, request }) => {
       const [deleted] = await db.delete(product).where(eq(product.id, params.id)).returning();
       if (!deleted) return status(404, { message: 'Product not found' });
+
+      logAudit({
+        userId: currentUser?.id,
+        action: 'product.delete',
+        entityType: 'product',
+        entityId: params.id,
+        data: { name: deleted.name },
+        ipAddress: getClientIp(request.headers),
+      });
+
       return { success: true };
     },
     {

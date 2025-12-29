@@ -14,9 +14,8 @@ export const RESOURCES = {
   // Référentiel
   COUNTRY: 'country',
 
-  // Médias
+  // Médias (folder operations are protected by media permission)
   MEDIA: 'media',
-  FOLDER: 'folder',
 
   // Commerce
   ORDER: 'order',

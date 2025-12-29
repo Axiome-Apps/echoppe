@@ -18,7 +18,7 @@ import type { Category } from '@/composables/categories';
 type ProductsResponse = ApiData<ReturnType<typeof api.products.get>>;
 type Product = ProductsResponse['data'][number];
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
 const DEFAULT_LIMIT = 20;
 
 const router = useRouter();

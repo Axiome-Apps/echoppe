@@ -2,7 +2,7 @@ import { ref, computed, type Ref } from 'vue';
 import { api } from '@/lib/api';
 import type { Folder, FolderNode, Media, SortBy, SortOrder, MediaType } from './types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
 
 // =============================================================================
 // UTILS
