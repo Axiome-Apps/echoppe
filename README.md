@@ -4,21 +4,110 @@
 
 ## Déploiement rapide (Docker)
 
+**1. Créez un fichier `docker-compose.yaml` :**
+
+```yaml
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: echoppe
+      POSTGRES_PASSWORD: echoppe
+      POSTGRES_DB: echoppe
+    volumes:
+      - echoppe-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U echoppe -d echoppe']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - echoppe-redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  init:
+    image: axiomeapp/echoppe-init:latest
+    environment:
+      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    image: axiomeapp/echoppe-api:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
+      REDIS_URL: redis://redis:6379
+      ADMIN_URL: http://localhost:3211
+      STORE_URL: http://localhost:3141
+      # === À MODIFIER ===
+      ADMIN_EMAIL: admin@example.com        # Votre email
+      ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
+      ENCRYPTION_KEY: votre-cle-ici         # Générer avec: openssl rand -base64 32
+    ports:
+      - '7532:7532'
+    volumes:
+      - echoppe-uploads:/app/uploads
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  admin:
+    image: axiomeapp/echoppe-admin:latest
+    restart: unless-stopped
+    ports:
+      - '3211:80'
+    depends_on:
+      - api
+
+  store:
+    image: axiomeapp/echoppe-store:latest
+    restart: unless-stopped
+    ports:
+      - '3141:3000'
+    depends_on:
+      - api
+
+volumes:
+  echoppe-data:
+  echoppe-redis:
+  echoppe-uploads:
+```
+
+**2. Modifiez les 3 valeurs dans la section `api` :**
+
+| Variable | Description |
+|----------|-------------|
+| `ADMIN_EMAIL` | Votre adresse email pour le compte admin |
+| `ADMIN_PASSWORD` | Votre mot de passe (min. 8 caractères) |
+| `ENCRYPTION_KEY` | Générez avec `openssl rand -base64 32` |
+
+**3. Lancez :**
+
 ```bash
-# Télécharger le fichier compose
-curl -O https://raw.githubusercontent.com/Axiome-Apps/echoppe/main/docker-compose.dist.yaml
-
-# Générer la clé de chiffrement
-export ENCRYPTION_KEY=$(openssl rand -base64 32)
-
-# Lancer
-docker compose -f docker-compose.dist.yaml up -d
+docker compose up -d
 ```
 
 **URLs :**
-- Admin : http://localhost:3211 (`admin@echoppe.dev` / `admin123`)
+- Admin : http://localhost:3211
 - Store : http://localhost:3141
 - API : http://localhost:7532
+
+---
 
 ## Développement
 
@@ -41,6 +130,8 @@ bun run db:seed
 bun run dev
 ```
 
+**Login dev :** `admin@echoppe.dev` / `admin123`
+
 ## Stack
 
 - **Runtime** : Bun
@@ -48,7 +139,6 @@ bun run dev
 - **DB** : PostgreSQL + Drizzle ORM
 - **Dashboard** : Vue 3 + Vite + Tailwind 4
 - **Store** : Next.js 16
-- **Validation** : Zod
 
 ## Structure
 
@@ -69,26 +159,9 @@ echoppe/
 | Commande | Description |
 |----------|-------------|
 | `bun run dev` | Lance API + Dashboard + Store |
-| `bun run dev:api` | API seule |
-| `bun run dev:admin` | Dashboard seul |
-| `bun run dev:store` | Store seul |
 | `bun run db:push` | Push schema vers DB |
 | `bun run db:seed` | Seed données de base |
 | `bun run db:studio` | Interface Drizzle Studio |
-
-## Images Docker
-
-| Image | Taille |
-|-------|--------|
-| `axiomeapp/echoppe-api` | ~200MB |
-| `axiomeapp/echoppe-admin` | ~50MB |
-| `axiomeapp/echoppe-store` | ~180MB |
-| `axiomeapp/echoppe-init` | ~155MB |
-
-## Documentation
-
-- [docs/](./docs/) - Documentation VitePress
-- [TODO.md](./TODO.md) - Roadmap du projet
 
 ## License
 

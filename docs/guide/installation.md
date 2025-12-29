@@ -2,61 +2,139 @@
 
 ## Déploiement rapide (Production)
 
-Déployez Échoppe en 3 commandes :
+### 1. Créez un fichier `docker-compose.yaml`
 
-```bash
-# Télécharger le fichier compose
-curl -O https://raw.githubusercontent.com/Axiome-Apps/echoppe/main/docker-compose.dist.yaml
+```yaml
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: echoppe
+      POSTGRES_PASSWORD: echoppe
+      POSTGRES_DB: echoppe
+    volumes:
+      - echoppe-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U echoppe -d echoppe']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-# Générer la clé de chiffrement (obligatoire)
-export ENCRYPTION_KEY=$(openssl rand -base64 32)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - echoppe-redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-# Lancer tous les services
-docker compose -f docker-compose.dist.yaml up -d
+  init:
+    image: axiomeapp/echoppe-init:latest
+    environment:
+      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    image: axiomeapp/echoppe-api:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
+      REDIS_URL: redis://redis:6379
+      ADMIN_URL: http://localhost:3211
+      STORE_URL: http://localhost:3141
+      # === À MODIFIER ===
+      ADMIN_EMAIL: admin@example.com        # Votre email
+      ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
+      ENCRYPTION_KEY: votre-cle-ici         # Générer avec: openssl rand -base64 32
+    ports:
+      - '7532:7532'
+    volumes:
+      - echoppe-uploads:/app/uploads
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  admin:
+    image: axiomeapp/echoppe-admin:latest
+    restart: unless-stopped
+    ports:
+      - '3211:80'
+    depends_on:
+      - api
+
+  store:
+    image: axiomeapp/echoppe-store:latest
+    restart: unless-stopped
+    ports:
+      - '3141:3000'
+    depends_on:
+      - api
+
+volumes:
+  echoppe-data:
+  echoppe-redis:
+  echoppe-uploads:
 ```
 
-::: tip Premier démarrage
-Les migrations sont automatiquement appliquées et un compte admin est créé avec les identifiants par défaut.
+### 2. Modifiez les 3 valeurs obligatoires
+
+Dans la section `api.environment`, modifiez :
+
+| Variable | Description | Exemple |
+|----------|-------------|---------|
+| `ADMIN_EMAIL` | Email du compte administrateur | `jean@maboutique.fr` |
+| `ADMIN_PASSWORD` | Mot de passe (min. 8 caractères) | `MonSuperMotDePasse!` |
+| `ENCRYPTION_KEY` | Clé de chiffrement AES-256 | Voir ci-dessous |
+
+::: tip Générer la clé de chiffrement
+```bash
+openssl rand -base64 32
+```
+Copiez le résultat et collez-le comme valeur de `ENCRYPTION_KEY`.
+:::
+
+### 3. Lancez
+
+```bash
+docker compose up -d
+```
+
+::: info Premier démarrage
+- Les migrations sont automatiquement appliquées
+- Le compte admin est créé avec vos identifiants
+- Les images sont téléchargées depuis Docker Hub (~600MB au total)
 :::
 
 ### Accès aux services
 
-| Service | URL | Identifiants |
-|---------|-----|--------------|
-| Admin | http://localhost:3211 | `admin@echoppe.dev` / `admin123` |
-| Store | http://localhost:3141 | - |
-| API | http://localhost:7532 | - |
-| API Docs | http://localhost:7532/docs | - |
+| Service | URL |
+|---------|-----|
+| **Admin** | http://localhost:3211 |
+| **Store** | http://localhost:3141 |
+| **API** | http://localhost:7532 |
+| **API Docs** | http://localhost:7532/docs |
 
-### Variables d'environnement
+### Variables optionnelles
 
-Personnalisez votre installation avec ces variables :
+Pour changer les ports ou les URLs :
 
-```bash
-# Obligatoire
-export ENCRYPTION_KEY=$(openssl rand -base64 32)
-
-# Optionnel - personnaliser l'admin
-export ADMIN_EMAIL=mon@email.com
-export ADMIN_PASSWORD=monsupermotdepasse
-
-# Optionnel - changer les ports
-export API_PORT=8080
-export ADMIN_PORT=8081
-export STORE_PORT=8082
-
-# Lancer
-docker compose -f docker-compose.dist.yaml up -d
+```yaml
+environment:
+  ADMIN_URL: https://admin.maboutique.fr   # URL publique de l'admin
+  STORE_URL: https://maboutique.fr         # URL publique du store
+ports:
+  - '8080:7532'  # Changer le port exposé
 ```
-
-### Images Docker
-
-| Image | Taille | Description |
-|-------|--------|-------------|
-| `axiomeapp/echoppe-api` | ~200MB | API Elysia (binaire compilé) |
-| `axiomeapp/echoppe-admin` | ~50MB | Dashboard Vue (Caddy + static) |
-| `axiomeapp/echoppe-store` | ~180MB | Boutique Next.js |
-| `axiomeapp/echoppe-init` | ~155MB | Migrations Drizzle |
 
 ---
 
@@ -91,6 +169,8 @@ bun run db:seed
 bun run dev
 ```
 
+**Login dev :** `admin@echoppe.dev` / `admin123`
+
 ### Commandes utiles
 
 ```bash
@@ -104,10 +184,6 @@ bun run dev:store        # Store seul
 bun run db:push --force  # Appliquer le schéma
 bun run db:seed          # Données de test
 bun run db:studio        # Interface Drizzle Studio
-
-# Build
-bun run build            # Construire tous les services
-bun run type-check       # Vérifier les types
 ```
 
 ## Structure du projet
