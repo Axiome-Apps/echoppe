@@ -106,6 +106,7 @@ docker compose up -d
 - Admin : http://localhost:3211
 - Store : http://localhost:3141
 - API : http://localhost:7532
+- API Docs : http://localhost:7532/docs (OpenAPI/Scalar)
 
 ---
 
@@ -135,7 +136,7 @@ bun run dev
 ## Stack
 
 - **Runtime** : Bun
-- **API** : Elysia
+- **API** : Elysia + OpenAPI (documentation interactive sur `/docs`)
 - **DB** : PostgreSQL + Drizzle ORM
 - **Dashboard** : Vue 3 + Vite + Tailwind 4
 - **Store** : Next.js 16
