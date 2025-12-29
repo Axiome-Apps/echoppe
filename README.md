@@ -1,8 +1,15 @@
 # Échoppe
 
-> Framework e-commerce pour artisans français — 10x plus simple que Shopify
+[![Bun](https://img.shields.io/badge/Bun-1.0+-black.svg)](https://bun.sh/)
+[![Elysia](https://img.shields.io/badge/Elysia-1.0-blue.svg)](https://elysiajs.com/)
+[![Vue](https://img.shields.io/badge/Vue-3-42b883.svg)](https://vuejs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791.svg)](https://www.postgresql.org/)
 
-**[Documentation](https://axiome-apps.github.io/echoppe/)** · **[API Docs](http://localhost:7532/docs)**
+> Framework e-commerce pour artisans français — Shopify en mieux et gratuit
+
+**[Documentation](https://axiome-apps.github.io/echoppe/)** · **[API Docs](http://localhost:7532/docs)** · **[Contribuer](CONTRIBUTING.md)**
 
 ## Déploiement rapide (Docker)
 
@@ -114,9 +121,14 @@ docker compose up -d
 
 ## Développement
 
-```bash
-# Prérequis : Bun, Docker
+### Prérequis
 
+- [Bun](https://bun.sh/) 1.0+
+- [Docker](https://docker.com/)
+
+### Installation
+
+```bash
 # 1. Cloner et installer
 git clone https://github.com/Axiome-Apps/echoppe.git
 cd echoppe
@@ -135,13 +147,14 @@ bun run dev
 
 **Login dev :** `admin@echoppe.dev` / `admin123`
 
-## Stack
+### Scripts
 
-- **Runtime** : Bun
-- **API** : Elysia + OpenAPI (documentation interactive sur `/docs`)
-- **DB** : PostgreSQL + Drizzle ORM
-- **Dashboard** : Vue 3 + Vite + Tailwind 4
-- **Store** : Next.js 16
+| Commande | Description |
+|----------|-------------|
+| `bun run dev` | Lance API + Dashboard + Store |
+| `bun run db:push` | Push schema vers DB |
+| `bun run db:seed` | Seed données de base |
+| `bun run db:studio` | Interface Drizzle Studio |
 
 ## Structure
 
@@ -157,15 +170,22 @@ echoppe/
 └── docs/             # Documentation VitePress
 ```
 
-## Scripts
+## Built With
 
-| Commande | Description |
-|----------|-------------|
-| `bun run dev` | Lance API + Dashboard + Store |
-| `bun run db:push` | Push schema vers DB |
-| `bun run db:seed` | Seed données de base |
-| `bun run db:studio` | Interface Drizzle Studio |
+- [Bun](https://bun.sh/) - Runtime JavaScript ultra-rapide
+- [Elysia](https://elysiajs.com/) - Framework web TypeScript avec OpenAPI
+- [Drizzle ORM](https://orm.drizzle.team/) - ORM TypeScript type-safe
+- [Vue 3](https://vuejs.org/) - Framework frontend pour le dashboard
+- [Next.js](https://nextjs.org/) - Framework React pour la boutique
+- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS utility-first
+- [PostgreSQL](https://www.postgresql.org/) - Base de données relationnelle
+- [Redis](https://redis.io/) - Cache et sessions
+
+## Support
+
+- Bug Reports : [GitHub Issues](https://github.com/Axiome-Apps/echoppe/issues)
+- Discussions : [GitHub Discussions](https://github.com/Axiome-Apps/echoppe/discussions)
 
 ## License
 
-Private - Axiome
+[CeCILL v2.1](LICENSE) - Compatible GNU GPL
