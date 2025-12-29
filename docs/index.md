@@ -27,3 +27,4 @@ features:
     title: Headless
     details: API REST documentée avec OpenAPI/Swagger pour créer votre propre frontend.
 ---
+
