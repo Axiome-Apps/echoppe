@@ -79,6 +79,7 @@
 ### Documentation
 - [x] Documentation POC (VitePress)
 - [ ] Contenu exhaustif + images / vidéos
+- [ ] Captures d'écran (README + doc VitePress)
 
 ### UI/UX
 - [ ] Polish UI/UX Admin/Store
