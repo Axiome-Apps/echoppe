@@ -4,6 +4,7 @@ export default defineConfig({
   title: 'Échoppe',
   description: 'Documentation de la plateforme e-commerce Échoppe',
   lang: 'fr-FR',
+  base: '/echoppe/',
   srcExclude: ['internal/**'],
   ignoreDeadLinks: true,
 
@@ -58,7 +59,7 @@ export default defineConfig({
       ],
     },
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com/your-org/echoppe' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/Axiome-Apps/echoppe' }],
 
     search: {
       provider: 'local',
