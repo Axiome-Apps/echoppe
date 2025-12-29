@@ -103,10 +103,14 @@
 - [x] Logger structuré pour erreurs webhook
 
 ### Docker / Déploiement
+- [x] Dockerfile monorepo optimisé (API ~200MB, Admin ~50MB, Store ~180MB, Init ~155MB)
 - [x] Publier les images sur Docker Hub (axiomeapp/echoppe-*)
 - [x] GitHub Actions pour build/push automatique à chaque tag
-- [x] GitHub Actions pour déployer la doc VitePress
+- [x] GitHub Actions pour déployer la doc VitePress sur GitHub Pages
 - [x] Compose de distribution (docker-compose.dist.yaml)
+- [x] Auto-migrations au premier lancement (container init)
+- [x] Création admin via variables d'environnement
+- [x] Documentation en ligne : https://axiome-apps.github.io/echoppe/
 
 ---
 
