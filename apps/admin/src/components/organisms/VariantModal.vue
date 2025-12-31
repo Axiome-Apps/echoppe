@@ -9,6 +9,7 @@ import Combobox from '@/components/atoms/Combobox.vue';
 import type { ComboboxOption } from '@/components/atoms/Combobox.vue';
 import CheckIcon from '@/components/atoms/icons/CheckIcon.vue';
 import { api } from '@/lib/api';
+import { createOptionValue, getOptionValues, updateVariantOptions } from '@/lib/product-api';
 import { type Media, getMediaUrl } from '@/composables/media';
 import type { ProductMedia, Option, Variant as BaseVariant } from '@/composables/product';
 
@@ -178,11 +179,10 @@ function setValueForOption(optionId: string, valueId: string) {
   }
 }
 
-async function createOptionValue(optionId: string, value: string) {
-  // Eden bracket notation pour les params dynamiques
-  const { data } = await (api.products as any)[props.productId].options[optionId].values.post({ value });
+async function handleCreateOptionValue(optionId: string, value: string) {
+  const data = await createOptionValue(props.productId, optionId, value);
 
-  if (data && 'id' in data) {
+  if (data) {
     const updatedOptions = props.options.map((opt) => {
       if (opt.id === optionId) {
         return { ...opt, values: [...opt.values, { id: data.id, value: data.value }] };
@@ -209,11 +209,11 @@ async function addExistingOption(optionId: string) {
 
   if (data && 'id' in data) {
     // Recharge les valeurs de cette option
-    const { data: values } = await (api.products as any)[props.productId].options[optionId].values.get();
+    const values = await getOptionValues(props.productId, optionId);
     const newOption: Option = {
       id: data.id,
       name: data.name,
-      values: Array.isArray(values) ? values.map((v: { id: string; value: string }) => ({ id: v.id, value: v.value })) : [],
+      values: values.map((v) => ({ id: v.id, value: v.value })),
     };
     props.onOptionsChange([...props.options, newOption]);
     showAddOptionCombobox.value = false;
@@ -279,8 +279,7 @@ async function save() {
         .map((vo) => vo.valueId)
         .filter((id) => id);
 
-      // Eden bracket notation pour les params dynamiques
-      await (api.products as any)[props.productId].variants[savedVariant.id].options.put({ optionValueIds });
+      await updateVariantOptions(props.productId, savedVariant.id, optionValueIds);
 
       // Mettre à jour l'image de la variante
       const previousMediaId = currentVariantMedia.value?.media ?? null;
@@ -562,7 +561,7 @@ async function save() {
               :placeholder="`Sélectionner ${opt.name.toLowerCase()}`"
               size="lg"
               @update:model-value="setValueForOption(opt.id, $event)"
-              @create="createOptionValue(opt.id, $event)"
+              @create="handleCreateOptionValue(opt.id, $event)"
             />
           </div>
         </div>

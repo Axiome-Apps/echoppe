@@ -125,8 +125,8 @@
 
 ### Refactoring / Qualité de code
 **Urgent**
-- [ ] Refactoriser `POST /checkout` (229 lignes → extraire 6-7 fonctions)
-- [ ] Supprimer les `as any` dans `VariantModal.vue` (lignes 183, 212, 283)
+- [x] Refactoriser `POST /checkout` (229 lignes → extraire 6-7 fonctions)
+- [x] Supprimer les `as any` dans `VariantModal.vue` (lignes 183, 212, 283)
 
 **Important**
 - [ ] Fallback in-memory si Redis down au lieu de désactiver le rate limiting (`rate-limit.ts:26`)
