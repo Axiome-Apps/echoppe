@@ -81,7 +81,7 @@ export class StripeAdapter implements PaymentAdapter {
     };
   }
 
-  async verifyWebhook(payload: string, signature: string): Promise<PaymentResult> {
+  async verifyWebhook(payload: string, signature: string, _headers?: Record<string, string>): Promise<PaymentResult> {
     await this.ensureInitialized();
 
     if (!this.client || !this.webhookSecret) {

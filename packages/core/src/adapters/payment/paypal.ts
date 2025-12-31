@@ -104,18 +104,28 @@ export class PayPalAdapter implements PaymentAdapter {
     };
   }
 
-  async verifyWebhook(payload: string, _signature: string): Promise<PaymentResult> {
+  async verifyWebhook(payload: string, _signature: string, headers?: Record<string, string>): Promise<PaymentResult> {
     await this.ensureInitialized();
 
     if (!this.client) {
       throw new Error('PayPal is not configured.');
     }
 
-    // TODO: Implement proper PayPal webhook signature verification
-    // This requires the webhook_id in credentials and all PayPal-specific headers
-    // (paypal-auth-algo, paypal-cert-url, paypal-transmission-id, paypal-transmission-sig, paypal-transmission-time)
-    // For now, we rely on the webhook URL being secret and HTTPS
-    console.warn('[PayPal] Webhook signature verification not implemented - ensure webhook URL is secret');
+    // Vérifier la signature via l'API PayPal
+    const credentials = await getProviderCredentials('paypal');
+    if (!credentials?.webhookId) {
+      throw new Error('PayPal webhook ID not configured');
+    }
+
+    if (!headers) {
+      throw new Error('PayPal webhook headers are required for signature verification');
+    }
+
+    // Appeler l'API PayPal pour vérifier la signature
+    const isValid = await this.verifyWebhookSignature(payload, headers, credentials.webhookId);
+    if (!isValid) {
+      throw new Error('PayPal webhook signature verification failed');
+    }
 
     const event = JSON.parse(payload);
 
@@ -169,6 +179,74 @@ export class PayPalAdapter implements PaymentAdapter {
           rawData: event,
         };
     }
+  }
+
+  /**
+   * Vérifie la signature du webhook via l'API PayPal
+   * @see https://developer.paypal.com/docs/api/webhooks/v1/#verify-webhook-signature
+   */
+  private async verifyWebhookSignature(
+    payload: string,
+    headers: Record<string, string>,
+    webhookId: string,
+  ): Promise<boolean> {
+    const credentials = await getProviderCredentials('paypal');
+    if (!credentials) {
+      throw new Error('PayPal credentials not found');
+    }
+
+    // Obtenir un access token
+    const baseUrl = credentials.mode === 'live'
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
+
+    const authString = Buffer.from(`${credentials.clientId}:${credentials.clientSecret}`).toString('base64');
+
+    const tokenResponse = await fetch(`${baseUrl}/v1/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'grant_type=client_credentials',
+    });
+
+    if (!tokenResponse.ok) {
+      throw new Error(`Failed to get PayPal access token: ${tokenResponse.status}`);
+    }
+
+    const tokenData = await tokenResponse.json() as { access_token: string };
+
+    // Vérifier la signature du webhook
+    // IMPORTANT: Le webhook_event doit être le payload JSON brut, pas re-sérialisé
+    const verifyResponse = await fetch(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        auth_algo: headers['paypal-auth-algo'],
+        cert_url: headers['paypal-cert-url'],
+        transmission_id: headers['paypal-transmission-id'],
+        transmission_sig: headers['paypal-transmission-sig'],
+        transmission_time: headers['paypal-transmission-time'],
+        webhook_id: webhookId,
+        webhook_event: JSON.parse(payload),
+      }),
+    });
+
+    if (!verifyResponse.ok) {
+      const errorText = await verifyResponse.text();
+      console.error('[PayPal] Webhook verification API error', {
+        status: verifyResponse.status,
+        error: errorText,
+      });
+      return false;
+    }
+
+    const verifyData = await verifyResponse.json() as { verification_status: string };
+    return verifyData.verification_status === 'SUCCESS';
   }
 
   async refund(transactionId: string, amount?: number): Promise<RefundResult> {

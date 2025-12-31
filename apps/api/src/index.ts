@@ -1,6 +1,7 @@
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
+import { securityHeaders } from './plugins/security-headers';
 import { authRoutes } from './routes/auth';
 import { categoriesRoutes } from './routes/categories';
 import { productsRoutes } from './routes/products';
@@ -29,6 +30,7 @@ import { initAdmin } from './lib/init-admin';
 const port = process.env.API_PORT ?? 7532;
 
 const app = new Elysia()
+  .use(securityHeaders)
   .use(
     cors({
       origin: [

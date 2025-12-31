@@ -46,6 +46,7 @@ const paypalConfigBody = t.Object({
   clientId: t.String({ minLength: 1 }),
   clientSecret: t.String({ minLength: 1 }),
   mode: t.Union([t.Literal('sandbox'), t.Literal('live')]),
+  webhookId: t.String({ minLength: 1 }),
   isEnabled: t.Optional(t.Boolean()),
 });
 
@@ -111,6 +112,7 @@ const providerMeta: Record<
       { key: 'clientId', label: 'Client ID', type: 'text', placeholder: 'AX...' },
       { key: 'clientSecret', label: 'Client Secret', type: 'password', placeholder: 'EL...' },
       { key: 'mode', label: 'Mode', type: 'select', placeholder: 'sandbox' },
+      { key: 'webhookId', label: 'Webhook ID', type: 'text', placeholder: 'WH-...' },
     ],
   },
 };
@@ -180,6 +182,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         clientId: body.clientId,
         clientSecret: body.clientSecret,
         mode: body.mode,
+        webhookId: body.webhookId,
       };
 
       await saveProviderCredentials('paypal', credentials, body.isEnabled ?? true);
@@ -349,11 +352,32 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     '/webhook/paypal',
     async ({ request, status }) => {
       const payload = await request.text();
-      const signature = request.headers.get('paypal-transmission-sig') ?? '';
       const adapter = getPaymentAdapter('paypal');
 
+      // Extraire tous les headers PayPal nécessaires à la vérification
+      const paypalHeaders: Record<string, string> = {
+        'paypal-auth-algo': request.headers.get('paypal-auth-algo') ?? '',
+        'paypal-cert-url': request.headers.get('paypal-cert-url') ?? '',
+        'paypal-transmission-id': request.headers.get('paypal-transmission-id') ?? '',
+        'paypal-transmission-sig': request.headers.get('paypal-transmission-sig') ?? '',
+        'paypal-transmission-time': request.headers.get('paypal-transmission-time') ?? '',
+      };
+
+      // Vérifier que tous les headers requis sont présents
+      const missingHeaders = Object.entries(paypalHeaders)
+        .filter(([, value]) => !value)
+        .map(([key]) => key);
+
+      if (missingHeaders.length > 0) {
+        console.warn('[Webhook PayPal] Missing headers', {
+          missing: missingHeaders,
+          timestamp: new Date().toISOString(),
+        });
+        return status(400, { message: `Missing headers: ${missingHeaders.join(', ')}` });
+      }
+
       try {
-        const result = await adapter.verifyWebhook(payload, signature);
+        const result = await adapter.verifyWebhook(payload, paypalHeaders['paypal-transmission-sig'], paypalHeaders);
 
         console.log('[Webhook PayPal] Event received', {
           orderId: result.orderId ?? 'N/A',

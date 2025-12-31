@@ -80,8 +80,8 @@
 **Moyenne**
 - [x] Whitelist domaines pour URLs de redirection (open redirect)
 - [x] SameSite=strict sur cookies session (admin + customer)
-- [ ] ⚠️ Vérifier SameSite cookies admin (audit a trouvé `lax` dans `auth.ts:116` vs `strict` attendu)
-- [ ] Vérification signature webhook PayPal
+- [x] ⚠️ Vérifier SameSite cookies admin (audit a trouvé `lax` dans `auth.ts:116` vs `strict` attendu)
+- [x] Vérification signature webhook PayPal
 
 **Basse**
 - [x] Réduire durée session (30j → 7j + refresh token)

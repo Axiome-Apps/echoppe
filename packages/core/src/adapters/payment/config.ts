@@ -13,6 +13,7 @@ export interface PayPalCredentials {
   clientId: string;
   clientSecret: string;
   mode: 'sandbox' | 'live';
+  webhookId: string;
 }
 
 export type ProviderCredentials = {

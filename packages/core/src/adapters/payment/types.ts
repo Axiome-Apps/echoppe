@@ -49,8 +49,11 @@ export interface PaymentAdapter {
 
   /**
    * Vérifie et parse un webhook entrant
+   * @param payload - Le body brut du webhook
+   * @param signature - La signature (stripe-signature ou paypal-transmission-sig)
+   * @param headers - Headers additionnels (requis pour PayPal)
    */
-  verifyWebhook(payload: string, signature: string): Promise<PaymentResult>;
+  verifyWebhook(payload: string, signature: string, headers?: Record<string, string>): Promise<PaymentResult>;
 
   /**
    * Effectue un remboursement (total ou partiel)
