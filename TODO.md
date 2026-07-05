@@ -174,6 +174,15 @@
 
 ## V2
 
+### Distribution & découpage repo (framework / template / SDK / CLI)
+> Objectif : framework clé en main « à la Medusa » + front agnostique + CLI wizard `create-echoppe`. **Détail complet : [`docs/internal/distribution-architecture.md`](docs/internal/distribution-architecture.md).** Docker = runtime backend (déjà là) ; npm = SDK + CLI (à créer). Monorepo = plusieurs packages npm publiés depuis 1 repo (pas 1 repo/couche).
+
+- [ ] `@echoppe/client` — SDK TS généré depuis l'OpenAPI, publié npm, versionné en phase avec les tags Docker de l'API (Eden reste pour le dashboard interne)
+- [ ] `examples/store-astro` — template front Astro (remplace `apps/store` Next, obsolète vs choix Astro)
+- [ ] `create-echoppe` — CLI wizard (npm) : scaffold une boutique Astro + SDK configuré + option lancer le backend Docker
+- [ ] Première boutique réelle = **repo Astro hors monorepo**, généré par la CLI, parle à l'API via le SDK
+- [ ] Trancher : contrat externe SDK publié (B) vs génération locale depuis `openapi.json` (C) ; template interne (`examples/`) vs starter sorti
+
 ### Tests
 - [ ] Tests unitaires services critiques (checkout, payments, stock) - `bun:test`
 - [ ] Tests e2e parcours client (inscription → panier → checkout → paiement) - Playwright
