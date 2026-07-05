@@ -155,7 +155,6 @@ export const variant = pgTable('variant', {
   status: productStatusEnum('status').notNull().default('draft'),
   sortOrder: integer('sort_order').notNull().default(0),
   quantity: integer('quantity').notNull().default(0),
-  reserved: integer('reserved').notNull().default(0),
   lowStockThreshold: integer('low_stock_threshold').default(5),
 });
 

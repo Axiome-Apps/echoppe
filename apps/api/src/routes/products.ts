@@ -178,7 +178,6 @@ const variantSchema = t.Object({
   status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
   sortOrder: t.Number(),
   quantity: t.Number(),
-  reserved: t.Number(),
   lowStockThreshold: t.Nullable(t.Number()),
 });
 

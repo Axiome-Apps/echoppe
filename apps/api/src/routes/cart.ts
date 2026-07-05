@@ -254,7 +254,6 @@ export const cartRoutes = new Elysia({
         .select({
           id: variant.id,
           quantity: variant.quantity,
-          reserved: variant.reserved,
           status: variant.status,
         })
         .from(variant)
@@ -268,7 +267,7 @@ export const cartRoutes = new Elysia({
         return status(400, { message: 'Variante non disponible' });
       }
 
-      const availableStock = variantData.quantity - variantData.reserved;
+      const availableStock = variantData.quantity;
       if (availableStock < body.quantity) {
         return status(400, { message: `Stock insuffisant (${availableStock} disponible)` });
       }
@@ -369,11 +368,11 @@ export const cartRoutes = new Elysia({
 
       // Check stock
       const [variantData] = await db
-        .select({ quantity: variant.quantity, reserved: variant.reserved })
+        .select({ quantity: variant.quantity })
         .from(variant)
         .where(eq(variant.id, item.variantId));
 
-      const availableStock = (variantData?.quantity ?? 0) - (variantData?.reserved ?? 0);
+      const availableStock = variantData?.quantity ?? 0;
       if (body.quantity > availableStock) {
         return status(400, { message: `Stock insuffisant (${availableStock} disponible)` });
       }

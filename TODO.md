@@ -152,7 +152,8 @@
 - [x] Checkout Session avec `payment_intent_data.capture_method: 'manual'` (`stripe.ts`) → autorisation seule, pas de débit.
 - [x] Webhook : décrément atomique **gardé** → OK `paymentIntents.capture()` + commande `confirmed` ; KO `paymentIntents.cancel()` + `cancelled` (**client jamais débité**). PayPal (pas de capture manuelle) → fallback `refund()`.
 - [ ] Page retour (`success_url`) pilotée par le **statut réel de la commande** (pas l'URL Stripe) : succès, ou feedback "rupture — vous n'avez pas été débité". → **côté front (store)**, pas encore fait.
-- [ ] Retirer l'échafaudage réservation mort : `variant.reserved` (toujours 0, `catalog.ts:158`), calculs `available = quantity - reserved` (`cart.ts`, `services/checkout.ts`), enum `stockMove: 'reservation'` jamais émis. → cleanup séparé (touche schema + migration).
+- [x] Retirer l'échafaudage réservation mort : colonne `variant.reserved` supprimée (`catalog.ts`) + calculs `quantity - reserved` → `quantity` (`cart.ts`, `services/checkout.ts`, `products.ts`). **Nécessite `bun run db:push --force` pour dropper la colonne en DB.**
+- [ ] (optionnel) Valeur d'enum `stockMove: 'reservation'` laissée en place (inoffensive, jamais émise) — retrait = migration d'enum PG, non prioritaire.
 - [ ] ⚠️ **Prérequis avant prod** : tester le nouveau flux en mode test Stripe (`stripe listen` + `stripe trigger checkout.session.completed`). Sans capture au webhook, un paiement resterait autorisé sans jamais être débité.
 
 **À cadrer — moyens de paiement (capture différée non universelle)**

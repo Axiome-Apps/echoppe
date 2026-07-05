@@ -56,7 +56,6 @@ export interface CartItemWithDetails {
     priceHt: string;
     sku: string | null;
     quantity: number;
-    reserved: number;
   };
   product: {
     id: string;
@@ -139,7 +138,6 @@ export async function getCartItems(cartId: string): Promise<CartItemWithDetails[
         priceHt: variant.priceHt,
         sku: variant.sku,
         quantity: variant.quantity,
-        reserved: variant.reserved,
       },
       product: {
         id: product.id,
@@ -155,7 +153,7 @@ export async function getCartItems(cartId: string): Promise<CartItemWithDetails[
 
 export function validateStock(items: CartItemWithDetails[]): string | null {
   for (const item of items) {
-    const available = item.variant.quantity - item.variant.reserved;
+    const available = item.variant.quantity;
     if (item.quantity > available) {
       return `Stock insuffisant pour ${item.product.name} (${available} disponible)`;
     }
