@@ -50,7 +50,7 @@ services:
     ports:
       - '7532:7532'
     volumes:
-      - ./uploads:/app/uploads
+      - ./apps/api/uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -81,7 +81,7 @@ services:
     container_name: echoppe-store
     restart: unless-stopped
     ports:
-      - '3141:3000'
+      - '3142:3000'
     depends_on:
       - api
 

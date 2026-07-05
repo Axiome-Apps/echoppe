@@ -141,6 +141,27 @@
 - [ ] Uniformiser les messages d'erreur API (français vs anglais)
 - [ ] Inférer le type `Invoice` depuis Eden dans `OrderDetailView.vue` au lieu d'interface manuelle
 
+### Stock & Concurrence (refonte — décidé)
+> Décrément "atomique" (l.77) transactionnel mais **sans garde** → survente possible. **Stratégie retenue : capture manuelle Stripe + garde atomique Postgres** (boutiques Échoppe = beaucoup de pièces uniques → collisions fréquentes sur le dernier/seul exemplaire). L'autorisation Stripe remplace le système de réservation maison. BullMQ écarté (surdimensionné).
+
+**Bug (prioritaire — base de tout le reste)**
+- [ ] Survente non bloquée — `payments.ts:551` : `UPDATE variant SET quantity = quantity - qty` sans `WHERE quantity >= qty` ni check du rowCount → stock peut devenir négatif sur paiements concurrents. Ajouter la garde + rollback si insuffisant.
+
+**Socle décidé — capture manuelle (obligatoire)**
+- [ ] Checkout Session avec `payment_intent_data.capture_method: 'manual'` → autorisation seule, pas de débit.
+- [ ] Webhook : décrément atomique **gardé** → si OK `paymentIntents.capture()` + création commande ; si KO `paymentIntents.cancel()` + statut rupture (**client jamais débité**).
+- [ ] Page retour (`success_url`) pilotée par le **statut réel de la commande** (pas l'URL Stripe) : succès, ou feedback "rupture — vous n'avez pas été débité".
+- [ ] Retirer l'échafaudage réservation mort : `variant.reserved` (toujours 0, `catalog.ts:158`), calculs `available = quantity - reserved` (`cart.ts`, `services/checkout.ts`), enum `stockMove: 'reservation'` jamais émis. Remplacé par la capture manuelle.
+
+**À cadrer — moyens de paiement (capture différée non universelle)**
+- [ ] Matrice compatibilité : carte / Apple Pay / Google Pay → capture manuelle OK ; virement SEPA / BNPL (Klarna...) → capture différée non supportée.
+- [ ] Décider : n'activer que les moyens compatibles capture manuelle, OU fallback capture immédiate + refund auto pour les moyens incompatibles.
+- [ ] PayPal (adapter existant) : vérifier l'équivalent authorize/capture (intent `authorize`).
+
+**Écarté**
+- [ ] ~~Réservation maison (`reserved` + TTL + job)~~ → remplacé par l'autorisation Stripe.
+- [ ] ~~BullMQ / Queue-Based Load Leveling~~ → sauf drops massifs (non pertinent artisan). Infra Redis déjà là (`ioredis` + compose) si besoin futur.
+
 ### UI/UX
 - [ ] Revoir les espacements et alignements sur le dashboard admin
 - [ ] Améliorer les feedbacks visuels (loading states, toasts)
