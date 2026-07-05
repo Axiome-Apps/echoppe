@@ -1,12 +1,13 @@
 import Stripe from 'stripe';
+import { getProviderCredentials, getProviderStatus } from './config';
 import type {
+  CaptureResult,
   CheckoutParams,
   CheckoutSession,
   PaymentAdapter,
   PaymentResult,
   RefundResult,
 } from './types';
-import { getProviderCredentials, getProviderStatus } from './config';
 
 export class StripeAdapter implements PaymentAdapter {
   readonly provider = 'stripe' as const;
@@ -37,28 +38,32 @@ export class StripeAdapter implements PaymentAdapter {
       throw new Error('Stripe is not configured.');
     }
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
-      params.lineItems?.map((item) => ({
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = params.lineItems?.map(
+      (item) => ({
         price_data: {
           currency: params.currency.toLowerCase(),
           product_data: { name: item.name },
           unit_amount: item.unitAmount,
         },
         quantity: item.quantity,
-      })) ?? [
-        {
-          price_data: {
-            currency: params.currency.toLowerCase(),
-            product_data: { name: `Commande ${params.orderId}` },
-            unit_amount: params.amount,
-          },
-          quantity: 1,
+      }),
+    ) ?? [
+      {
+        price_data: {
+          currency: params.currency.toLowerCase(),
+          product_data: { name: `Commande ${params.orderId}` },
+          unit_amount: params.amount,
         },
-      ];
+        quantity: 1,
+      },
+    ];
 
     const session = await this.client.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
+      // Capture manuelle : Stripe autorise (empreinte) sans débiter. La capture
+      // ou l'annulation est décidée au webhook, après revérification du stock.
+      payment_intent_data: { capture_method: 'manual' },
       line_items: lineItems,
       success_url: params.successUrl,
       cancel_url: params.cancelUrl,
@@ -81,18 +86,18 @@ export class StripeAdapter implements PaymentAdapter {
     };
   }
 
-  async verifyWebhook(payload: string, signature: string, _headers?: Record<string, string>): Promise<PaymentResult> {
+  async verifyWebhook(
+    payload: string,
+    signature: string,
+    _headers?: Record<string, string>,
+  ): Promise<PaymentResult> {
     await this.ensureInitialized();
 
     if (!this.client || !this.webhookSecret) {
       throw new Error('Stripe webhook is not configured.');
     }
 
-    const event = this.client.webhooks.constructEvent(
-      payload,
-      signature,
-      this.webhookSecret,
-    );
+    const event = this.client.webhooks.constructEvent(payload, signature, this.webhookSecret);
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -156,6 +161,44 @@ export class StripeAdapter implements PaymentAdapter {
         success: refund.status === 'succeeded',
         refundId: refund.id,
       };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  async capturePayment(transactionId: string): Promise<CaptureResult> {
+    await this.ensureInitialized();
+
+    if (!this.client) {
+      throw new Error('Stripe is not configured.');
+    }
+
+    try {
+      const intent = await this.client.paymentIntents.capture(transactionId);
+      return { success: intent.status === 'succeeded' };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  async cancelPayment(transactionId: string): Promise<CaptureResult> {
+    await this.ensureInitialized();
+
+    if (!this.client) {
+      throw new Error('Stripe is not configured.');
+    }
+
+    try {
+      // PaymentIntent en `requires_capture` : l'annulation libère les fonds
+      // autorisés, le client n'est jamais débité.
+      await this.client.paymentIntents.cancel(transactionId);
+      return { success: true };
     } catch (error) {
       return {
         success: false,

@@ -145,18 +145,20 @@
 > Décrément "atomique" (l.77) transactionnel mais **sans garde** → survente possible. **Stratégie retenue : capture manuelle Stripe + garde atomique Postgres** (boutiques Échoppe = beaucoup de pièces uniques → collisions fréquentes sur le dernier/seul exemplaire). L'autorisation Stripe remplace le système de réservation maison. BullMQ écarté (surdimensionné).
 
 **Bug (prioritaire — base de tout le reste)**
-- [ ] Survente non bloquée — `payments.ts:551` : `UPDATE variant SET quantity = quantity - qty` sans `WHERE quantity >= qty` ni check du rowCount → stock peut devenir négatif sur paiements concurrents. Ajouter la garde + rollback si insuffisant.
+- [x] Survente non bloquée — garde `WHERE quantity >= qty` + `.returning()` (rollback si insuffisant) dans `handlePaymentResult` (`payments.ts`).
+- [x] Idempotence webhook — court-circuit `payment.status === 'completed'` + verrou `FOR UPDATE` avec recontrôle (bloque le double décrément sur rejeu/concurrence).
 
 **Socle décidé — capture manuelle (obligatoire)**
-- [ ] Checkout Session avec `payment_intent_data.capture_method: 'manual'` → autorisation seule, pas de débit.
-- [ ] Webhook : décrément atomique **gardé** → si OK `paymentIntents.capture()` + création commande ; si KO `paymentIntents.cancel()` + statut rupture (**client jamais débité**).
-- [ ] Page retour (`success_url`) pilotée par le **statut réel de la commande** (pas l'URL Stripe) : succès, ou feedback "rupture — vous n'avez pas été débité".
-- [ ] Retirer l'échafaudage réservation mort : `variant.reserved` (toujours 0, `catalog.ts:158`), calculs `available = quantity - reserved` (`cart.ts`, `services/checkout.ts`), enum `stockMove: 'reservation'` jamais émis. Remplacé par la capture manuelle.
+- [x] Checkout Session avec `payment_intent_data.capture_method: 'manual'` (`stripe.ts`) → autorisation seule, pas de débit.
+- [x] Webhook : décrément atomique **gardé** → OK `paymentIntents.capture()` + commande `confirmed` ; KO `paymentIntents.cancel()` + `cancelled` (**client jamais débité**). PayPal (pas de capture manuelle) → fallback `refund()`.
+- [ ] Page retour (`success_url`) pilotée par le **statut réel de la commande** (pas l'URL Stripe) : succès, ou feedback "rupture — vous n'avez pas été débité". → **côté front (store)**, pas encore fait.
+- [ ] Retirer l'échafaudage réservation mort : `variant.reserved` (toujours 0, `catalog.ts:158`), calculs `available = quantity - reserved` (`cart.ts`, `services/checkout.ts`), enum `stockMove: 'reservation'` jamais émis. → cleanup séparé (touche schema + migration).
+- [ ] ⚠️ **Prérequis avant prod** : tester le nouveau flux en mode test Stripe (`stripe listen` + `stripe trigger checkout.session.completed`). Sans capture au webhook, un paiement resterait autorisé sans jamais être débité.
 
 **À cadrer — moyens de paiement (capture différée non universelle)**
-- [ ] Matrice compatibilité : carte / Apple Pay / Google Pay → capture manuelle OK ; virement SEPA / BNPL (Klarna...) → capture différée non supportée.
-- [ ] Décider : n'activer que les moyens compatibles capture manuelle, OU fallback capture immédiate + refund auto pour les moyens incompatibles.
-- [ ] PayPal (adapter existant) : vérifier l'équivalent authorize/capture (intent `authorize`).
+- [x] État actuel : Stripe = carte only (`payment_method_types: ['card']`) → capture manuelle 100 % compatible. Rien à changer tant que carte only.
+- [ ] Si ajout SEPA / BNPL (Klarna...) plus tard : n'activer que les moyens compatibles capture manuelle, OU fallback capture immédiate + refund.
+- [x] PayPal : laissé en capture immédiate + refund-à-l'échec (fallback). Authorize/capture PayPal → à explorer si besoin.
 
 **Écarté**
 - [ ] ~~Réservation maison (`reserved` + TTL + job)~~ → remplacé par l'autorisation Stripe.

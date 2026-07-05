@@ -39,6 +39,11 @@ export interface RefundResult {
   error?: string;
 }
 
+export interface CaptureResult {
+  success: boolean;
+  error?: string;
+}
+
 export interface PaymentAdapter {
   readonly provider: PaymentProvider;
 
@@ -53,12 +58,29 @@ export interface PaymentAdapter {
    * @param signature - La signature (stripe-signature ou paypal-transmission-sig)
    * @param headers - Headers additionnels (requis pour PayPal)
    */
-  verifyWebhook(payload: string, signature: string, headers?: Record<string, string>): Promise<PaymentResult>;
+  verifyWebhook(
+    payload: string,
+    signature: string,
+    headers?: Record<string, string>,
+  ): Promise<PaymentResult>;
 
   /**
    * Effectue un remboursement (total ou partiel)
    */
   refund(transactionId: string, amount?: number): Promise<RefundResult>;
+
+  /**
+   * Capture une autorisation préalable (capture manuelle).
+   * Présent uniquement sur les adapters supportant la capture différée (Stripe).
+   * Son absence signale un adapter en capture immédiate (PayPal).
+   */
+  capturePayment?(transactionId: string): Promise<CaptureResult>;
+
+  /**
+   * Annule une autorisation non capturée → fonds libérés, aucun débit.
+   * Va de pair avec `capturePayment` (capture manuelle uniquement).
+   */
+  cancelPayment?(transactionId: string): Promise<CaptureResult>;
 
   /**
    * Vérifie si l'adapter est configuré (credentials présents et activé)

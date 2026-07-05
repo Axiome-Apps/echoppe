@@ -1,12 +1,13 @@
+import type { PaymentProvider, PayPalCredentials, StripeCredentials } from '@echoppe/core';
 import {
-  db,
-  eq,
   and,
-  sql,
   cart,
   customer,
+  db,
+  eq,
   getPaymentAdapter,
   getProviderStatus,
+  gte,
   isEncryptionConfigured,
   order,
   orderItem,
@@ -15,15 +16,15 @@ import {
   resetPaymentAdapters,
   saveProviderCredentials,
   sendOrderConfirmation,
+  sql,
   stockMove,
   variant,
 } from '@echoppe/core';
-import type { PaymentProvider, PayPalCredentials, StripeCredentials } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { permissionGuard } from '../plugins/rbac';
 import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
+import { permissionGuard } from '../plugins/rbac';
+import { errorSchema, successSchema } from '../utils/responses';
 import { validateCheckoutUrls } from '../utils/url-validation';
-import { successSchema, errorSchema } from '../utils/responses';
 
 const checkoutBody = t.Object({
   orderId: t.String({ format: 'uuid' }),
@@ -95,7 +96,11 @@ const refundResultSchema = t.Object({
 
 const providerMeta: Record<
   PaymentProvider,
-  { name: string; description: string; fields: { key: string; label: string; type: string; placeholder?: string }[] }
+  {
+    name: string;
+    description: string;
+    fields: { key: string; label: string; type: string; placeholder?: string }[];
+  }
 > = {
   stripe: {
     name: 'Stripe',
@@ -167,7 +172,11 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return { success: true };
     },
-    { permission: true, body: stripeConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: stripeConfigBody,
+      response: { 200: successSchema, 400: errorSchema },
+    },
   )
 
   // PUT /payments/providers/paypal - Configure PayPal
@@ -190,7 +199,11 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       return { success: true };
     },
-    { permission: true, body: paypalConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: paypalConfigBody,
+      response: { 200: successSchema, 400: errorSchema },
+    },
   )
 
   // === CUSTOMER CHECKOUT (requires customer auth) ===
@@ -302,7 +315,12 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       customerAuth: true,
       cookie: t.Cookie({ echoppe_customer_session: t.Optional(t.String()) }),
       body: checkoutBody,
-      response: { 200: checkoutSessionSchema, 400: errorSchema, 403: errorSchema, 404: errorSchema },
+      response: {
+        200: checkoutSessionSchema,
+        400: errorSchema,
+        403: errorSchema,
+        404: errorSchema,
+      },
     },
   )
 
@@ -377,7 +395,11 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       }
 
       try {
-        const result = await adapter.verifyWebhook(payload, paypalHeaders['paypal-transmission-sig'], paypalHeaders);
+        const result = await adapter.verifyWebhook(
+          payload,
+          paypalHeaders['paypal-transmission-sig'],
+          paypalHeaders,
+        );
 
         console.log('[Webhook PayPal] Event received', {
           orderId: result.orderId ?? 'N/A',
@@ -483,112 +505,191 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     },
   );
 
+// Erreur interne signalant un stock insuffisant au moment de la capture
+// (déclenche l'annulation de l'autorisation / le remboursement).
+class InsufficientStockError extends Error {
+  constructor(readonly variantId: string) {
+    super(`Insufficient stock for variant ${variantId}`);
+    this.name = 'InsufficientStockError';
+  }
+}
+
 // Helper pour traiter les résultats de paiement
 async function handlePaymentResult(
   orderId: string,
-  _provider: PaymentProvider,
+  provider: PaymentProvider,
   result: { transactionId: string; status: string; rawData: unknown },
 ) {
-  const [paymentData] = await db
-    .select()
-    .from(payment)
-    .where(eq(payment.order, orderId));
+  const adapter = getPaymentAdapter(provider);
+
+  const [paymentData] = await db.select().from(payment).where(eq(payment.order, orderId));
 
   if (!paymentData) {
     console.error(`Payment not found for order ${orderId}`);
     return;
   }
 
-  // Mettre à jour le paiement
-  await db
-    .update(payment)
-    .set({
-      status: result.status as 'completed' | 'failed' | 'refunded',
-      providerTransactionId: result.transactionId,
-      dateUpdated: new Date(),
-    })
-    .where(eq(payment.id, paymentData.id));
-
-  // Log l'événement
+  // Journaliser l'événement reçu (audit), y compris les rejeux
   await db.insert(paymentEvent).values({
     payment: paymentData.id,
     type: result.status === 'completed' ? 'success' : result.status,
     data: result.rawData,
   });
 
-  // Mettre à jour le statut de la commande si paiement réussi
-  if (result.status === 'completed') {
-    // Get the order with customer info
-    const [orderData] = await db
-      .select({
-        customerId: order.customer,
-        orderNumber: order.orderNumber,
-        totalTtc: order.totalTtc,
+  // Événements non finaux (failed / refunded / …) : simple mise à jour du statut
+  if (result.status !== 'completed') {
+    await db
+      .update(payment)
+      .set({
+        status: result.status as 'failed' | 'refunded',
+        providerTransactionId: result.transactionId,
+        dateUpdated: new Date(),
       })
-      .from(order)
-      .where(eq(order.id, orderId));
+      .where(eq(payment.id, paymentData.id));
+    return;
+  }
 
-    if (orderData) {
-      // Decrement stock in a transaction
-      const items = await db
-        .select({
-          variantId: orderItem.variant,
-          quantity: orderItem.quantity,
-          label: orderItem.label,
-        })
-        .from(orderItem)
-        .where(eq(orderItem.order, orderId));
+  // Idempotence : un webhook rejoué ne doit pas re-décrémenter le stock
+  if (paymentData.status === 'completed') {
+    console.log(`[Payment] Order ${orderId} already processed, skipping (idempotency)`);
+    return;
+  }
 
-      await db.transaction(async (tx) => {
-        for (const item of items) {
-          // Skip items without a variant (should not happen in practice)
-          if (!item.variantId) continue;
+  const [orderData] = await db
+    .select({
+      customerId: order.customer,
+      orderNumber: order.orderNumber,
+      totalTtc: order.totalTtc,
+    })
+    .from(order)
+    .where(eq(order.id, orderId));
 
-          // Decrement variant quantity
-          await tx
-            .update(variant)
-            .set({
-              quantity: sql`${variant.quantity} - ${item.quantity}`,
-            })
-            .where(eq(variant.id, item.variantId));
+  if (!orderData) {
+    console.error(`Order not found for payment ${paymentData.id}`);
+    return;
+  }
 
-          // Create stock movement record
-          await tx.insert(stockMove).values({
-            variant: item.variantId,
-            label: item.label,
-            quantity: -item.quantity,
-            type: 'sale',
-            reference: orderData.orderNumber,
-          });
+  const items = await db
+    .select({
+      variantId: orderItem.variant,
+      quantity: orderItem.quantity,
+      label: orderItem.label,
+    })
+    .from(orderItem)
+    .where(eq(orderItem.order, orderId));
+
+  // Décrément atomique gardé + marquage, sérialisé par un verrou sur le paiement
+  let stockAvailable = true;
+  try {
+    await db.transaction(async (tx) => {
+      // Verrou + recontrôle d'idempotence (webhooks concurrents)
+      const [locked] = await tx
+        .select({ status: payment.status })
+        .from(payment)
+        .where(eq(payment.id, paymentData.id))
+        .for('update');
+      if (locked?.status === 'completed') return;
+
+      for (const item of items) {
+        if (!item.variantId) continue;
+
+        // La clause `quantity >= qty` EST la revérification : garde anti-survente
+        const decremented = await tx
+          .update(variant)
+          .set({ quantity: sql`${variant.quantity} - ${item.quantity}` })
+          .where(and(eq(variant.id, item.variantId), gte(variant.quantity, item.quantity)))
+          .returning({ id: variant.id });
+
+        if (decremented.length === 0) {
+          throw new InsufficientStockError(item.variantId);
         }
-      });
 
-      // Convert customer's active cart
-      await db
-        .update(cart)
-        .set({ status: 'converted', dateUpdated: new Date() })
-        .where(and(eq(cart.customer, orderData.customerId), eq(cart.status, 'active')));
-
-      // Get customer email
-      const [customerData] = await db
-        .select({ email: customer.email, firstName: customer.firstName })
-        .from(customer)
-        .where(eq(customer.id, orderData.customerId));
-
-      // Send order confirmation email
-      if (customerData) {
-        await sendOrderConfirmation({
-          customerEmail: customerData.email,
-          customerName: customerData.firstName ?? undefined,
-          orderNumber: orderData.orderNumber,
-          total: orderData.totalTtc,
+        await tx.insert(stockMove).values({
+          variant: item.variantId,
+          label: item.label,
+          quantity: -item.quantity,
+          type: 'sale',
+          reference: orderData.orderNumber,
         });
       }
-    }
 
+      await tx
+        .update(payment)
+        .set({
+          status: 'completed',
+          providerTransactionId: result.transactionId,
+          dateUpdated: new Date(),
+        })
+        .where(eq(payment.id, paymentData.id));
+
+      await tx
+        .update(order)
+        .set({ status: 'confirmed', dateUpdated: new Date() })
+        .where(eq(order.id, orderId));
+    });
+  } catch (error) {
+    if (error instanceof InsufficientStockError) {
+      stockAvailable = false;
+    } else {
+      throw error; // erreur inattendue → webhook 400, le provider retentera
+    }
+  }
+
+  // Rupture : annuler l'autorisation (capture manuelle) ou rembourser (capture immédiate)
+  if (!stockAvailable) {
+    if (adapter.cancelPayment) {
+      await adapter.cancelPayment(result.transactionId);
+    } else {
+      await adapter.refund(result.transactionId);
+    }
+    await db
+      .update(payment)
+      .set({
+        status: 'failed',
+        providerTransactionId: result.transactionId,
+        dateUpdated: new Date(),
+      })
+      .where(eq(payment.id, paymentData.id));
     await db
       .update(order)
-      .set({ status: 'confirmed', dateUpdated: new Date() })
+      .set({ status: 'cancelled', dateUpdated: new Date() })
       .where(eq(order.id, orderId));
+    console.warn(
+      `[Payment] Order ${orderId} cancelled — insufficient stock, payment ${adapter.cancelPayment ? 'authorization cancelled' : 'refunded'}`,
+    );
+    return;
+  }
+
+  // Succès : capturer l'autorisation (capture manuelle). Sans `capturePayment`,
+  // le paiement est déjà capturé (capture immédiate) → rien à faire.
+  if (adapter.capturePayment) {
+    const captured = await adapter.capturePayment(result.transactionId);
+    if (!captured.success) {
+      // Stock décrémenté et commande confirmée mais capture échouée (rare) :
+      // l'autorisation reste valide, à recapturer manuellement. On alerte.
+      console.error(
+        `[Payment] Capture failed for order ${orderId}: ${captured.error ?? 'unknown'}`,
+      );
+    }
+  }
+
+  // Convertir le panier actif et envoyer la confirmation
+  await db
+    .update(cart)
+    .set({ status: 'converted', dateUpdated: new Date() })
+    .where(and(eq(cart.customer, orderData.customerId), eq(cart.status, 'active')));
+
+  const [customerData] = await db
+    .select({ email: customer.email, firstName: customer.firstName })
+    .from(customer)
+    .where(eq(customer.id, orderData.customerId));
+
+  if (customerData) {
+    await sendOrderConfirmation({
+      customerEmail: customerData.email,
+      customerName: customerData.firstName ?? undefined,
+      orderNumber: orderData.orderNumber,
+      total: orderData.totalTtc,
+    });
   }
 }
