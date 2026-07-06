@@ -19,7 +19,12 @@ const editingProvider = ref<Provider | null>(null);
 
 // Form state
 const stripeForm = ref({ secretKey: '', webhookSecret: '' });
-const paypalForm = ref({ clientId: '', clientSecret: '', mode: 'sandbox' as 'sandbox' | 'live' });
+const paypalForm = ref({
+  clientId: '',
+  clientSecret: '',
+  webhookId: '',
+  mode: 'sandbox' as 'sandbox' | 'live',
+});
 
 const apiBaseUrl = computed(() => {
   const url = import.meta.env.VITE_API_URL || 'http://localhost:7532';
@@ -41,7 +46,7 @@ function openConfig(provider: Provider) {
   editingProvider.value = provider;
   // Reset forms
   stripeForm.value = { secretKey: '', webhookSecret: '' };
-  paypalForm.value = { clientId: '', clientSecret: '', mode: 'sandbox' };
+  paypalForm.value = { clientId: '', clientSecret: '', webhookId: '', mode: 'sandbox' };
   showModal.value = true;
 }
 
@@ -369,6 +374,18 @@ function copyWebhookUrl(provider: string) {
               v-model="paypalForm.clientSecret"
               type="password"
               placeholder="EL..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Webhook ID
+            </label>
+            <input
+              v-model="paypalForm.webhookId"
+              type="text"
+              placeholder="WH-..."
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

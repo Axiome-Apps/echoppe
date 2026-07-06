@@ -1,4 +1,4 @@
-import type { Context, Options, Generator } from 'elysia-rate-limit';
+import type { Context, Generator, Options } from 'elysia-rate-limit';
 import Redis from 'ioredis';
 
 // Redis client singleton
@@ -16,29 +16,37 @@ class RedisContext implements Context {
   }
 
   init(options: Omit<Options, 'context'>): void {
-    this.duration = options.duration;
+    // `duration` peut désormais être une fonction ; on ne garde que le cas
+    // numérique comme valeur par défaut (la lib passe la durée résolue à `increment`).
+    if (typeof options.duration === 'number') {
+      this.duration = options.duration;
+    }
   }
 
-  async increment(key: string): Promise<{ count: number; nextReset: Date }> {
+  async increment(
+    key: string,
+    duration: number = this.duration,
+    requestTime: number = Date.now(),
+  ): Promise<{ count: number; nextReset: Date; start: number }> {
     const redisKey = `${this.prefix}${key}`;
-    const now = Date.now();
 
     if (!redis) {
       // Fallback: no limit if Redis not available
-      return { count: 0, nextReset: new Date(now + this.duration) };
+      return { count: 0, nextReset: new Date(requestTime + duration), start: requestTime };
     }
 
     const count = await redis.incr(redisKey);
 
     // Set expiry on first request
     if (count === 1) {
-      await redis.expire(redisKey, Math.ceil(this.duration / 1000));
+      await redis.expire(redisKey, Math.ceil(duration / 1000));
     }
 
     const ttl = await redis.ttl(redisKey);
-    const nextReset = new Date(now + ttl * 1000);
+    const nextReset = new Date(requestTime + ttl * 1000);
+    const start = nextReset.getTime() - duration;
 
-    return { count, nextReset };
+    return { count, nextReset, start };
   }
 
   async decrement(key: string): Promise<void> {
@@ -94,10 +102,10 @@ function createRateLimitOptions(config: {
     max: config.max,
     generator: ipGenerator,
     context: new RedisContext(config.prefix),
-    errorResponse: new Response(
-      JSON.stringify({ message: config.message }),
-      { status: 429, headers: { 'Content-Type': 'application/json' } }
-    ),
+    errorResponse: new Response(JSON.stringify({ message: config.message }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json' },
+    }),
   };
 }
 
