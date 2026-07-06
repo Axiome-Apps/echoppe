@@ -20,17 +20,17 @@
   },
   "dependencies": {
     "@echoppe/shared": "workspace:*",
-    "@getbrevo/brevo": "^3.0.4",
+    "@getbrevo/brevo": "6",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "drizzle-orm": "^0.45.2",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "9",
     "postgres": "^3.4.9",
     "resend": "^6.17.1",
     "stripe": "22",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/nodemailer": "^7.0.12",
+    "@types/nodemailer": "8",
     "bun-types": "^1.3.14",
     "drizzle-kit": "^0.31.10",
     "typescript": "6.0.3"

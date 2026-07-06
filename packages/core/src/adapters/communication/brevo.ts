@@ -1,11 +1,11 @@
-import * as Brevo from '@getbrevo/brevo';
-import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
+import { BrevoClient } from '@getbrevo/brevo';
 import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
 import { renderTemplate } from './templates';
+import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
 
 export class BrevoAdapter implements CommunicationAdapter {
   readonly provider = 'brevo' as const;
-  private client: Brevo.TransactionalEmailsApi | null = null;
+  private client: BrevoClient | null = null;
   private initialized = false;
 
   private async ensureInitialized(): Promise<void> {
@@ -13,8 +13,7 @@ export class BrevoAdapter implements CommunicationAdapter {
 
     const credentials = await getProviderCredentials('brevo');
     if (credentials) {
-      this.client = new Brevo.TransactionalEmailsApi();
-      this.client.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, credentials.apiKey);
+      this.client = new BrevoClient({ apiKey: credentials.apiKey });
     }
     this.initialized = true;
   }
@@ -32,14 +31,8 @@ export class BrevoAdapter implements CommunicationAdapter {
     }
 
     try {
-      const accountApi = new Brevo.AccountApi();
-      const credentials = await getProviderCredentials('brevo');
-      if (credentials) {
-        accountApi.setApiKey(Brevo.AccountApiApiKeys.apiKey, credentials.apiKey);
-        await accountApi.getAccount();
-        return true;
-      }
-      return false;
+      await this.client.account.getAccount();
+      return true;
     } catch {
       return false;
     }
@@ -59,21 +52,17 @@ export class BrevoAdapter implements CommunicationAdapter {
 
     try {
       const html = renderTemplate(message.template, message.data);
-
-      const sendSmtpEmail = new Brevo.SendSmtpEmail();
-      sendSmtpEmail.sender = { name: config.fromName, email: config.fromEmail };
-      sendSmtpEmail.to = [{ email: message.to }];
-      sendSmtpEmail.subject = message.subject;
-      sendSmtpEmail.htmlContent = html;
-
       const replyToEmail = message.replyTo ?? config.replyTo;
-      if (replyToEmail) {
-        sendSmtpEmail.replyTo = { email: replyToEmail };
-      }
 
-      const response = await this.client.sendTransacEmail(sendSmtpEmail);
+      const response = await this.client.transactionalEmails.sendTransacEmail({
+        sender: { name: config.fromName, email: config.fromEmail },
+        to: [{ email: message.to }],
+        subject: message.subject,
+        htmlContent: html,
+        ...(replyToEmail ? { replyTo: { email: replyToEmail } } : {}),
+      });
 
-      return { success: true, messageId: response.body.messageId };
+      return { success: true, messageId: response.messageId };
     } catch (err) {
       return {
         success: false,
