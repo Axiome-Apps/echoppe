@@ -211,6 +211,37 @@ const variantSchema = t.Object({
   lowStockThreshold: t.Nullable(t.Number()),
 });
 
+// Variant enrichi de ses valeurs d'option (fiche produit).
+const variantDetailSchema = t.Composite([
+  variantSchema,
+  t.Object({ optionValues: t.Array(t.String()) }),
+]);
+
+// Option enrichie de ses valeurs (fiche produit).
+const optionDetailSchema = t.Composite([
+  optionSchema,
+  t.Object({ sortOrder: t.Number(), values: t.Array(optionValueSchema) }),
+]);
+
+// Produit + variants + options (retour de GET /products/:id).
+const productWithVariantsSchema = t.Composite([
+  productSchema,
+  t.Object({
+    variants: t.Array(variantDetailSchema),
+    options: t.Array(optionDetailSchema),
+  }),
+]);
+
+// Fiche produit détaillée storefront (GET /products/by-slug/:slug) :
+// ci-dessus + image mise en avant + galerie.
+const productDetailSchema = t.Composite([
+  productWithVariantsSchema,
+  t.Object({
+    featuredImage: t.Nullable(t.String()),
+    images: t.Array(t.String()),
+  }),
+]);
+
 export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: ['Products'] } })
 
   // === PUBLIC ROUTES ===
@@ -450,7 +481,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         options: filteredOptions,
       };
     },
-    { params: t.Object({ slug: t.String() }), response: withNotFound({}) },
+    { params: t.Object({ slug: t.String() }), response: withNotFound({ 200: productDetailSchema }) },
   )
 
   // GET /products/:id - Get one with variants (public)
@@ -502,7 +533,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return { ...found, variants: variantsWithOptions, options: optionsWithValues };
     },
-    { params: productParams, response: withNotFound({}) },
+    { params: productParams, response: withNotFound({ 200: productWithVariantsSchema }) },
   )
 
   // GET /products/:id/variants (public)

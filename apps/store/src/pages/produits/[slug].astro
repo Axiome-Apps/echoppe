@@ -4,17 +4,16 @@ import { api, formatPrice, mediaUrl } from '../../lib/api';
 
 const { slug } = Astro.params;
 
-// NB : on lit l'endpoint liste (typé via le SDK) plutôt que /products/by-slug,
-// dont la réponse 200 n'est pas encore décrite dans l'OpenAPI (contrat à stabiliser).
-const { data } = await api.GET('/products/');
-const product = (data?.data ?? []).find((p) => p.slug === slug && p.status === 'published');
+const { data: product } = await api.GET('/products/by-slug/{slug}', {
+  params: { path: { slug: slug ?? '' } },
+});
 
 if (!product) {
   Astro.response.status = 404;
 }
 
 const image = mediaUrl(product?.featuredImage);
-const price = product?.defaultVariant?.priceHt;
+const price = product?.variants?.[0]?.priceHt;
 ---
 
 <Layout title={product ? `${product.name} — Boutique Échoppe` : 'Produit introuvable'}>

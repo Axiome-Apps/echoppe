@@ -2647,6 +2647,59 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                        category: string;
+                        taxRate: string;
+                        name: string;
+                        slug: string;
+                        description: (string | null) | null;
+                        /** @enum {string} */
+                        status: "draft" | "published" | "archived";
+                        dateCreated: Record<string, never> | string | number;
+                        dateUpdated: Record<string, never> | string | number;
+                        variants: {
+                            id: string;
+                            product: string;
+                            sku: (string | null) | null;
+                            barcode: (string | null) | null;
+                            priceHt: string;
+                            compareAtPriceHt: (string | null) | null;
+                            costPrice: (string | null) | null;
+                            weight: (string | null) | null;
+                            length: (string | null) | null;
+                            width: (string | null) | null;
+                            height: (string | null) | null;
+                            isDefault: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "published" | "archived";
+                            sortOrder: number;
+                            quantity: number;
+                            lowStockThreshold: (number | null) | null;
+                            optionValues: string[];
+                        }[];
+                        options: {
+                            id: string;
+                            name: string;
+                            sortOrder: number;
+                            values: {
+                                id: string;
+                                option: string;
+                                value: string;
+                                sortOrder: number;
+                            }[];
+                        }[];
+                        featuredImage: (string | null) | null;
+                        images: string[];
+                    };
+                };
+            };
             /** @description Ressource non trouvée */
             404: {
                 headers: {
@@ -2672,6 +2725,57 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                        category: string;
+                        taxRate: string;
+                        name: string;
+                        slug: string;
+                        description: (string | null) | null;
+                        /** @enum {string} */
+                        status: "draft" | "published" | "archived";
+                        dateCreated: Record<string, never> | string | number;
+                        dateUpdated: Record<string, never> | string | number;
+                        variants: {
+                            id: string;
+                            product: string;
+                            sku: (string | null) | null;
+                            barcode: (string | null) | null;
+                            priceHt: string;
+                            compareAtPriceHt: (string | null) | null;
+                            costPrice: (string | null) | null;
+                            weight: (string | null) | null;
+                            length: (string | null) | null;
+                            width: (string | null) | null;
+                            height: (string | null) | null;
+                            isDefault: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "published" | "archived";
+                            sortOrder: number;
+                            quantity: number;
+                            lowStockThreshold: (number | null) | null;
+                            optionValues: string[];
+                        }[];
+                        options: {
+                            id: string;
+                            name: string;
+                            sortOrder: number;
+                            values: {
+                                id: string;
+                                option: string;
+                                value: string;
+                                sortOrder: number;
+                            }[];
+                        }[];
+                    };
+                };
+            };
             /** @description Ressource non trouvée */
             404: {
                 headers: {
@@ -2991,7 +3095,6 @@ export interface operations {
                         status: "draft" | "published" | "archived";
                         sortOrder: number;
                         quantity: number;
-                        reserved: number;
                         lowStockThreshold: (number | null) | null;
                     }[];
                 };
@@ -3098,7 +3201,6 @@ export interface operations {
                         status: "draft" | "published" | "archived";
                         sortOrder: number;
                         quantity: number;
-                        reserved: number;
                         lowStockThreshold: (number | null) | null;
                     };
                 };
@@ -3242,7 +3344,6 @@ export interface operations {
                         status: "draft" | "published" | "archived";
                         sortOrder: number;
                         quantity: number;
-                        reserved: number;
                         lowStockThreshold: (number | null) | null;
                     };
                 };
