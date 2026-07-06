@@ -1,24 +1,9 @@
-import {
-  and,
-  count,
-  db,
-  desc,
-  eq,
-  ilike,
-  or,
-  role,
-  session,
-  sql,
-  user,
-} from '@echoppe/core';
+import { and, count, db, desc, eq, ilike, or, role, session, sql, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { getClientIp, logAudit } from '../lib/audit';
 import { permissionGuard } from '../plugins/rbac';
-import {
-  buildPaginatedResponse,
-  getPaginationParams,
-} from '../utils/pagination';
-import { successSchema, badRequestResponse, withCrudErrors } from '../utils/responses';
-import { logAudit, getClientIp } from '../lib/audit';
+import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
+import { badRequestResponse, successSchema, withCrudErrors } from '../utils/responses';
 
 // Query schemas
 const userSearchQuery = t.Object({
@@ -163,7 +148,10 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
           .orderBy(desc(user.isOwner), desc(user.dateCreated))
           .limit(limit)
           .offset(offset),
-        db.select({ total: count(user.id) }).from(user).where(whereClause),
+        db
+          .select({ total: count(user.id) })
+          .from(user)
+          .where(whereClause),
       ]);
 
       return buildPaginatedResponse(users, total, page, limit);
@@ -338,7 +326,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
           action: 'user.update',
           entityType: 'user',
           entityId: params.id,
-          data: { fieldsUpdated: Object.keys(updates).filter(k => k !== 'passwordHash') },
+          data: { fieldsUpdated: Object.keys(updates).filter((k) => k !== 'passwordHash') },
           ipAddress: getClientIp(request.headers),
         });
       }

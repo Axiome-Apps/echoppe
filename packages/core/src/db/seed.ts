@@ -1,33 +1,33 @@
+import { randomUUID } from 'node:crypto';
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { eq } from 'drizzle-orm';
 import { db } from './index';
 import {
-  country,
-  taxRate,
-  role,
-  permission,
-  user,
-  company,
   category,
-  product,
-  variant,
-  media,
-  folder,
-  productMedia,
-  option,
-  productOption,
-  optionValue,
-  variantOptionValue,
-  stockMove,
+  company,
+  country,
   customer,
-  shippingProvider,
+  folder,
+  media,
+  option,
+  optionValue,
   order,
   orderItem,
   payment,
+  permission,
+  product,
+  productMedia,
+  productOption,
+  role,
   shipment,
+  shippingProvider,
+  stockMove,
+  taxRate,
+  user,
+  variant,
+  variantOptionValue,
 } from './schema';
-import { eq } from 'drizzle-orm';
-import { mkdir } from 'fs/promises';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 
 const UPLOAD_DIR = join(import.meta.dir, '../../../../apps/api/uploads');
 
@@ -35,7 +35,7 @@ const UPLOAD_DIR = join(import.meta.dir, '../../../../apps/api/uploads');
 async function downloadPlaceholder(
   width: number,
   height: number,
-  seed: string
+  seed: string,
 ): Promise<{ buffer: Buffer; size: number }> {
   const url = `https://picsum.photos/seed/${seed}/${width}/${height}`;
   const response = await fetch(url);
@@ -49,7 +49,7 @@ async function createMedia(
   title: string,
   width = 800,
   height = 800,
-  folderId: string | null = null
+  folderId: string | null = null,
 ): Promise<string | null> {
   try {
     const { buffer, size } = await downloadPlaceholder(width, height, seed);
@@ -97,10 +97,7 @@ async function seed() {
     productsFolderId = existingProductsFolder.id;
     console.log('    ⊘ Folder "Produits" already exists');
   } else {
-    const [createdFolder] = await db
-      .insert(folder)
-      .values({ name: 'Produits' })
-      .returning();
+    const [createdFolder] = await db.insert(folder).values({ name: 'Produits' }).returning();
     productsFolderId = createdFolder.id;
     console.log('    ✓ Folder "Produits" created');
   }
@@ -358,9 +355,33 @@ async function seed() {
     { resource: 'country', canRead: true, locked: true },
     { resource: 'company', canRead: true, locked: true }, // Pour afficher infos boutique
     { resource: 'order', canRead: true, selfOnly: true, locked: true },
-    { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true, locked: true },
-    { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true, locked: true },
-    { resource: 'wishlist', canCreate: true, canRead: true, canUpdate: true, canDelete: true, selfOnly: true, locked: true },
+    {
+      resource: 'address',
+      canCreate: true,
+      canRead: true,
+      canUpdate: true,
+      canDelete: true,
+      selfOnly: true,
+      locked: true,
+    },
+    {
+      resource: 'cart',
+      canCreate: true,
+      canRead: true,
+      canUpdate: true,
+      canDelete: true,
+      selfOnly: true,
+      locked: true,
+    },
+    {
+      resource: 'wishlist',
+      canCreate: true,
+      canRead: true,
+      canUpdate: true,
+      canDelete: true,
+      selfOnly: true,
+      locked: true,
+    },
     { resource: 'invoice', canRead: true, selfOnly: true, locked: true },
   ]);
 
@@ -462,7 +483,7 @@ async function seed() {
       name: 'Bol en Grès Émaillé',
       slug: 'bol-gres-emaille',
       description:
-        "Bol en grès tourné à la main, émaillage bleu océan unique. Passe au lave-vaisselle et au micro-ondes. Parfait pour le petit-déjeuner ou les soupes.",
+        'Bol en grès tourné à la main, émaillage bleu océan unique. Passe au lave-vaisselle et au micro-ondes. Parfait pour le petit-déjeuner ou les soupes.',
       category: poterieCat.id,
       taxRate: defaultTax.id,
       status: 'published' as const,
@@ -480,7 +501,7 @@ async function seed() {
       name: 'Mug Céramique Artisanal',
       slug: 'mug-ceramique-artisanal',
       description:
-        "Mug en céramique tournée main, anse ergonomique. Émaillage intérieur alimentaire, extérieur texturé. Contenance 30cl.",
+        'Mug en céramique tournée main, anse ergonomique. Émaillage intérieur alimentaire, extérieur texturé. Contenance 30cl.',
       category: poterieCat.id,
       taxRate: defaultTax.id,
       status: 'published' as const,
@@ -541,7 +562,11 @@ async function seed() {
     { name: 'Parfum', sortOrder: 4 },
   ];
 
-  const globalOptions = await db.insert(option).values(globalOptionsData).onConflictDoNothing().returning();
+  const globalOptions = await db
+    .insert(option)
+    .values(globalOptionsData)
+    .onConflictDoNothing()
+    .returning();
   console.log(`    ✓ ${globalOptions.length} global options`);
 
   // Map option name -> option id
@@ -561,7 +586,26 @@ async function seed() {
   console.log('  → Option values...');
 
   const optionValuesData: { optionName: string; values: string[] }[] = [
-    { optionName: 'Couleur', values: ['Or', 'Argent', 'Or Rose', 'Naturel', 'Noir', 'Marron', 'Bleu Océan', 'Vert Sauge', 'Terracotta', 'Blanc', 'Gris', 'Beige', 'Écru', 'Gris Chiné', 'Bleu Indigo'] },
+    {
+      optionName: 'Couleur',
+      values: [
+        'Or',
+        'Argent',
+        'Or Rose',
+        'Naturel',
+        'Noir',
+        'Marron',
+        'Bleu Océan',
+        'Vert Sauge',
+        'Terracotta',
+        'Blanc',
+        'Gris',
+        'Beige',
+        'Écru',
+        'Gris Chiné',
+        'Bleu Indigo',
+      ],
+    },
     { optionName: 'Taille', values: ['S', 'M', 'L', 'Petit', 'Moyen', 'Grand'] },
     { optionName: 'Longueur', values: ['40cm', '45cm', '50cm'] },
     { optionName: 'Motif', values: ['Floral', 'Géométrique', 'Feuillage'] },
@@ -596,7 +640,7 @@ async function seed() {
     const optName = [...optionByName.entries()].find(([_, id]) => id === val.option)?.[0];
     if (optName) {
       if (!valueMap.has(optName)) valueMap.set(optName, new Map());
-      valueMap.get(optName)!.set(val.value, val.id);
+      valueMap.get(optName)?.set(val.value, val.id);
     }
   }
   console.log(`    ✓ ${valueCount} option values`);
@@ -646,55 +690,301 @@ async function seed() {
 
   const variantsToCreate: VariantDef[] = [
     // Boucles d'oreilles - 3 couleurs
-    { productSlug: 'boucles-oreilles-lune', sku: 'BOUCLE-LUNE-OR', price: '35.00', quantity: 12, isDefault: true, options: [{ name: 'Couleur', value: 'Or' }] },
-    { productSlug: 'boucles-oreilles-lune', sku: 'BOUCLE-LUNE-ARG', price: '32.00', quantity: 8, isDefault: false, options: [{ name: 'Couleur', value: 'Argent' }] },
-    { productSlug: 'boucles-oreilles-lune', sku: 'BOUCLE-LUNE-ROSE', price: '38.00', quantity: 5, isDefault: false, options: [{ name: 'Couleur', value: 'Or Rose' }] },
+    {
+      productSlug: 'boucles-oreilles-lune',
+      sku: 'BOUCLE-LUNE-OR',
+      price: '35.00',
+      quantity: 12,
+      isDefault: true,
+      options: [{ name: 'Couleur', value: 'Or' }],
+    },
+    {
+      productSlug: 'boucles-oreilles-lune',
+      sku: 'BOUCLE-LUNE-ARG',
+      price: '32.00',
+      quantity: 8,
+      isDefault: false,
+      options: [{ name: 'Couleur', value: 'Argent' }],
+    },
+    {
+      productSlug: 'boucles-oreilles-lune',
+      sku: 'BOUCLE-LUNE-ROSE',
+      price: '38.00',
+      quantity: 5,
+      isDefault: false,
+      options: [{ name: 'Couleur', value: 'Or Rose' }],
+    },
 
     // Collier - 3 longueurs
-    { productSlug: 'collier-perles-verre', sku: 'COLLIER-40', price: '65.00', quantity: 5, isDefault: false, options: [{ name: 'Longueur', value: '40cm' }] },
-    { productSlug: 'collier-perles-verre', sku: 'COLLIER-45', price: '68.00', quantity: 8, isDefault: true, options: [{ name: 'Longueur', value: '45cm' }] },
-    { productSlug: 'collier-perles-verre', sku: 'COLLIER-50', price: '72.00', quantity: 3, isDefault: false, options: [{ name: 'Longueur', value: '50cm' }] },
+    {
+      productSlug: 'collier-perles-verre',
+      sku: 'COLLIER-40',
+      price: '65.00',
+      quantity: 5,
+      isDefault: false,
+      options: [{ name: 'Longueur', value: '40cm' }],
+    },
+    {
+      productSlug: 'collier-perles-verre',
+      sku: 'COLLIER-45',
+      price: '68.00',
+      quantity: 8,
+      isDefault: true,
+      options: [{ name: 'Longueur', value: '45cm' }],
+    },
+    {
+      productSlug: 'collier-perles-verre',
+      sku: 'COLLIER-50',
+      price: '72.00',
+      quantity: 3,
+      isDefault: false,
+      options: [{ name: 'Longueur', value: '50cm' }],
+    },
 
     // Bracelet - combinaisons couleur/taille
-    { productSlug: 'bracelet-tresse-cuir', sku: 'BRAC-NAT-M', price: '28.00', quantity: 15, isDefault: true, options: [{ name: 'Couleur', value: 'Naturel' }, { name: 'Taille', value: 'M' }] },
-    { productSlug: 'bracelet-tresse-cuir', sku: 'BRAC-NOIR-M', price: '28.00', quantity: 12, isDefault: false, options: [{ name: 'Couleur', value: 'Noir' }, { name: 'Taille', value: 'M' }] },
-    { productSlug: 'bracelet-tresse-cuir', sku: 'BRAC-MARR-M', price: '28.00', quantity: 10, isDefault: false, options: [{ name: 'Couleur', value: 'Marron' }, { name: 'Taille', value: 'M' }] },
-    { productSlug: 'bracelet-tresse-cuir', sku: 'BRAC-NAT-S', price: '26.00', quantity: 8, isDefault: false, options: [{ name: 'Couleur', value: 'Naturel' }, { name: 'Taille', value: 'S' }] },
-    { productSlug: 'bracelet-tresse-cuir', sku: 'BRAC-NAT-L', price: '30.00', quantity: 6, isDefault: false, options: [{ name: 'Couleur', value: 'Naturel' }, { name: 'Taille', value: 'L' }] },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      sku: 'BRAC-NAT-M',
+      price: '28.00',
+      quantity: 15,
+      isDefault: true,
+      options: [
+        { name: 'Couleur', value: 'Naturel' },
+        { name: 'Taille', value: 'M' },
+      ],
+    },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      sku: 'BRAC-NOIR-M',
+      price: '28.00',
+      quantity: 12,
+      isDefault: false,
+      options: [
+        { name: 'Couleur', value: 'Noir' },
+        { name: 'Taille', value: 'M' },
+      ],
+    },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      sku: 'BRAC-MARR-M',
+      price: '28.00',
+      quantity: 10,
+      isDefault: false,
+      options: [
+        { name: 'Couleur', value: 'Marron' },
+        { name: 'Taille', value: 'M' },
+      ],
+    },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      sku: 'BRAC-NAT-S',
+      price: '26.00',
+      quantity: 8,
+      isDefault: false,
+      options: [
+        { name: 'Couleur', value: 'Naturel' },
+        { name: 'Taille', value: 'S' },
+      ],
+    },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      sku: 'BRAC-NAT-L',
+      price: '30.00',
+      quantity: 6,
+      isDefault: false,
+      options: [
+        { name: 'Couleur', value: 'Naturel' },
+        { name: 'Taille', value: 'L' },
+      ],
+    },
 
     // Bol - tailles et couleurs
-    { productSlug: 'bol-gres-emaille', sku: 'BOL-BLEU-S', price: '24.00', quantity: 20, isDefault: false, options: [{ name: 'Taille', value: 'Petit' }, { name: 'Couleur', value: 'Bleu Océan' }] },
-    { productSlug: 'bol-gres-emaille', sku: 'BOL-BLEU-M', price: '32.00', quantity: 15, isDefault: true, options: [{ name: 'Taille', value: 'Moyen' }, { name: 'Couleur', value: 'Bleu Océan' }] },
-    { productSlug: 'bol-gres-emaille', sku: 'BOL-BLEU-L', price: '42.00', quantity: 8, isDefault: false, options: [{ name: 'Taille', value: 'Grand' }, { name: 'Couleur', value: 'Bleu Océan' }] },
-    { productSlug: 'bol-gres-emaille', sku: 'BOL-VERT-M', price: '32.00', quantity: 12, isDefault: false, options: [{ name: 'Taille', value: 'Moyen' }, { name: 'Couleur', value: 'Vert Sauge' }] },
-    { productSlug: 'bol-gres-emaille', sku: 'BOL-TERRA-M', price: '32.00', quantity: 10, isDefault: false, options: [{ name: 'Taille', value: 'Moyen' }, { name: 'Couleur', value: 'Terracotta' }] },
+    {
+      productSlug: 'bol-gres-emaille',
+      sku: 'BOL-BLEU-S',
+      price: '24.00',
+      quantity: 20,
+      isDefault: false,
+      options: [
+        { name: 'Taille', value: 'Petit' },
+        { name: 'Couleur', value: 'Bleu Océan' },
+      ],
+    },
+    {
+      productSlug: 'bol-gres-emaille',
+      sku: 'BOL-BLEU-M',
+      price: '32.00',
+      quantity: 15,
+      isDefault: true,
+      options: [
+        { name: 'Taille', value: 'Moyen' },
+        { name: 'Couleur', value: 'Bleu Océan' },
+      ],
+    },
+    {
+      productSlug: 'bol-gres-emaille',
+      sku: 'BOL-BLEU-L',
+      price: '42.00',
+      quantity: 8,
+      isDefault: false,
+      options: [
+        { name: 'Taille', value: 'Grand' },
+        { name: 'Couleur', value: 'Bleu Océan' },
+      ],
+    },
+    {
+      productSlug: 'bol-gres-emaille',
+      sku: 'BOL-VERT-M',
+      price: '32.00',
+      quantity: 12,
+      isDefault: false,
+      options: [
+        { name: 'Taille', value: 'Moyen' },
+        { name: 'Couleur', value: 'Vert Sauge' },
+      ],
+    },
+    {
+      productSlug: 'bol-gres-emaille',
+      sku: 'BOL-TERRA-M',
+      price: '32.00',
+      quantity: 10,
+      isDefault: false,
+      options: [
+        { name: 'Taille', value: 'Moyen' },
+        { name: 'Couleur', value: 'Terracotta' },
+      ],
+    },
 
     // Vase - variante unique
-    { productSlug: 'vase-terre-cuite', sku: 'VASE-TC-01', price: '42.00', quantity: 8, isDefault: true },
+    {
+      productSlug: 'vase-terre-cuite',
+      sku: 'VASE-TC-01',
+      price: '42.00',
+      quantity: 8,
+      isDefault: true,
+    },
 
     // Mug - 3 couleurs
-    { productSlug: 'mug-ceramique-artisanal', sku: 'MUG-BLANC', price: '22.00', quantity: 25, isDefault: true, options: [{ name: 'Couleur', value: 'Blanc' }] },
-    { productSlug: 'mug-ceramique-artisanal', sku: 'MUG-GRIS', price: '22.00', quantity: 18, isDefault: false, options: [{ name: 'Couleur', value: 'Gris' }] },
-    { productSlug: 'mug-ceramique-artisanal', sku: 'MUG-BEIGE', price: '22.00', quantity: 20, isDefault: false, options: [{ name: 'Couleur', value: 'Beige' }] },
+    {
+      productSlug: 'mug-ceramique-artisanal',
+      sku: 'MUG-BLANC',
+      price: '22.00',
+      quantity: 25,
+      isDefault: true,
+      options: [{ name: 'Couleur', value: 'Blanc' }],
+    },
+    {
+      productSlug: 'mug-ceramique-artisanal',
+      sku: 'MUG-GRIS',
+      price: '22.00',
+      quantity: 18,
+      isDefault: false,
+      options: [{ name: 'Couleur', value: 'Gris' }],
+    },
+    {
+      productSlug: 'mug-ceramique-artisanal',
+      sku: 'MUG-BEIGE',
+      price: '22.00',
+      quantity: 20,
+      isDefault: false,
+      options: [{ name: 'Couleur', value: 'Beige' }],
+    },
 
     // Écharpe - 3 couleurs
-    { productSlug: 'echarpe-lin-naturel', sku: 'ECHARPE-ECRU', price: '55.00', quantity: 20, isDefault: true, options: [{ name: 'Couleur', value: 'Écru' }] },
-    { productSlug: 'echarpe-lin-naturel', sku: 'ECHARPE-GRIS', price: '55.00', quantity: 15, isDefault: false, options: [{ name: 'Couleur', value: 'Gris Chiné' }] },
-    { productSlug: 'echarpe-lin-naturel', sku: 'ECHARPE-INDIGO', price: '58.00', quantity: 10, isDefault: false, options: [{ name: 'Couleur', value: 'Bleu Indigo' }] },
+    {
+      productSlug: 'echarpe-lin-naturel',
+      sku: 'ECHARPE-ECRU',
+      price: '55.00',
+      quantity: 20,
+      isDefault: true,
+      options: [{ name: 'Couleur', value: 'Écru' }],
+    },
+    {
+      productSlug: 'echarpe-lin-naturel',
+      sku: 'ECHARPE-GRIS',
+      price: '55.00',
+      quantity: 15,
+      isDefault: false,
+      options: [{ name: 'Couleur', value: 'Gris Chiné' }],
+    },
+    {
+      productSlug: 'echarpe-lin-naturel',
+      sku: 'ECHARPE-INDIGO',
+      price: '58.00',
+      quantity: 10,
+      isDefault: false,
+      options: [{ name: 'Couleur', value: 'Bleu Indigo' }],
+    },
 
     // Coussin - 3 motifs
-    { productSlug: 'coussin-brode-main', sku: 'COUSSIN-FLORAL', price: '75.00', quantity: 6, isDefault: true, options: [{ name: 'Motif', value: 'Floral' }] },
-    { productSlug: 'coussin-brode-main', sku: 'COUSSIN-GEO', price: '75.00', quantity: 4, isDefault: false, options: [{ name: 'Motif', value: 'Géométrique' }] },
-    { productSlug: 'coussin-brode-main', sku: 'COUSSIN-FEUIL', price: '78.00', quantity: 5, isDefault: false, options: [{ name: 'Motif', value: 'Feuillage' }] },
+    {
+      productSlug: 'coussin-brode-main',
+      sku: 'COUSSIN-FLORAL',
+      price: '75.00',
+      quantity: 6,
+      isDefault: true,
+      options: [{ name: 'Motif', value: 'Floral' }],
+    },
+    {
+      productSlug: 'coussin-brode-main',
+      sku: 'COUSSIN-GEO',
+      price: '75.00',
+      quantity: 4,
+      isDefault: false,
+      options: [{ name: 'Motif', value: 'Géométrique' }],
+    },
+    {
+      productSlug: 'coussin-brode-main',
+      sku: 'COUSSIN-FEUIL',
+      price: '78.00',
+      quantity: 5,
+      isDefault: false,
+      options: [{ name: 'Motif', value: 'Feuillage' }],
+    },
 
     // Bougie - 4 parfums
-    { productSlug: 'bougie-parfumee-artisanale', sku: 'BOUGIE-LAVANDE', price: '24.00', quantity: 30, isDefault: true, options: [{ name: 'Parfum', value: 'Lavande' }] },
-    { productSlug: 'bougie-parfumee-artisanale', sku: 'BOUGIE-CEDRE', price: '24.00', quantity: 25, isDefault: false, options: [{ name: 'Parfum', value: 'Cèdre' }] },
-    { productSlug: 'bougie-parfumee-artisanale', sku: 'BOUGIE-FLEUR', price: '26.00', quantity: 20, isDefault: false, options: [{ name: 'Parfum', value: "Fleur d'Oranger" }] },
-    { productSlug: 'bougie-parfumee-artisanale', sku: 'BOUGIE-VANILLE', price: '24.00', quantity: 28, isDefault: false, options: [{ name: 'Parfum', value: 'Vanille' }] },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      sku: 'BOUGIE-LAVANDE',
+      price: '24.00',
+      quantity: 30,
+      isDefault: true,
+      options: [{ name: 'Parfum', value: 'Lavande' }],
+    },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      sku: 'BOUGIE-CEDRE',
+      price: '24.00',
+      quantity: 25,
+      isDefault: false,
+      options: [{ name: 'Parfum', value: 'Cèdre' }],
+    },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      sku: 'BOUGIE-FLEUR',
+      price: '26.00',
+      quantity: 20,
+      isDefault: false,
+      options: [{ name: 'Parfum', value: "Fleur d'Oranger" }],
+    },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      sku: 'BOUGIE-VANILLE',
+      price: '24.00',
+      quantity: 28,
+      isDefault: false,
+      options: [{ name: 'Parfum', value: 'Vanille' }],
+    },
 
     // Miroir - variante unique (draft)
-    { productSlug: 'miroir-rotin-tresse', sku: 'MIROIR-45', price: '89.00', comparePrice: '110.00', quantity: 3, isDefault: true },
+    {
+      productSlug: 'miroir-rotin-tresse',
+      sku: 'MIROIR-45',
+      price: '89.00',
+      comparePrice: '110.00',
+      quantity: 3,
+      isDefault: true,
+    },
   ];
 
   const variantMap = new Map<string, string>(); // sku -> variantId
@@ -790,62 +1080,269 @@ async function seed() {
 
   const imagesToCreate: ImageDef[] = [
     // Boucles d'oreilles - 4 images
-    { productSlug: 'boucles-oreilles-lune', seed: 'earrings-gold-1', title: "Boucles Lune Or - Vue principale", isFeatured: true },
-    { productSlug: 'boucles-oreilles-lune', seed: 'earrings-gold-2', title: "Boucles Lune Or - Détail", isFeatured: false, forVariantSku: 'BOUCLE-LUNE-OR' },
-    { productSlug: 'boucles-oreilles-lune', seed: 'earrings-silver-1', title: "Boucles Lune Argent", isFeatured: false, forVariantSku: 'BOUCLE-LUNE-ARG' },
-    { productSlug: 'boucles-oreilles-lune', seed: 'earrings-rose-1', title: "Boucles Lune Or Rose", isFeatured: false, forVariantSku: 'BOUCLE-LUNE-ROSE' },
+    {
+      productSlug: 'boucles-oreilles-lune',
+      seed: 'earrings-gold-1',
+      title: 'Boucles Lune Or - Vue principale',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'boucles-oreilles-lune',
+      seed: 'earrings-gold-2',
+      title: 'Boucles Lune Or - Détail',
+      isFeatured: false,
+      forVariantSku: 'BOUCLE-LUNE-OR',
+    },
+    {
+      productSlug: 'boucles-oreilles-lune',
+      seed: 'earrings-silver-1',
+      title: 'Boucles Lune Argent',
+      isFeatured: false,
+      forVariantSku: 'BOUCLE-LUNE-ARG',
+    },
+    {
+      productSlug: 'boucles-oreilles-lune',
+      seed: 'earrings-rose-1',
+      title: 'Boucles Lune Or Rose',
+      isFeatured: false,
+      forVariantSku: 'BOUCLE-LUNE-ROSE',
+    },
 
     // Collier - 3 images
-    { productSlug: 'collier-perles-verre', seed: 'necklace-glass-1', title: "Collier Perles - Vue principale", isFeatured: true },
-    { productSlug: 'collier-perles-verre', seed: 'necklace-glass-2', title: "Collier Perles - Détail perles", isFeatured: false },
-    { productSlug: 'collier-perles-verre', seed: 'necklace-glass-3', title: "Collier Perles - Porté", isFeatured: false },
+    {
+      productSlug: 'collier-perles-verre',
+      seed: 'necklace-glass-1',
+      title: 'Collier Perles - Vue principale',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'collier-perles-verre',
+      seed: 'necklace-glass-2',
+      title: 'Collier Perles - Détail perles',
+      isFeatured: false,
+    },
+    {
+      productSlug: 'collier-perles-verre',
+      seed: 'necklace-glass-3',
+      title: 'Collier Perles - Porté',
+      isFeatured: false,
+    },
 
     // Bracelet - 4 images
-    { productSlug: 'bracelet-tresse-cuir', seed: 'bracelet-natural-1', title: "Bracelet Naturel", isFeatured: true },
-    { productSlug: 'bracelet-tresse-cuir', seed: 'bracelet-black-1', title: "Bracelet Noir", isFeatured: false, forVariantSku: 'BRAC-NOIR-M' },
-    { productSlug: 'bracelet-tresse-cuir', seed: 'bracelet-brown-1', title: "Bracelet Marron", isFeatured: false, forVariantSku: 'BRAC-MARR-M' },
-    { productSlug: 'bracelet-tresse-cuir', seed: 'bracelet-detail-1', title: "Bracelet - Détail fermoir", isFeatured: false },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      seed: 'bracelet-natural-1',
+      title: 'Bracelet Naturel',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      seed: 'bracelet-black-1',
+      title: 'Bracelet Noir',
+      isFeatured: false,
+      forVariantSku: 'BRAC-NOIR-M',
+    },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      seed: 'bracelet-brown-1',
+      title: 'Bracelet Marron',
+      isFeatured: false,
+      forVariantSku: 'BRAC-MARR-M',
+    },
+    {
+      productSlug: 'bracelet-tresse-cuir',
+      seed: 'bracelet-detail-1',
+      title: 'Bracelet - Détail fermoir',
+      isFeatured: false,
+    },
 
     // Bol - 5 images
-    { productSlug: 'bol-gres-emaille', seed: 'bowl-blue-1', title: "Bol Bleu Océan", isFeatured: true },
-    { productSlug: 'bol-gres-emaille', seed: 'bowl-blue-2', title: "Bol Bleu - Vue dessus", isFeatured: false, forVariantSku: 'BOL-BLEU-M' },
-    { productSlug: 'bol-gres-emaille', seed: 'bowl-green-1', title: "Bol Vert Sauge", isFeatured: false, forVariantSku: 'BOL-VERT-M' },
-    { productSlug: 'bol-gres-emaille', seed: 'bowl-terra-1', title: "Bol Terracotta", isFeatured: false, forVariantSku: 'BOL-TERRA-M' },
-    { productSlug: 'bol-gres-emaille', seed: 'bowl-sizes-1', title: "Bols - Comparaison tailles", isFeatured: false },
+    {
+      productSlug: 'bol-gres-emaille',
+      seed: 'bowl-blue-1',
+      title: 'Bol Bleu Océan',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'bol-gres-emaille',
+      seed: 'bowl-blue-2',
+      title: 'Bol Bleu - Vue dessus',
+      isFeatured: false,
+      forVariantSku: 'BOL-BLEU-M',
+    },
+    {
+      productSlug: 'bol-gres-emaille',
+      seed: 'bowl-green-1',
+      title: 'Bol Vert Sauge',
+      isFeatured: false,
+      forVariantSku: 'BOL-VERT-M',
+    },
+    {
+      productSlug: 'bol-gres-emaille',
+      seed: 'bowl-terra-1',
+      title: 'Bol Terracotta',
+      isFeatured: false,
+      forVariantSku: 'BOL-TERRA-M',
+    },
+    {
+      productSlug: 'bol-gres-emaille',
+      seed: 'bowl-sizes-1',
+      title: 'Bols - Comparaison tailles',
+      isFeatured: false,
+    },
 
     // Vase - 3 images
-    { productSlug: 'vase-terre-cuite', seed: 'vase-terra-1', title: "Vase Terre Cuite - Vue principale", isFeatured: true },
-    { productSlug: 'vase-terre-cuite', seed: 'vase-terra-2', title: "Vase - Avec fleurs séchées", isFeatured: false },
-    { productSlug: 'vase-terre-cuite', seed: 'vase-terra-3', title: "Vase - Détail texture", isFeatured: false },
+    {
+      productSlug: 'vase-terre-cuite',
+      seed: 'vase-terra-1',
+      title: 'Vase Terre Cuite - Vue principale',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'vase-terre-cuite',
+      seed: 'vase-terra-2',
+      title: 'Vase - Avec fleurs séchées',
+      isFeatured: false,
+    },
+    {
+      productSlug: 'vase-terre-cuite',
+      seed: 'vase-terra-3',
+      title: 'Vase - Détail texture',
+      isFeatured: false,
+    },
 
     // Mug - 4 images
-    { productSlug: 'mug-ceramique-artisanal', seed: 'mug-white-1', title: "Mug Blanc", isFeatured: true },
-    { productSlug: 'mug-ceramique-artisanal', seed: 'mug-grey-1', title: "Mug Gris", isFeatured: false, forVariantSku: 'MUG-GRIS' },
-    { productSlug: 'mug-ceramique-artisanal', seed: 'mug-beige-1', title: "Mug Beige", isFeatured: false, forVariantSku: 'MUG-BEIGE' },
-    { productSlug: 'mug-ceramique-artisanal', seed: 'mug-detail-1', title: "Mug - Détail anse", isFeatured: false },
+    {
+      productSlug: 'mug-ceramique-artisanal',
+      seed: 'mug-white-1',
+      title: 'Mug Blanc',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'mug-ceramique-artisanal',
+      seed: 'mug-grey-1',
+      title: 'Mug Gris',
+      isFeatured: false,
+      forVariantSku: 'MUG-GRIS',
+    },
+    {
+      productSlug: 'mug-ceramique-artisanal',
+      seed: 'mug-beige-1',
+      title: 'Mug Beige',
+      isFeatured: false,
+      forVariantSku: 'MUG-BEIGE',
+    },
+    {
+      productSlug: 'mug-ceramique-artisanal',
+      seed: 'mug-detail-1',
+      title: 'Mug - Détail anse',
+      isFeatured: false,
+    },
 
     // Écharpe - 4 images
-    { productSlug: 'echarpe-lin-naturel', seed: 'scarf-ecru-1', title: "Écharpe Écru", isFeatured: true },
-    { productSlug: 'echarpe-lin-naturel', seed: 'scarf-grey-1', title: "Écharpe Gris Chiné", isFeatured: false, forVariantSku: 'ECHARPE-GRIS' },
-    { productSlug: 'echarpe-lin-naturel', seed: 'scarf-indigo-1', title: "Écharpe Bleu Indigo", isFeatured: false, forVariantSku: 'ECHARPE-INDIGO' },
-    { productSlug: 'echarpe-lin-naturel', seed: 'scarf-texture-1', title: "Écharpe - Texture lin", isFeatured: false },
+    {
+      productSlug: 'echarpe-lin-naturel',
+      seed: 'scarf-ecru-1',
+      title: 'Écharpe Écru',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'echarpe-lin-naturel',
+      seed: 'scarf-grey-1',
+      title: 'Écharpe Gris Chiné',
+      isFeatured: false,
+      forVariantSku: 'ECHARPE-GRIS',
+    },
+    {
+      productSlug: 'echarpe-lin-naturel',
+      seed: 'scarf-indigo-1',
+      title: 'Écharpe Bleu Indigo',
+      isFeatured: false,
+      forVariantSku: 'ECHARPE-INDIGO',
+    },
+    {
+      productSlug: 'echarpe-lin-naturel',
+      seed: 'scarf-texture-1',
+      title: 'Écharpe - Texture lin',
+      isFeatured: false,
+    },
 
     // Coussin - 4 images
-    { productSlug: 'coussin-brode-main', seed: 'cushion-floral-1', title: "Coussin Floral", isFeatured: true },
-    { productSlug: 'coussin-brode-main', seed: 'cushion-geo-1', title: "Coussin Géométrique", isFeatured: false, forVariantSku: 'COUSSIN-GEO' },
-    { productSlug: 'coussin-brode-main', seed: 'cushion-leaf-1', title: "Coussin Feuillage", isFeatured: false, forVariantSku: 'COUSSIN-FEUIL' },
-    { productSlug: 'coussin-brode-main', seed: 'cushion-detail-1', title: "Coussin - Détail broderie", isFeatured: false },
+    {
+      productSlug: 'coussin-brode-main',
+      seed: 'cushion-floral-1',
+      title: 'Coussin Floral',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'coussin-brode-main',
+      seed: 'cushion-geo-1',
+      title: 'Coussin Géométrique',
+      isFeatured: false,
+      forVariantSku: 'COUSSIN-GEO',
+    },
+    {
+      productSlug: 'coussin-brode-main',
+      seed: 'cushion-leaf-1',
+      title: 'Coussin Feuillage',
+      isFeatured: false,
+      forVariantSku: 'COUSSIN-FEUIL',
+    },
+    {
+      productSlug: 'coussin-brode-main',
+      seed: 'cushion-detail-1',
+      title: 'Coussin - Détail broderie',
+      isFeatured: false,
+    },
 
     // Bougie - 5 images
-    { productSlug: 'bougie-parfumee-artisanale', seed: 'candle-lavender-1', title: "Bougie Lavande", isFeatured: true },
-    { productSlug: 'bougie-parfumee-artisanale', seed: 'candle-cedar-1', title: "Bougie Cèdre", isFeatured: false, forVariantSku: 'BOUGIE-CEDRE' },
-    { productSlug: 'bougie-parfumee-artisanale', seed: 'candle-orange-1', title: "Bougie Fleur d'Oranger", isFeatured: false, forVariantSku: 'BOUGIE-FLEUR' },
-    { productSlug: 'bougie-parfumee-artisanale', seed: 'candle-vanilla-1', title: "Bougie Vanille", isFeatured: false, forVariantSku: 'BOUGIE-VANILLE' },
-    { productSlug: 'bougie-parfumee-artisanale', seed: 'candle-ambiance-1', title: "Bougies - Ambiance", isFeatured: false },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      seed: 'candle-lavender-1',
+      title: 'Bougie Lavande',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      seed: 'candle-cedar-1',
+      title: 'Bougie Cèdre',
+      isFeatured: false,
+      forVariantSku: 'BOUGIE-CEDRE',
+    },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      seed: 'candle-orange-1',
+      title: "Bougie Fleur d'Oranger",
+      isFeatured: false,
+      forVariantSku: 'BOUGIE-FLEUR',
+    },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      seed: 'candle-vanilla-1',
+      title: 'Bougie Vanille',
+      isFeatured: false,
+      forVariantSku: 'BOUGIE-VANILLE',
+    },
+    {
+      productSlug: 'bougie-parfumee-artisanale',
+      seed: 'candle-ambiance-1',
+      title: 'Bougies - Ambiance',
+      isFeatured: false,
+    },
 
     // Miroir - 2 images
-    { productSlug: 'miroir-rotin-tresse', seed: 'mirror-rattan-1', title: "Miroir Rotin - Vue principale", isFeatured: true },
-    { productSlug: 'miroir-rotin-tresse', seed: 'mirror-rattan-2', title: "Miroir - Détail tressage", isFeatured: false },
+    {
+      productSlug: 'miroir-rotin-tresse',
+      seed: 'mirror-rattan-1',
+      title: 'Miroir Rotin - Vue principale',
+      isFeatured: true,
+    },
+    {
+      productSlug: 'miroir-rotin-tresse',
+      seed: 'mirror-rattan-2',
+      title: 'Miroir - Détail tressage',
+      isFeatured: false,
+    },
   ];
 
   let imageCount = 0;

@@ -1,4 +1,4 @@
-import { db, auditLog } from '@echoppe/core';
+import { auditLog, db } from '@echoppe/core';
 
 export type AuditAction =
   // Products
@@ -111,7 +111,7 @@ export async function logAudit(params: LogAuditParams): Promise<void> {
 export function getClientIp(
   headers: Headers,
   server?: { requestIP?: (req: Request) => { address: string } | null },
-  request?: Request
+  request?: Request,
 ): string | undefined {
   // 1. Headers proxy (priorité)
   const forwarded = headers.get('x-forwarded-for');

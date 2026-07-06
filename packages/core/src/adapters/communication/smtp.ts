@@ -1,8 +1,8 @@
-import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
-import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
+import nodemailer from 'nodemailer';
 import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
 import { renderTemplate } from './templates';
+import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
 
 export class SmtpAdapter implements CommunicationAdapter {
   readonly provider = 'smtp' as const;

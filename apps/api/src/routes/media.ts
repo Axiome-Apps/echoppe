@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto';
+import { mkdir, unlink } from 'node:fs/promises';
+import { join } from 'node:path';
 import {
   and,
   asc,
@@ -12,13 +15,10 @@ import {
   or,
   type SQL,
 } from '@echoppe/core';
-import { randomUUID } from 'crypto';
 import { Elysia, t } from 'elysia';
-import { mkdir, unlink } from 'fs/promises';
-import { join } from 'path';
+import { getClientIp, logAudit } from '../lib/audit';
+import { UPLOAD_DIR } from '../lib/config';
 import { permissionGuard } from '../plugins/rbac';
-import { successSchema, errorSchema, withAuthErrors } from '../utils/responses';
-import { logAudit, getClientIp } from '../lib/audit';
 import {
   buildPaginatedResponse,
   DEFAULT_LIMIT,
@@ -26,7 +26,7 @@ import {
   MAX_LIMIT,
   paginatedResponse,
 } from '../utils/pagination';
-import { UPLOAD_DIR } from '../lib/config';
+import { errorSchema, successSchema, withAuthErrors } from '../utils/responses';
 
 // Schema de réponse pour les médias
 const mediaSchema = t.Object({
@@ -384,7 +384,11 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return results.length === 1 ? results[0] : results;
     },
-    { permission: true, body: uploadBody, response: withAuthErrors({ 200: t.Union([mediaSchema, t.Array(mediaSchema)]) }) },
+    {
+      permission: true,
+      body: uploadBody,
+      response: withAuthErrors({ 200: t.Union([mediaSchema, t.Array(mediaSchema)]) }),
+    },
   )
 
   // === MEDIA - UPDATE ===
@@ -498,5 +502,9 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       return { deleted, count: deleted.length };
     },
-    { permission: true, body: batchDeleteBody, response: withAuthErrors({ 200: batchDeleteResultSchema }) },
+    {
+      permission: true,
+      body: batchDeleteBody,
+      response: withAuthErrors({ 200: batchDeleteResultSchema }),
+    },
   );

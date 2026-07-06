@@ -1,22 +1,22 @@
-import {
-  db,
-  isEncryptionConfigured,
-  getCommunicationProviderStatus,
-  saveCommunicationProviderCredentials,
-  resetCommunicationAdapters,
-  getCommunicationAdapter,
-  communicationLog,
-} from '@echoppe/core';
 import type {
+  BrevoCredentials,
+  CommunicationConfig,
   CommunicationProvider,
   ResendCredentials,
-  BrevoCredentials,
   SmtpCredentials,
-  CommunicationConfig,
+} from '@echoppe/core';
+import {
+  communicationLog,
+  db,
+  getCommunicationAdapter,
+  getCommunicationProviderStatus,
+  isEncryptionConfigured,
+  resetCommunicationAdapters,
+  saveCommunicationProviderCredentials,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
-import { successSchema, errorSchema } from '../utils/responses';
+import { errorSchema, successSchema } from '../utils/responses';
 
 // Body schemas
 const resendConfigBody = t.Object({
@@ -86,18 +86,34 @@ const providerMeta: Record<
     name: string;
     description: string;
     recommended?: boolean;
-    fields: { key: string; label: string; type: string; placeholder?: string; options?: { value: string; label: string }[] }[];
+    fields: {
+      key: string;
+      label: string;
+      type: string;
+      placeholder?: string;
+      options?: { value: string; label: string }[];
+    }[];
   }
 > = {
   resend: {
     name: 'Resend',
-    description: 'Service d\'email transactionnel moderne et fiable',
+    description: "Service d'email transactionnel moderne et fiable",
     recommended: true,
     fields: [
       { key: 'apiKey', label: 'Clé API', type: 'password', placeholder: 're_...' },
-      { key: 'fromEmail', label: 'Email expéditeur', type: 'email', placeholder: 'contact@votredomaine.fr' },
+      {
+        key: 'fromEmail',
+        label: 'Email expéditeur',
+        type: 'email',
+        placeholder: 'contact@votredomaine.fr',
+      },
       { key: 'fromName', label: 'Nom expéditeur', type: 'text', placeholder: 'Ma Boutique' },
-      { key: 'replyTo', label: 'Email de réponse (optionnel)', type: 'email', placeholder: 'reponse@votredomaine.fr' },
+      {
+        key: 'replyTo',
+        label: 'Email de réponse (optionnel)',
+        type: 'email',
+        placeholder: 'reponse@votredomaine.fr',
+      },
     ],
   },
   brevo: {
@@ -105,9 +121,19 @@ const providerMeta: Record<
     description: 'Solution française (ex-Sendinblue), 300 emails/jour gratuits',
     fields: [
       { key: 'apiKey', label: 'Clé API', type: 'password', placeholder: 'xkeysib-...' },
-      { key: 'fromEmail', label: 'Email expéditeur', type: 'email', placeholder: 'contact@votredomaine.fr' },
+      {
+        key: 'fromEmail',
+        label: 'Email expéditeur',
+        type: 'email',
+        placeholder: 'contact@votredomaine.fr',
+      },
       { key: 'fromName', label: 'Nom expéditeur', type: 'text', placeholder: 'Ma Boutique' },
-      { key: 'replyTo', label: 'Email de réponse (optionnel)', type: 'email', placeholder: 'reponse@votredomaine.fr' },
+      {
+        key: 'replyTo',
+        label: 'Email de réponse (optionnel)',
+        type: 'email',
+        placeholder: 'reponse@votredomaine.fr',
+      },
     ],
   },
   smtp: {
@@ -132,14 +158,27 @@ const providerMeta: Record<
       },
       { key: 'user', label: 'Identifiant', type: 'text', placeholder: 'contact@votredomaine.fr' },
       { key: 'pass', label: 'Mot de passe', type: 'password' },
-      { key: 'fromEmail', label: 'Email expéditeur', type: 'email', placeholder: 'contact@votredomaine.fr' },
+      {
+        key: 'fromEmail',
+        label: 'Email expéditeur',
+        type: 'email',
+        placeholder: 'contact@votredomaine.fr',
+      },
       { key: 'fromName', label: 'Nom expéditeur', type: 'text', placeholder: 'Ma Boutique' },
-      { key: 'replyTo', label: 'Email de réponse (optionnel)', type: 'email', placeholder: 'reponse@votredomaine.fr' },
+      {
+        key: 'replyTo',
+        label: 'Email de réponse (optionnel)',
+        type: 'email',
+        placeholder: 'reponse@votredomaine.fr',
+      },
     ],
   },
 };
 
-export const communicationsRoutes = new Elysia({ prefix: '/communications', detail: { tags: ['Communications'] } })
+export const communicationsRoutes = new Elysia({
+  prefix: '/communications',
+  detail: { tags: ['Communications'] },
+})
 
   // === COMMUNICATION CONFIG READ ===
   .use(permissionGuard('communication_config', 'read'))
@@ -189,12 +228,21 @@ export const communicationsRoutes = new Elysia({ prefix: '/communications', deta
         replyTo: body.replyTo,
       };
 
-      await saveCommunicationProviderCredentials('resend', credentials, config, body.isEnabled ?? true);
+      await saveCommunicationProviderCredentials(
+        'resend',
+        credentials,
+        config,
+        body.isEnabled ?? true,
+      );
       resetCommunicationAdapters();
 
       return { success: true };
     },
-    { permission: true, body: resendConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: resendConfigBody,
+      response: { 200: successSchema, 400: errorSchema },
+    },
   )
 
   // PUT /communications/providers/brevo - Configure Brevo
@@ -215,7 +263,12 @@ export const communicationsRoutes = new Elysia({ prefix: '/communications', deta
         replyTo: body.replyTo,
       };
 
-      await saveCommunicationProviderCredentials('brevo', credentials, config, body.isEnabled ?? true);
+      await saveCommunicationProviderCredentials(
+        'brevo',
+        credentials,
+        config,
+        body.isEnabled ?? true,
+      );
       resetCommunicationAdapters();
 
       return { success: true };
@@ -245,7 +298,12 @@ export const communicationsRoutes = new Elysia({ prefix: '/communications', deta
         replyTo: body.replyTo,
       };
 
-      await saveCommunicationProviderCredentials('smtp', credentials, config, body.isEnabled ?? true);
+      await saveCommunicationProviderCredentials(
+        'smtp',
+        credentials,
+        config,
+        body.isEnabled ?? true,
+      );
       resetCommunicationAdapters();
 
       return { success: true };
@@ -266,7 +324,9 @@ export const communicationsRoutes = new Elysia({ prefix: '/communications', deta
       // Vérifier la connexion
       const isValid = await adapter.verify();
       if (!isValid) {
-        return status(400, { message: 'Impossible de se connecter au provider. Vérifiez vos identifiants.' });
+        return status(400, {
+          message: 'Impossible de se connecter au provider. Vérifiez vos identifiants.',
+        });
       }
 
       // Envoyer l'email de test
@@ -296,5 +356,9 @@ export const communicationsRoutes = new Elysia({ prefix: '/communications', deta
 
       return result;
     },
-    { permission: true, body: testEmailBody, response: { 200: testResultSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: testEmailBody,
+      response: { 200: testResultSchema, 400: errorSchema },
+    },
   );

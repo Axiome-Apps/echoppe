@@ -1,5 +1,5 @@
+import { and, db, eq, gt, role, session, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { db, user, session, role, eq, and, gt } from '@echoppe/core';
 
 export const COOKIE_NAME = 'echoppe_admin_session';
 
@@ -37,7 +37,13 @@ type SessionWithMeta = AuthContext & {
 // Fonction réutilisable pour vérifier la session
 export async function getSessionFromToken(token: string | undefined): Promise<SessionWithMeta> {
   if (!token) {
-    return { currentUser: null, currentRole: null, isAuthenticated: false, storedUserAgent: null, storedIpAddress: null };
+    return {
+      currentUser: null,
+      currentRole: null,
+      isAuthenticated: false,
+      storedUserAgent: null,
+      storedIpAddress: null,
+    };
   }
 
   const [sessionData] = await db
@@ -65,8 +71,14 @@ export async function getSessionFromToken(token: string | undefined): Promise<Se
     .innerJoin(role, eq(user.role, role.id))
     .where(and(eq(session.token, token), gt(session.expiresAt, new Date())));
 
-  if (!sessionData || !sessionData.user.isActive) {
-    return { currentUser: null, currentRole: null, isAuthenticated: false, storedUserAgent: null, storedIpAddress: null };
+  if (!sessionData?.user.isActive) {
+    return {
+      currentUser: null,
+      currentRole: null,
+      isAuthenticated: false,
+      storedUserAgent: null,
+      storedIpAddress: null,
+    };
   }
 
   return {
@@ -83,45 +95,44 @@ export async function getSessionFromToken(token: string | undefined): Promise<Se
 //   .use(authPlugin)
 //   .get('/public', () => 'public')  // Pas de macro = public
 //   .post('/protected', ({ currentUser }) => currentUser, { auth: true })  // auth: true = protégé
-export const authPlugin = new Elysia({ name: 'auth' })
-  .macro({
-    auth: {
-      async resolve({ cookie, request, status }) {
-        const token = (cookie as Record<string, { value?: string }>)[COOKIE_NAME]?.value;
-        const sessionData = await getSessionFromToken(token);
+export const authPlugin = new Elysia({ name: 'auth' }).macro({
+  auth: {
+    async resolve({ cookie, request, status }) {
+      const token = (cookie as Record<string, { value?: string }>)[COOKIE_NAME]?.value;
+      const sessionData = await getSessionFromToken(token);
 
-        if (!sessionData.isAuthenticated) {
-          return status(401, { message: 'Non authentifié' });
-        }
+      if (!sessionData.isAuthenticated) {
+        return status(401, { message: 'Non authentifié' });
+      }
 
-        // Verify User-Agent matches (strict check for session hijacking)
-        const currentUserAgent = request.headers.get('user-agent') ?? 'unknown';
-        if (sessionData.storedUserAgent && sessionData.storedUserAgent !== currentUserAgent) {
-          console.warn('[Security] User-Agent mismatch for admin session', {
-            userId: sessionData.currentUser?.id,
-            stored: sessionData.storedUserAgent?.substring(0, 50),
-            current: currentUserAgent.substring(0, 50),
-          });
-          return status(401, { message: 'Session invalide' });
-        }
+      // Verify User-Agent matches (strict check for session hijacking)
+      const currentUserAgent = request.headers.get('user-agent') ?? 'unknown';
+      if (sessionData.storedUserAgent && sessionData.storedUserAgent !== currentUserAgent) {
+        console.warn('[Security] User-Agent mismatch for admin session', {
+          userId: sessionData.currentUser?.id,
+          stored: sessionData.storedUserAgent?.substring(0, 50),
+          current: currentUserAgent.substring(0, 50),
+        });
+        return status(401, { message: 'Session invalide' });
+      }
 
-        // Log IP changes (warning only, don't block)
-        const currentIp =
-          request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-          request.headers.get('x-real-ip') ??
-          'unknown';
-        if (sessionData.storedIpAddress && sessionData.storedIpAddress !== currentIp) {
-          console.info('[Security] IP change detected for admin session', {
-            userId: sessionData.currentUser?.id,
-            stored: sessionData.storedIpAddress,
-            current: currentIp,
-          });
-        }
+      // Log IP changes (warning only, don't block)
+      const currentIp =
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        request.headers.get('x-real-ip') ??
+        'unknown';
+      if (sessionData.storedIpAddress && sessionData.storedIpAddress !== currentIp) {
+        console.info('[Security] IP change detected for admin session', {
+          userId: sessionData.currentUser?.id,
+          stored: sessionData.storedIpAddress,
+          current: currentIp,
+        });
+      }
 
-        return {
-          currentUser: sessionData.currentUser,
-          currentRole: sessionData.currentRole,
-        };
-      },
+      return {
+        currentUser: sessionData.currentUser,
+        currentRole: sessionData.currentRole,
+      };
     },
-  });
+  },
+});

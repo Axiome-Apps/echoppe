@@ -110,9 +110,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
         })
         .from(variant)
         .innerJoin(product, eq(variant.product, product.id))
-        .where(
-          sql`${variant.quantity} <= COALESCE(${variant.lowStockThreshold}, 5)`,
-        )
+        .where(sql`${variant.quantity} <= COALESCE(${variant.lowStockThreshold}, 5)`)
         .orderBy(variant.quantity);
 
       return alerts;

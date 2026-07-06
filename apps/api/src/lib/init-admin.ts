@@ -1,5 +1,5 @@
 import { db, eq } from '@echoppe/core';
-import { user, role } from '@echoppe/core/db/schema';
+import { role, user } from '@echoppe/core/db/schema';
 
 export async function initAdmin() {
   const adminEmail = process.env.ADMIN_EMAIL;

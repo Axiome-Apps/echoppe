@@ -1,11 +1,11 @@
+import { address, and, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { db, address, country, eq, and } from '@echoppe/core';
-import { successSchema, errorSchema } from '../utils/responses';
 import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
 } from '../plugins/customerAuth';
+import { errorSchema, successSchema } from '../utils/responses';
 
 const addressSchema = t.Object({
   id: t.String(),
@@ -41,7 +41,6 @@ const addressBodySchema = t.Object({
   phone: t.Optional(t.String({ maxLength: 20 })),
   isDefault: t.Optional(t.Boolean()),
 });
-
 
 export const customerAddressesRoutes = new Elysia({
   prefix: '/customer/addresses',
@@ -231,12 +230,7 @@ export const customerAddressesRoutes = new Elysia({
         await db
           .update(address)
           .set({ isDefault: false })
-          .where(
-            and(
-              eq(address.customer, customer.id),
-              eq(address.type, body.type),
-            ),
-          );
+          .where(and(eq(address.customer, customer.id), eq(address.type, body.type)));
       }
 
       // Update address

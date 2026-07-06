@@ -1,6 +1,6 @@
+import { eq } from 'drizzle-orm';
 import { db } from '../../db';
 import { communicationProviderConfig } from '../../db/schema/communication';
-import { eq } from 'drizzle-orm';
 import { decrypt, encrypt } from '../../utils/crypto';
 import type { CommunicationConfig, CommunicationProvider } from './types';
 

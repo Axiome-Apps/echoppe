@@ -1,5 +1,6 @@
 // @ts-expect-error - No official types for PayPal SDK
 import paypal from '@paypal/checkout-server-sdk';
+import { getProviderCredentials, getProviderStatus } from './config';
 import type {
   CheckoutParams,
   CheckoutSession,
@@ -7,7 +8,6 @@ import type {
   PaymentResult,
   RefundResult,
 } from './types';
-import { getProviderCredentials, getProviderStatus } from './config';
 
 export class PayPalAdapter implements PaymentAdapter {
   readonly provider = 'paypal' as const;
@@ -104,7 +104,11 @@ export class PayPalAdapter implements PaymentAdapter {
     };
   }
 
-  async verifyWebhook(payload: string, _signature: string, headers?: Record<string, string>): Promise<PaymentResult> {
+  async verifyWebhook(
+    payload: string,
+    _signature: string,
+    headers?: Record<string, string>,
+  ): Promise<PaymentResult> {
     await this.ensureInitialized();
 
     if (!this.client) {
@@ -143,9 +147,7 @@ export class PayPalAdapter implements PaymentAdapter {
           transactionId: resource.id,
           status: 'completed',
           orderId,
-          amount: resource.amount
-            ? Math.round(parseFloat(resource.amount.value) * 100)
-            : undefined,
+          amount: resource.amount ? Math.round(parseFloat(resource.amount.value) * 100) : undefined,
           rawData: resource,
         };
       }
@@ -196,16 +198,17 @@ export class PayPalAdapter implements PaymentAdapter {
     }
 
     // Obtenir un access token
-    const baseUrl = credentials.mode === 'live'
-      ? 'https://api-m.paypal.com'
-      : 'https://api-m.sandbox.paypal.com';
+    const baseUrl =
+      credentials.mode === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
 
-    const authString = Buffer.from(`${credentials.clientId}:${credentials.clientSecret}`).toString('base64');
+    const authString = Buffer.from(`${credentials.clientId}:${credentials.clientSecret}`).toString(
+      'base64',
+    );
 
     const tokenResponse = await fetch(`${baseUrl}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${authString}`,
+        Authorization: `Basic ${authString}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: 'grant_type=client_credentials',
@@ -215,14 +218,14 @@ export class PayPalAdapter implements PaymentAdapter {
       throw new Error(`Failed to get PayPal access token: ${tokenResponse.status}`);
     }
 
-    const tokenData = await tokenResponse.json() as { access_token: string };
+    const tokenData = (await tokenResponse.json()) as { access_token: string };
 
     // Vérifier la signature du webhook
     // IMPORTANT: Le webhook_event doit être le payload JSON brut, pas re-sérialisé
     const verifyResponse = await fetch(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${tokenData.access_token}`,
+        Authorization: `Bearer ${tokenData.access_token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -245,7 +248,7 @@ export class PayPalAdapter implements PaymentAdapter {
       return false;
     }
 
-    const verifyData = await verifyResponse.json() as { verification_status: string };
+    const verifyData = (await verifyResponse.json()) as { verification_status: string };
     return verifyData.verification_status === 'SUCCESS';
   }
 

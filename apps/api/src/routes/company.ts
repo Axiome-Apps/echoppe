@@ -1,8 +1,8 @@
 import { company, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { getClientIp, logAudit } from '../lib/audit';
 import { permissionGuard } from '../plugins/rbac';
 import { withAuthErrors } from '../utils/responses';
-import { logAudit, getClientIp } from '../lib/audit';
 
 const companyBody = t.Object({
   shopName: t.String({ minLength: 1, maxLength: 255 }),

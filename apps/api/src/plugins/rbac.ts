@@ -1,15 +1,10 @@
+import type { Action, Resource } from '@echoppe/core';
+import { db, eq, permission, role } from '@echoppe/core';
 import { Elysia } from 'elysia';
-import { db, permission, role, eq } from '@echoppe/core';
-import type { Resource, Action } from '@echoppe/core';
+import { COOKIE_NAME, getSessionFromToken, type SessionRole, type SessionUser } from './auth';
 import {
-  getSessionFromToken,
-  COOKIE_NAME,
-  type SessionUser,
-  type SessionRole,
-} from './auth';
-import {
-  getCustomerSessionFromToken,
   CUSTOMER_COOKIE_NAME,
+  getCustomerSessionFromToken,
   type SessionCustomer,
 } from './customerAuth';
 
@@ -275,9 +270,7 @@ export function permissionGuard(resource: Resource, action: Action) {
   return new Elysia({ name: `permission-${resource}-${action}` }).macro({
     permission: {
       async resolve({ cookie, status }) {
-        const authContext = await getAuthContext(
-          cookie as Record<string, { value?: string }>,
-        );
+        const authContext = await getAuthContext(cookie as Record<string, { value?: string }>);
         const result = checkPermission(authContext, resource, action);
 
         if (!result.allowed) {

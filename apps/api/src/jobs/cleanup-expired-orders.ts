@@ -1,4 +1,4 @@
-import { db, order, eq, lt, and } from '@echoppe/core';
+import { and, db, eq, lt, order } from '@echoppe/core';
 
 const EXPIRATION_HOURS = 1;
 
@@ -18,12 +18,7 @@ export async function cleanupExpiredOrders(): Promise<number> {
       status: 'cancelled',
       dateUpdated: new Date(),
     })
-    .where(
-      and(
-        eq(order.status, 'pending'),
-        lt(order.dateCreated, cutoff)
-      )
-    )
+    .where(and(eq(order.status, 'pending'), lt(order.dateCreated, cutoff)))
     .returning({ id: order.id });
 
   if (result.length > 0) {

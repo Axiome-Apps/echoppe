@@ -1,7 +1,26 @@
+import { randomBytes } from 'node:crypto';
+import {
+  and,
+  cart,
+  cartItem,
+  customer,
+  customerSession,
+  db,
+  eq,
+  gt,
+  inArray,
+  product,
+  productMedia,
+  variant,
+} from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { db, cart, cartItem, variant, customer, customerSession, product, productMedia, eq, and, gt, inArray } from '@echoppe/core';
-import { randomBytes } from 'crypto';
-import { successSchema, badRequestResponse, forbiddenResponse, notFoundResponse, unauthorizedResponse } from '../utils/responses';
+import {
+  badRequestResponse,
+  forbiddenResponse,
+  notFoundResponse,
+  successSchema,
+  unauthorizedResponse,
+} from '../utils/responses';
 
 const CART_COOKIE_NAME = 'echoppe_cart_session';
 const CUSTOMER_COOKIE_NAME = 'echoppe_customer_session';
@@ -78,7 +97,7 @@ async function getCurrentCustomer(token: string | undefined) {
 async function getOrCreateCart(
   customerId: string | null,
   cartSessionId: string | null,
-  setCookie: (sessionId: string) => void
+  setCookie: (sessionId: string) => void,
 ): Promise<{ cartId: string; sessionId: string | null }> {
   // If customer is logged in, find their cart
   if (customerId) {
@@ -114,10 +133,7 @@ async function getOrCreateCart(
 
   // Create new anonymous cart
   const sessionId = generateSessionId();
-  const [newCart] = await db
-    .insert(cart)
-    .values({ sessionId })
-    .returning({ id: cart.id });
+  const [newCart] = await db.insert(cart).values({ sessionId }).returning({ id: cart.id });
 
   // Set cookie via callback
   setCookie(sessionId);
@@ -155,17 +171,15 @@ async function getCartWithItems(cartId: string) {
     .where(eq(cartItem.cart, cartId));
 
   // Get featured images for all products in cart
-  const productIds = [...new Set(items.map(item => item.product.id))];
-  const featuredImages = productIds.length > 0
-    ? await db
-        .select({ productId: productMedia.product, mediaId: productMedia.media })
-        .from(productMedia)
-        .where(and(
-          inArray(productMedia.product, productIds),
-          eq(productMedia.isFeatured, true)
-        ))
-    : [];
-  const featuredImageMap = new Map(featuredImages.map(fi => [fi.productId, fi.mediaId]));
+  const productIds = [...new Set(items.map((item) => item.product.id))];
+  const featuredImages =
+    productIds.length > 0
+      ? await db
+          .select({ productId: productMedia.product, mediaId: productMedia.media })
+          .from(productMedia)
+          .where(and(inArray(productMedia.product, productIds), eq(productMedia.isFeatured, true)))
+      : [];
+  const featuredImageMap = new Map(featuredImages.map((fi) => [fi.productId, fi.mediaId]));
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalHt = items
@@ -208,7 +222,7 @@ export const cartRoutes = new Elysia({
       const cartSessionId = cookie[CART_COOKIE_NAME].value;
 
       // Find existing cart
-      let existingCart;
+      let existingCart: { id: string } | undefined;
       if (customerId) {
         [existingCart] = await db
           .select({ id: cart.id })
@@ -239,7 +253,7 @@ export const cartRoutes = new Elysia({
     {
       cookie: cookieSchema,
       response: { 200: cartResponseSchema },
-    }
+    },
   )
 
   // POST /cart/items - Add item to cart
@@ -327,7 +341,7 @@ export const cartRoutes = new Elysia({
         400: badRequestResponse,
         404: notFoundResponse,
       },
-    }
+    },
   )
 
   // PATCH /cart/items/:id - Update item quantity
@@ -396,7 +410,7 @@ export const cartRoutes = new Elysia({
         403: forbiddenResponse,
         404: notFoundResponse,
       },
-    }
+    },
   )
 
   // DELETE /cart/items/:id - Remove item from cart
@@ -448,7 +462,7 @@ export const cartRoutes = new Elysia({
         403: forbiddenResponse,
         404: notFoundResponse,
       },
-    }
+    },
   )
 
   // DELETE /cart - Clear cart
@@ -459,7 +473,7 @@ export const cartRoutes = new Elysia({
       const cartSessionId = cookie[CART_COOKIE_NAME].value;
 
       // Find cart
-      let existingCart;
+      let existingCart: { id: string } | undefined;
       if (customerId) {
         [existingCart] = await db
           .select({ id: cart.id })
@@ -487,7 +501,7 @@ export const cartRoutes = new Elysia({
     {
       cookie: cookieSchema,
       response: { 200: successSchema },
-    }
+    },
   )
 
   // POST /cart/merge - Merge anonymous cart to customer cart (after login)
@@ -519,7 +533,7 @@ export const cartRoutes = new Elysia({
       }
 
       // Find or create customer cart
-      let [customerCart] = await db
+      const [customerCart] = await db
         .select({ id: cart.id })
         .from(cart)
         .where(and(eq(cart.customer, customerId), eq(cart.status, 'active')));
@@ -584,5 +598,5 @@ export const cartRoutes = new Elysia({
         200: mergeResponseSchema,
         401: unauthorizedResponse,
       },
-    }
+    },
   );

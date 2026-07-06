@@ -1,31 +1,31 @@
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
-import { securityHeaders } from './plugins/security-headers';
-import { authRoutes } from './routes/auth';
-import { categoriesRoutes } from './routes/categories';
-import { productsRoutes } from './routes/products';
-import { mediaRoutes } from './routes/media';
-import { collectionsRoutes } from './routes/collections';
-import { taxRatesRoutes } from './routes/tax-rates';
-import { assetsRoutes } from './routes/assets';
-import { companyRoutes } from './routes/company';
-import { stockRoutes } from './routes/stock';
-import { paymentsRoutes } from './routes/payments';
-import { shippingRoutes } from './routes/shipping';
-import { ordersRoutes } from './routes/orders';
-import { customerAuthRoutes } from './routes/customer-auth';
-import { rolesRoutes } from './routes/roles';
-import { cartRoutes } from './routes/cart';
-import { customerAddressesRoutes } from './routes/customer-addresses';
-import { checkoutRoutes } from './routes/checkout';
-import { communicationsRoutes } from './routes/communications';
-import { customersRoutes } from './routes/customers';
-import { usersRoutes } from './routes/users';
-import { contactRoutes } from './routes/contact';
-import { auditLogsRoutes } from './routes/audit-logs';
 import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
 import { initAdmin } from './lib/init-admin';
+import { securityHeaders } from './plugins/security-headers';
+import { assetsRoutes } from './routes/assets';
+import { auditLogsRoutes } from './routes/audit-logs';
+import { authRoutes } from './routes/auth';
+import { cartRoutes } from './routes/cart';
+import { categoriesRoutes } from './routes/categories';
+import { checkoutRoutes } from './routes/checkout';
+import { collectionsRoutes } from './routes/collections';
+import { communicationsRoutes } from './routes/communications';
+import { companyRoutes } from './routes/company';
+import { contactRoutes } from './routes/contact';
+import { customerAddressesRoutes } from './routes/customer-addresses';
+import { customerAuthRoutes } from './routes/customer-auth';
+import { customersRoutes } from './routes/customers';
+import { mediaRoutes } from './routes/media';
+import { ordersRoutes } from './routes/orders';
+import { paymentsRoutes } from './routes/payments';
+import { productsRoutes } from './routes/products';
+import { rolesRoutes } from './routes/roles';
+import { shippingRoutes } from './routes/shipping';
+import { stockRoutes } from './routes/stock';
+import { taxRatesRoutes } from './routes/tax-rates';
+import { usersRoutes } from './routes/users';
 
 const port = process.env.API_PORT ?? 7532;
 
@@ -38,7 +38,7 @@ const app = new Elysia()
         process.env.STORE_URL || 'http://localhost:3141',
       ],
       credentials: true,
-    })
+    }),
   )
   .use(
     openapi({
@@ -77,19 +77,27 @@ const app = new Elysia()
           { name: 'Customers', description: 'Gestion des clients' },
           { name: 'Users', description: 'Gestion des utilisateurs admin' },
           { name: 'Contact', description: 'Formulaire de contact' },
-          { name: 'Audit', description: 'Journal d\'audit' },
+          { name: 'Audit', description: "Journal d'audit" },
         ],
       },
-    })
+    }),
   )
-  .get('/', () => ({
-    name: 'Échoppe API',
-    version: '1.0.0',
-  }), { detail: { tags: ['General'], summary: 'Informations API' } })
-  .get('/health', () => ({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-  }), { detail: { tags: ['General'], summary: 'Health check' } })
+  .get(
+    '/',
+    () => ({
+      name: 'Échoppe API',
+      version: '1.0.0',
+    }),
+    { detail: { tags: ['General'], summary: 'Informations API' } },
+  )
+  .get(
+    '/health',
+    () => ({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    }),
+    { detail: { tags: ['General'], summary: 'Health check' } },
+  )
   .use(authRoutes)
   .use(customerAuthRoutes)
   .use(categoriesRoutes)

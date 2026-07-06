@@ -4,8 +4,9 @@ import { Elysia } from 'elysia';
  * Plugin ajoutant les headers de sécurité HTTP sur toutes les réponses.
  * Équivalent Elysia de helmet.js pour Express.
  */
-export const securityHeaders = new Elysia({ name: 'security-headers' })
-  .onBeforeHandle({ as: 'global' }, ({ set, request }) => {
+export const securityHeaders = new Elysia({ name: 'security-headers' }).onBeforeHandle(
+  { as: 'global' },
+  ({ set, request }) => {
     const url = new URL(request.url);
     const isDocsRoute = url.pathname.startsWith('/docs');
 
@@ -65,4 +66,5 @@ export const securityHeaders = new Elysia({ name: 'security-headers' })
     if (process.env.NODE_ENV === 'production') {
       set.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
     }
-  });
+  },
+);

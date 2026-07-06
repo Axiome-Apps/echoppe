@@ -1,4 +1,13 @@
-import { boolean, index, pgTable, primaryKey, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import { variant } from './catalog';
 import { addressTypeEnum } from './enums';
 import { media } from './media';

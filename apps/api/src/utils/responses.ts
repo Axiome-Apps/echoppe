@@ -1,4 +1,4 @@
-import { t, type TSchema } from 'elysia';
+import { type TSchema, t } from 'elysia';
 
 // ============================================
 // Schemas de réponse communs
@@ -9,7 +9,7 @@ import { t, type TSchema } from 'elysia';
  * @deprecated Utiliser les schémas spécifiques (notFoundResponse, badRequestResponse, etc.)
  */
 export const errorSchema = t.Object({
-  message: t.String({ description: 'Description de l\'erreur' }),
+  message: t.String({ description: "Description de l'erreur" }),
 });
 
 /** Schema de succès simple */
@@ -27,49 +27,76 @@ export const messageSchema = t.Object({
 // ============================================
 
 /** 400 Bad Request - Requête invalide */
-export const badRequestResponse = t.Object({
-  message: t.String({ description: 'Détail de l\'erreur de validation' }),
-}, { description: 'Requête invalide - Données manquantes ou incorrectes' });
+export const badRequestResponse = t.Object(
+  {
+    message: t.String({ description: "Détail de l'erreur de validation" }),
+  },
+  { description: 'Requête invalide - Données manquantes ou incorrectes' },
+);
 
 /** 401 Unauthorized - Non authentifié */
-export const unauthorizedResponse = t.Object({
-  message: t.String({ description: 'Raison du refus d\'authentification' }),
-}, { description: 'Non authentifié - Session invalide ou expirée' });
+export const unauthorizedResponse = t.Object(
+  {
+    message: t.String({ description: "Raison du refus d'authentification" }),
+  },
+  { description: 'Non authentifié - Session invalide ou expirée' },
+);
 
 /** 403 Forbidden - Permission refusée */
-export const forbiddenResponse = t.Object({
-  message: t.String({ description: 'Permission manquante' }),
-}, { description: 'Permission refusée - Droits insuffisants' });
+export const forbiddenResponse = t.Object(
+  {
+    message: t.String({ description: 'Permission manquante' }),
+  },
+  { description: 'Permission refusée - Droits insuffisants' },
+);
 
 /** 404 Not Found - Ressource non trouvée */
-export const notFoundResponse = t.Object({
-  message: t.String({ description: 'Ressource non trouvée' }),
-}, { description: 'Ressource non trouvée' });
+export const notFoundResponse = t.Object(
+  {
+    message: t.String({ description: 'Ressource non trouvée' }),
+  },
+  { description: 'Ressource non trouvée' },
+);
 
 /** 409 Conflict - Conflit de données */
-export const conflictResponse = t.Object({
-  message: t.String({ description: 'Détail du conflit' }),
-}, { description: 'Conflit - La ressource existe déjà ou est en conflit' });
+export const conflictResponse = t.Object(
+  {
+    message: t.String({ description: 'Détail du conflit' }),
+  },
+  { description: 'Conflit - La ressource existe déjà ou est en conflit' },
+);
 
 /** 422 Unprocessable Entity - Erreur de validation métier */
-export const unprocessableResponse = t.Object({
-  message: t.String({ description: 'Détail de l\'erreur métier' }),
-}, { description: 'Entité non traitable - Règle métier non respectée' });
+export const unprocessableResponse = t.Object(
+  {
+    message: t.String({ description: "Détail de l'erreur métier" }),
+  },
+  { description: 'Entité non traitable - Règle métier non respectée' },
+);
 
 /** 429 Too Many Requests - Rate limit dépassé */
-export const rateLimitResponse = t.Object({
-  message: t.String({ description: 'Temps d\'attente avant nouvelle tentative' }),
-}, { description: 'Trop de requêtes - Limite de débit dépassée' });
+export const rateLimitResponse = t.Object(
+  {
+    message: t.String({ description: "Temps d'attente avant nouvelle tentative" }),
+  },
+  { description: 'Trop de requêtes - Limite de débit dépassée' },
+);
 
 /** 500 Internal Server Error - Erreur serveur */
-export const serverErrorResponse = t.Object({
-  message: t.String({ description: 'Erreur interne' }),
-}, { description: 'Erreur serveur interne' });
+export const serverErrorResponse = t.Object(
+  {
+    message: t.String({ description: 'Erreur interne' }),
+  },
+  { description: 'Erreur serveur interne' },
+);
 
 /** 503 Service Unavailable - Service indisponible */
-export const serviceUnavailableResponse = t.Object({
-  message: t.String({ description: 'Service temporairement indisponible' }),
-}, { description: 'Service indisponible - Réessayez plus tard' });
+export const serviceUnavailableResponse = t.Object(
+  {
+    message: t.String({ description: 'Service temporairement indisponible' }),
+  },
+  { description: 'Service indisponible - Réessayez plus tard' },
+);
 
 // ============================================
 // Types de réponse
@@ -92,7 +119,9 @@ type ResponseMap = Record<number, TSchema>;
  * })
  * // Ajoute automatiquement 401 et 403
  */
-export function withAuthErrors<T extends ResponseMap>(responses: T): T & { 401: typeof unauthorizedResponse; 403: typeof forbiddenResponse } {
+export function withAuthErrors<T extends ResponseMap>(
+  responses: T,
+): T & { 401: typeof unauthorizedResponse; 403: typeof forbiddenResponse } {
   return {
     ...responses,
     401: unauthorizedResponse,
@@ -110,7 +139,9 @@ export function withAuthErrors<T extends ResponseMap>(responses: T): T & { 401: 
  * })
  * // Ajoute automatiquement 429
  */
-export function withRateLimitErrors<T extends ResponseMap>(responses: T): T & { 429: typeof rateLimitResponse } {
+export function withRateLimitErrors<T extends ResponseMap>(
+  responses: T,
+): T & { 429: typeof rateLimitResponse } {
   return {
     ...responses,
     429: rateLimitResponse,
@@ -127,7 +158,13 @@ export function withRateLimitErrors<T extends ResponseMap>(responses: T): T & { 
  * })
  * // Ajoute 401, 403, 429
  */
-export function withLoginErrors<T extends ResponseMap>(responses: T): T & { 401: typeof unauthorizedResponse; 403: typeof forbiddenResponse; 429: typeof rateLimitResponse } {
+export function withLoginErrors<T extends ResponseMap>(
+  responses: T,
+): T & {
+  401: typeof unauthorizedResponse;
+  403: typeof forbiddenResponse;
+  429: typeof rateLimitResponse;
+} {
   return {
     ...responses,
     401: unauthorizedResponse,
@@ -146,7 +183,13 @@ export function withLoginErrors<T extends ResponseMap>(responses: T): T & { 401:
  * })
  * // Ajoute 401, 403, 404
  */
-export function withCrudErrors<T extends ResponseMap>(responses: T): T & { 401: typeof unauthorizedResponse; 403: typeof forbiddenResponse; 404: typeof notFoundResponse } {
+export function withCrudErrors<T extends ResponseMap>(
+  responses: T,
+): T & {
+  401: typeof unauthorizedResponse;
+  403: typeof forbiddenResponse;
+  404: typeof notFoundResponse;
+} {
   return {
     ...responses,
     401: unauthorizedResponse,
@@ -163,7 +206,9 @@ export function withCrudErrors<T extends ResponseMap>(responses: T): T & { 401: 
  *   200: productSchema,
  * })
  */
-export function withNotFound<T extends ResponseMap>(responses: T): T & { 404: typeof notFoundResponse } {
+export function withNotFound<T extends ResponseMap>(
+  responses: T,
+): T & { 404: typeof notFoundResponse } {
   return {
     ...responses,
     404: notFoundResponse,
@@ -179,7 +224,9 @@ export function withNotFound<T extends ResponseMap>(responses: T): T & { 404: ty
  * })
  * // Ajoute 500, 503
  */
-export function withServiceErrors<T extends ResponseMap>(responses: T): T & { 500: typeof serverErrorResponse; 503: typeof serviceUnavailableResponse } {
+export function withServiceErrors<T extends ResponseMap>(
+  responses: T,
+): T & { 500: typeof serverErrorResponse; 503: typeof serviceUnavailableResponse } {
   return {
     ...responses,
     500: serverErrorResponse,
@@ -191,7 +238,14 @@ export function withServiceErrors<T extends ResponseMap>(responses: T): T & { 50
  * Combinaison complète pour les routes CRUD avec rate limiting.
  * Inclut: 401, 403, 404, 429
  */
-export function withFullErrors<T extends ResponseMap>(responses: T): T & { 401: typeof unauthorizedResponse; 403: typeof forbiddenResponse; 404: typeof notFoundResponse; 429: typeof rateLimitResponse } {
+export function withFullErrors<T extends ResponseMap>(
+  responses: T,
+): T & {
+  401: typeof unauthorizedResponse;
+  403: typeof forbiddenResponse;
+  404: typeof notFoundResponse;
+  429: typeof rateLimitResponse;
+} {
   return {
     ...responses,
     401: unauthorizedResponse,

@@ -1,10 +1,10 @@
-import { db } from '../db';
-import { order, orderItem, invoice, company, customer, country } from '../db/schema';
+import { randomUUID } from 'node:crypto';
+import { readFile, unlink, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { eq } from 'drizzle-orm';
-import { join, dirname } from 'path';
-import { tmpdir } from 'os';
-import { randomUUID } from 'crypto';
-import { unlink, writeFile, readFile } from 'fs/promises';
+import { db } from '../db';
+import { company, country, customer, invoice, order, orderItem } from '../db/schema';
 
 // Types pour les snapshots (archivage légal)
 export interface SellerSnapshot {
@@ -103,7 +103,7 @@ export async function generateInvoice(
   options: {
     type?: 'invoice' | 'credit_note';
     dateDue?: Date;
-  } = {}
+  } = {},
 ): Promise<GenerateInvoiceResult> {
   const { type = 'invoice', dateDue } = options;
 
@@ -242,10 +242,13 @@ async function compilePdf(data: InvoiceData): Promise<Buffer> {
     await writeFile(dataPath, JSON.stringify(data), 'utf-8');
 
     // Compiler avec Typst (--root / pour permettre les chemins absolus)
-    const proc = Bun.spawn(['typst', 'compile', '--root', '/', '--input', `data=${dataPath}`, TEMPLATE_PATH, outputPath], {
-      stdout: 'pipe',
-      stderr: 'pipe',
-    });
+    const proc = Bun.spawn(
+      ['typst', 'compile', '--root', '/', '--input', `data=${dataPath}`, TEMPLATE_PATH, outputPath],
+      {
+        stdout: 'pipe',
+        stderr: 'pipe',
+      },
+    );
 
     const exitCode = await proc.exited;
 

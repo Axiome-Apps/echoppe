@@ -1,24 +1,22 @@
 import {
+  type ColissimoCredentials,
   db,
   eq,
   getShippingAdapter,
+  getShippingProviderStatus,
   isEncryptionConfigured,
+  type MondialRelayCredentials,
   order,
   resetShippingAdapters,
+  type SendcloudCredentials,
+  type ShippingProvider,
+  saveShippingProviderCredentials,
   shipment,
   shippingProvider,
 } from '@echoppe/core';
-import {
-  getShippingProviderStatus,
-  saveShippingProviderCredentials,
-  type ColissimoCredentials,
-  type MondialRelayCredentials,
-  type SendcloudCredentials,
-  type ShippingProvider,
-} from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
-import { successSchema, errorSchema, withAuthErrors } from '../utils/responses';
+import { errorSchema, successSchema, withAuthErrors } from '../utils/responses';
 
 const colissimoConfigBody = t.Object({
   contractNumber: t.String({ minLength: 1 }),
@@ -257,7 +255,11 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return { success: true };
     },
-    { permission: true, body: colissimoConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: colissimoConfigBody,
+      response: { 200: successSchema, 400: errorSchema },
+    },
   )
 
   // PUT /shipping/providers/mondialrelay
@@ -279,7 +281,11 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return { success: true };
     },
-    { permission: true, body: mondialrelayConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: mondialrelayConfigBody,
+      response: { 200: successSchema, 400: errorSchema },
+    },
   )
 
   // PUT /shipping/providers/sendcloud
@@ -300,7 +306,11 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return { success: true };
     },
-    { permission: true, body: sendcloudConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: sendcloudConfigBody,
+      response: { 200: successSchema, 400: errorSchema },
+    },
   )
 
   // === SHIPPING LABEL CREATE (uses order:update since it's part of order fulfillment) ===
@@ -366,5 +376,9 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
 
       return label;
     },
-    { permission: true, body: labelBody, response: { 200: labelSchema, 400: errorSchema, 404: errorSchema } },
+    {
+      permission: true,
+      body: labelBody,
+      response: { 200: labelSchema, 400: errorSchema, 404: errorSchema },
+    },
   );

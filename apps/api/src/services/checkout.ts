@@ -2,22 +2,22 @@
  * Service checkout - logique métier extraite de la route
  */
 import {
-  db,
+  and,
   cart,
   cartItem,
-  variant,
-  product,
+  country,
+  db,
+  eq,
+  getPaymentAdapter,
+  inArray,
   order,
   orderItem,
-  country,
-  taxRate,
-  eq,
-  and,
-  inArray,
-  sql,
-  getPaymentAdapter,
-  payment,
   type PaymentProvider,
+  payment,
+  product,
+  sql,
+  taxRate,
+  variant,
 } from '@echoppe/core';
 
 // ============================================================================
@@ -184,7 +184,15 @@ export async function calculateOrderTotals(items: CartItemWithDetails[]): Promis
       ? `${item.product.name} — ${item.variant.sku}`
       : item.product.name;
 
-    orderItems.push({ variantId: item.variant.id, label, quantity: item.quantity, unitPriceHt, taxRateValue, totalHt, totalTtc });
+    orderItems.push({
+      variantId: item.variant.id,
+      label,
+      quantity: item.quantity,
+      unitPriceHt,
+      taxRateValue,
+      totalHt,
+      totalTtc,
+    });
   }
 
   const shippingHt = 0;

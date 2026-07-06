@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
-import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
 import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
 import { renderTemplate } from './templates';
+import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
 
 export class ResendAdapter implements CommunicationAdapter {
   readonly provider = 'resend' as const;

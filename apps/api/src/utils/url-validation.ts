@@ -63,10 +63,7 @@ export function isAllowedRedirectUrl(url: string): boolean {
  * Validate successUrl and cancelUrl for checkout.
  * Returns an error message if validation fails, null otherwise.
  */
-export function validateCheckoutUrls(
-  successUrl: string,
-  cancelUrl: string
-): string | null {
+export function validateCheckoutUrls(successUrl: string, cancelUrl: string): string | null {
   if (!isAllowedRedirectUrl(successUrl)) {
     return 'URL de redirection succès non autorisée';
   }

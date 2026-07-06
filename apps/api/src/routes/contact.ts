@@ -1,8 +1,8 @@
+import { company, db, sendContactFormEmail } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { db, company, sendContactFormEmail } from '@echoppe/core';
 import { strictRateLimitOptions } from '../utils/rate-limit';
-import { messageSchema, withServiceErrors, withRateLimitErrors } from '../utils/responses';
+import { messageSchema, withRateLimitErrors, withServiceErrors } from '../utils/responses';
 
 const contactBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),
@@ -19,7 +19,9 @@ export const contactRoutes = new Elysia({ prefix: '/contact' })
       const [companyData] = await db.select().from(company).limit(1);
 
       if (!companyData?.publicEmail) {
-        return status(503, { message: 'Le formulaire de contact est temporairement indisponible.' });
+        return status(503, {
+          message: 'Le formulaire de contact est temporairement indisponible.',
+        });
       }
 
       const result = await sendContactFormEmail({
@@ -42,13 +44,15 @@ export const contactRoutes = new Elysia({ prefix: '/contact' })
     },
     {
       body: contactBody,
-      response: withRateLimitErrors(withServiceErrors({
-        200: messageSchema,
-      })),
+      response: withRateLimitErrors(
+        withServiceErrors({
+          200: messageSchema,
+        }),
+      ),
       detail: {
         tags: ['Contact'],
         summary: 'Envoyer un message via le formulaire de contact',
-        description: 'Envoie un email à l\'adresse de contact de la boutique.',
+        description: "Envoie un email à l'adresse de contact de la boutique.",
       },
-    }
+    },
   );

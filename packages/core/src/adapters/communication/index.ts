@@ -1,3 +1,18 @@
+export { BrevoAdapter } from './brevo';
+export {
+  type BrevoCredentials,
+  getAllProvidersStatus,
+  getProviderConfig,
+  getProviderCredentials,
+  getProviderStatus,
+  type ResendCredentials,
+  type SmtpCredentials,
+  saveProviderCredentials,
+  setProviderEnabled,
+} from './config';
+export { ResendAdapter } from './resend';
+export { SmtpAdapter } from './smtp';
+export { renderTemplate } from './templates';
 export type {
   CommunicationAdapter,
   CommunicationConfig,
@@ -8,29 +23,11 @@ export type {
   SendResult,
 } from './types';
 
-export { ResendAdapter } from './resend';
-export { BrevoAdapter } from './brevo';
-export { SmtpAdapter } from './smtp';
-
-export {
-  getAllProvidersStatus,
-  getProviderConfig,
-  getProviderCredentials,
-  getProviderStatus,
-  saveProviderCredentials,
-  setProviderEnabled,
-  type BrevoCredentials,
-  type ResendCredentials,
-  type SmtpCredentials,
-} from './config';
-
-export { renderTemplate } from './templates';
-
-import type { CommunicationAdapter, CommunicationProvider } from './types';
-import { ResendAdapter } from './resend';
 import { BrevoAdapter } from './brevo';
-import { SmtpAdapter } from './smtp';
 import { getProviderStatus } from './config';
+import { ResendAdapter } from './resend';
+import { SmtpAdapter } from './smtp';
+import type { CommunicationAdapter, CommunicationProvider } from './types';
 
 // Singleton instances (lazy-initialized)
 let resendAdapter: ResendAdapter | null = null;

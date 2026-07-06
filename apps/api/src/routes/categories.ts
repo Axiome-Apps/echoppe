@@ -1,10 +1,25 @@
-import { Elysia, t } from 'elysia';
-import { db, category, product, variant, productMedia, eq, and, inArray, count } from '@echoppe/core';
+import {
+  and,
+  category,
+  count,
+  db,
+  eq,
+  inArray,
+  product,
+  productMedia,
+  variant,
+} from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
+import { Elysia, t } from 'elysia';
+import { getClientIp, logAudit } from '../lib/audit';
 import { permissionGuard } from '../plugins/rbac';
-import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+import {
+  buildPaginatedResponse,
+  getPaginationParams,
+  paginatedResponse,
+  paginationQuery,
+} from '../utils/pagination';
 import { successSchema, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
-import { logAudit, getClientIp } from '../lib/audit';
 
 // Schema de réponse pour les catégories
 const categorySchema = t.Object({
@@ -23,7 +38,7 @@ const batchOrderBody = t.Array(
     id: t.String({ format: 'uuid' }),
     parent: t.Nullable(t.String({ format: 'uuid' })),
     sortOrder: t.Number(),
-  })
+  }),
 );
 
 const categoryCreateBody = t.Object({
@@ -72,14 +87,21 @@ const productListSchema = t.Object({
   defaultVariant: t.Nullable(defaultVariantSchema),
 });
 
-export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { tags: ['Categories'] } })
+export const categoriesRoutes = new Elysia({
+  prefix: '/categories',
+  detail: { tags: ['Categories'] },
+})
 
   // === PUBLIC ROUTES ===
 
   // GET /categories - List all (public)
-  .get('/', async () => {
-    return db.select().from(category).orderBy(category.sortOrder);
-  }, { response: t.Array(categorySchema) })
+  .get(
+    '/',
+    async () => {
+      return db.select().from(category).orderBy(category.sortOrder);
+    },
+    { response: t.Array(categorySchema) },
+  )
 
   // GET /categories/:id - Get one (public)
   .get(
@@ -92,7 +114,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
     {
       params: categoryParams,
       response: withNotFound({ 200: categorySchema }),
-    }
+    },
   )
 
   // GET /categories/by-slug/:slug - Get one by slug (public)
@@ -106,7 +128,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
     {
       params: t.Object({ slug: t.String() }),
       response: withNotFound({ 200: categorySchema }),
-    }
+    },
   )
 
   // GET /categories/:id/products - Get products in category with pagination (public)
@@ -119,8 +141,17 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       const { page, limit, offset } = getPaginationParams(query);
 
       const [products, [{ total }]] = await Promise.all([
-        db.select().from(product).where(eq(product.category, params.id)).orderBy(product.dateCreated).limit(limit).offset(offset),
-        db.select({ total: count(product.id) }).from(product).where(eq(product.category, params.id)),
+        db
+          .select()
+          .from(product)
+          .where(eq(product.category, params.id))
+          .orderBy(product.dateCreated)
+          .limit(limit)
+          .offset(offset),
+        db
+          .select({ total: count(product.id) })
+          .from(product)
+          .where(eq(product.category, params.id)),
       ]);
 
       // Fetch featured images and default variants
@@ -131,7 +162,9 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
           ? db
               .select({ productId: productMedia.product, mediaId: productMedia.media })
               .from(productMedia)
-              .where(and(inArray(productMedia.product, productIds), eq(productMedia.isFeatured, true)))
+              .where(
+                and(inArray(productMedia.product, productIds), eq(productMedia.isFeatured, true)),
+              )
           : [],
         productIds.length > 0
           ? db
@@ -151,7 +184,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
         defaultVariants.map((dv) => [
           dv.productId,
           { priceHt: dv.priceHt, compareAtPriceHt: dv.compareAtPriceHt, quantity: dv.quantity },
-        ])
+        ]),
       );
 
       const enrichedProducts = products.map((p) => ({
@@ -166,7 +199,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       params: categoryParams,
       query: paginationQuery,
       response: withNotFound({ 200: paginatedResponse(productListSchema) }),
-    }
+    },
   )
 
   // === PROTECTED ROUTES (Admin) ===
@@ -200,7 +233,11 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
 
       return created;
     },
-    { permission: true, body: categoryCreateBody, response: withAuthErrors({ 200: categorySchema }) }
+    {
+      permission: true,
+      body: categoryCreateBody,
+      response: withAuthErrors({ 200: categorySchema }),
+    },
   )
 
   // PUT /categories/:id - Update (slug immutable)
@@ -238,7 +275,7 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       params: categoryParams,
       body: categoryUpdateBody,
       response: withCrudErrors({ 200: categorySchema }),
-    }
+    },
   )
 
   // PATCH /categories/batch/order - Batch update parent and sortOrder (drag & drop)
@@ -258,7 +295,11 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       });
       return { success: true, count: body.length };
     },
-    { permission: true, body: batchOrderBody, response: withAuthErrors({ 200: batchSuccessSchema }) }
+    {
+      permission: true,
+      body: batchOrderBody,
+      response: withAuthErrors({ 200: batchSuccessSchema }),
+    },
   )
 
   // DELETE /categories/:id - Delete
@@ -284,5 +325,5 @@ export const categoriesRoutes = new Elysia({ prefix: '/categories', detail: { ta
       permission: true,
       params: categoryParams,
       response: withCrudErrors({ 200: successSchema }),
-    }
+    },
   );

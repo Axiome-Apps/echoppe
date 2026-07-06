@@ -1,12 +1,12 @@
+import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 import type {
+  CreateLabelParams,
+  GetRatesParams,
+  ShipmentLabel,
   ShippingAdapter,
   ShippingRate,
-  ShipmentLabel,
   TrackingEvent,
-  GetRatesParams,
-  CreateLabelParams,
 } from './types';
-import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 
 const COLISSIMO_API_URL = 'https://ws.colissimo.fr/sls-ws/SlsServiceWSRest';
 const COLISSIMO_TRACKING_URL = 'https://api.laposte.fr/suivi/v2';

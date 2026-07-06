@@ -1,4 +1,12 @@
-import { type AnyPgColumn, integer, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+  type AnyPgColumn,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 
 export const folder = pgTable('folder', {
   id: uuid('id').primaryKey().defaultRandom(),

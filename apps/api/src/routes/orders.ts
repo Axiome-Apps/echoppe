@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+import { join } from 'node:path';
 import {
   and,
   customer,
@@ -24,12 +26,10 @@ import {
   stockMove,
   variant,
 } from '@echoppe/core';
-import { randomUUID } from 'crypto';
 import { Elysia, t } from 'elysia';
-import { join } from 'path';
+import { UPLOAD_DIR } from '../lib/config';
 import { permissionGuard } from '../plugins/rbac';
 import { successSchema, withCrudErrors } from '../utils/responses';
-import { UPLOAD_DIR } from '../lib/config';
 
 const paginationQuery = t.Object({
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
@@ -244,11 +244,11 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       // Filter by date range (interpret as local time, not UTC)
       if (query.dateFrom) {
-        const fromDate = new Date(query.dateFrom + 'T00:00:00');
+        const fromDate = new Date(`${query.dateFrom}T00:00:00`);
         conditions.push(gte(order.dateCreated, fromDate));
       }
       if (query.dateTo) {
-        const toDate = new Date(query.dateTo + 'T23:59:59.999');
+        const toDate = new Date(`${query.dateTo}T23:59:59.999`);
         conditions.push(lte(order.dateCreated, toDate));
       }
 
@@ -471,7 +471,12 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       return { success: true, previousStatus, newStatus };
     },
-    { permission: true, params: uuidParam, body: statusBody, response: withCrudErrors({ 200: statusChangeResultSchema }) },
+    {
+      permission: true,
+      params: uuidParam,
+      body: statusBody,
+      response: withCrudErrors({ 200: statusChangeResultSchema }),
+    },
   )
 
   // PATCH /orders/:id/notes - Modifier notes
@@ -502,7 +507,12 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       return { success: true };
     },
-    { permission: true, params: uuidParam, body: notesBody, response: withCrudErrors({ 200: successSchema }) },
+    {
+      permission: true,
+      params: uuidParam,
+      body: notesBody,
+      response: withCrudErrors({ 200: successSchema }),
+    },
   )
 
   // === ORDER READ (stats) ===
@@ -569,7 +579,11 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         hasPdf: !!inv.pdf,
       }));
     },
-    { permission: true, params: uuidParam, response: withCrudErrors({ 200: t.Array(invoiceSummarySchema) }) },
+    {
+      permission: true,
+      params: uuidParam,
+      response: withCrudErrors({ 200: t.Array(invoiceSummarySchema) }),
+    },
   )
 
   // === INVOICES (CREATE) ===

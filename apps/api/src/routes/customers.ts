@@ -17,10 +17,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
-import {
-  buildPaginatedResponse,
-  getPaginationParams,
-} from '../utils/pagination';
+import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
 import { successSchema, withCrudErrors } from '../utils/responses';
 
 // Query schemas
@@ -154,11 +151,11 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
 
       // Filter by date range
       if (dateFrom) {
-        const fromDate = new Date(dateFrom + 'T00:00:00');
+        const fromDate = new Date(`${dateFrom}T00:00:00`);
         conditions.push(gte(customer.dateCreated, fromDate));
       }
       if (dateTo) {
-        const toDate = new Date(dateTo + 'T23:59:59.999');
+        const toDate = new Date(`${dateTo}T23:59:59.999`);
         conditions.push(lte(customer.dateCreated, toDate));
       }
 
@@ -206,7 +203,10 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
           .orderBy(desc(customer.dateCreated))
           .limit(limit)
           .offset(offset),
-        db.select({ total: count(customer.id) }).from(customer).where(whereClause),
+        db
+          .select({ total: count(customer.id) })
+          .from(customer)
+          .where(whereClause),
       ]);
 
       return buildPaginatedResponse(
@@ -227,10 +227,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
   .get(
     '/:id',
     async ({ params, status }) => {
-      const [customerData] = await db
-        .select()
-        .from(customer)
-        .where(eq(customer.id, params.id));
+      const [customerData] = await db.select().from(customer).where(eq(customer.id, params.id));
 
       if (!customerData) {
         return status(404, { message: 'Client introuvable' });

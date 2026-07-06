@@ -1,11 +1,11 @@
-import { db } from '../db';
-import { communicationLog } from '../db/schema/communication';
-import { company } from '../db/schema/admin';
 import {
-  getActiveCommunicationAdapter,
   type EmailTemplate,
+  getActiveCommunicationAdapter,
   type SendResult,
 } from '../adapters/communication';
+import { db } from '../db';
+import { company } from '../db/schema/admin';
+import { communicationLog } from '../db/schema/communication';
 
 export interface SendEmailParams {
   to: string;

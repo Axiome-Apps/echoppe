@@ -1,21 +1,21 @@
+import { getAvailablePaymentProviders, getPaymentAdapter } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { getAvailablePaymentProviders, getPaymentAdapter } from '@echoppe/core';
 import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
-import { checkoutRateLimitOptions } from '../utils/rate-limit';
-import { validateCheckoutUrls } from '../utils/url-validation';
-import { errorSchema } from '../utils/responses';
 import {
-  generateOrderNumber,
+  calculateOrderTotals,
   createAddressSnapshot,
+  createOrder,
+  generateOrderNumber,
   getActiveCart,
   getCartItems,
-  validateStock,
-  calculateOrderTotals,
-  createOrder,
   initiatePayment,
   rollbackOrder,
+  validateStock,
 } from '../services/checkout';
+import { checkoutRateLimitOptions } from '../utils/rate-limit';
+import { errorSchema } from '../utils/responses';
+import { validateCheckoutUrls } from '../utils/url-validation';
 
 // ============================================================================
 // SCHEMAS
@@ -122,14 +122,23 @@ export const checkoutRoutes = new Elysia({
       const totals = await calculateOrderTotals(items);
       const orderNumber = await generateOrderNumber();
       const createdOrder = await createOrder(
-        customer.id, orderNumber, shippingSnapshot, billingSnapshot, totals, body.customerNote,
+        customer.id,
+        orderNumber,
+        shippingSnapshot,
+        billingSnapshot,
+        totals,
+        body.customerNote,
       );
 
       // 7. Payment
       try {
         const { url } = await initiatePayment(
-          createdOrder.id, createdOrder.orderNumber, totals.totalTtc,
-          body.paymentProvider, body.successUrl, body.cancelUrl,
+          createdOrder.id,
+          createdOrder.orderNumber,
+          totals.totalTtc,
+          body.paymentProvider,
+          body.successUrl,
+          body.cancelUrl,
         );
         return {
           orderId: createdOrder.id,
@@ -139,7 +148,8 @@ export const checkoutRoutes = new Elysia({
         };
       } catch (error) {
         await rollbackOrder(createdOrder.id);
-        const message = error instanceof Error ? error.message : 'Erreur lors de la création du paiement';
+        const message =
+          error instanceof Error ? error.message : 'Erreur lors de la création du paiement';
         return status(400, { message });
       }
     },

@@ -1,8 +1,8 @@
-import { db, role, permission, user, eq, and, RESOURCES } from '@echoppe/core';
+import { and, db, eq, permission, RESOURCES, role, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { permissionGuard, invalidatePermissionCache } from '../plugins/rbac';
-import { successSchema, errorSchema, withAuthErrors } from '../utils/responses';
-import { logAudit, getClientIp } from '../lib/audit';
+import { getClientIp, logAudit } from '../lib/audit';
+import { invalidatePermissionCache, permissionGuard } from '../plugins/rbac';
+import { errorSchema, successSchema, withAuthErrors } from '../utils/responses';
 
 // Schemas
 const roleSchema = t.Object({
@@ -54,7 +54,6 @@ const permissionBody = t.Object({
 const permissionsUpdateBody = t.Object({
   permissions: t.Array(permissionBody),
 });
-
 
 const resourcesSchema = t.Object({
   resources: t.Array(t.String()),

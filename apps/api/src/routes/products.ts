@@ -1,11 +1,42 @@
-import { Elysia, t } from 'elysia';
-import { db, product, variant, option, optionValue, variantOptionValue, productOption, productMedia, eq, and, or, count, ilike, inArray, gte, lte, gt, asc, desc, sql } from '@echoppe/core';
 import type { SQL } from '@echoppe/core';
+import {
+  and,
+  asc,
+  count,
+  db,
+  desc,
+  eq,
+  gt,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  option,
+  optionValue,
+  or,
+  product,
+  productMedia,
+  productOption,
+  sql,
+  variant,
+  variantOptionValue,
+} from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
+import { Elysia, t } from 'elysia';
+import { getClientIp, logAudit } from '../lib/audit';
 import { permissionGuard } from '../plugins/rbac';
-import { paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
-import { successSchema, conflictResponse, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
-import { logAudit, getClientIp } from '../lib/audit';
+import {
+  buildPaginatedResponse,
+  getPaginationParams,
+  paginatedResponse,
+} from '../utils/pagination';
+import {
+  conflictResponse,
+  successSchema,
+  withAuthErrors,
+  withCrudErrors,
+  withNotFound,
+} from '../utils/responses';
 
 // Schema du produit pour les réponses (liste)
 const defaultVariantSchema = t.Object({
@@ -125,7 +156,6 @@ const optionValueBody = t.Object({
   sortOrder: t.Optional(t.Number({ default: 0 })),
 });
 
-
 // Query schema pour recherche/filtres/tri
 const productSearchQuery = t.Object({
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
@@ -198,7 +228,13 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       // Search by name or description
       if (search) {
         const searchPattern = `%${search}%`;
-        conditions.push(or(ilike(product.name, searchPattern), ilike(product.description, searchPattern))!);
+        const searchCondition = or(
+          ilike(product.name, searchPattern),
+          ilike(product.description, searchPattern),
+        );
+        if (searchCondition) {
+          conditions.push(searchCondition);
+        }
       }
 
       // Filter by category
@@ -240,7 +276,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
       // Build ORDER BY
-      let orderByClause;
+      let orderByClause: SQL;
       const sortOrder = order === 'desc' ? desc : asc;
 
       switch (sort) {
@@ -260,8 +296,17 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       // Query products
       const [products, [{ total }]] = await Promise.all([
-        db.select().from(product).where(whereClause).orderBy(orderByClause).limit(limit).offset(offset),
-        db.select({ total: count(product.id) }).from(product).where(whereClause),
+        db
+          .select()
+          .from(product)
+          .where(whereClause)
+          .orderBy(orderByClause)
+          .limit(limit)
+          .offset(offset),
+        db
+          .select({ total: count(product.id) })
+          .from(product)
+          .where(whereClause),
       ]);
 
       // Fetch featured images and default variants for all products
@@ -272,10 +317,9 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
           ? db
               .select({ productId: productMedia.product, mediaId: productMedia.media })
               .from(productMedia)
-              .where(and(
-                inArray(productMedia.product, productIds),
-                eq(productMedia.isFeatured, true)
-              ))
+              .where(
+                and(inArray(productMedia.product, productIds), eq(productMedia.isFeatured, true)),
+              )
           : [],
         productIds.length > 0
           ? db
@@ -286,20 +330,22 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
                 quantity: variant.quantity,
               })
               .from(variant)
-              .where(and(
-                inArray(variant.product, productIds),
-                eq(variant.isDefault, true)
-              ))
+              .where(and(inArray(variant.product, productIds), eq(variant.isDefault, true)))
           : [],
       ]);
 
       // Create lookup maps
       const featuredImageMap = new Map(featuredImages.map((fi) => [fi.productId, fi.mediaId]));
-      const defaultVariantMap = new Map(defaultVariants.map((dv) => [dv.productId, {
-        priceHt: dv.priceHt,
-        compareAtPriceHt: dv.compareAtPriceHt,
-        quantity: dv.quantity,
-      }]));
+      const defaultVariantMap = new Map(
+        defaultVariants.map((dv) => [
+          dv.productId,
+          {
+            priceHt: dv.priceHt,
+            compareAtPriceHt: dv.compareAtPriceHt,
+            quantity: dv.quantity,
+          },
+        ]),
+      );
 
       // Enrich products
       let enrichedProducts = products.map((p) => ({
@@ -319,7 +365,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return buildPaginatedResponse(enrichedProducts, total, page, limit);
     },
-    { query: productSearchQuery, response: paginatedResponse(productListSchema) }
+    { query: productSearchQuery, response: paginatedResponse(productListSchema) },
   )
 
   // GET /products/by-slug/:slug - Get one by slug with variants (public, for storefront)
@@ -329,7 +375,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       const [found] = await db.select().from(product).where(eq(product.slug, params.slug));
       if (!found) return status(404, { message: 'Product not found' });
 
-      const variants = await db.select().from(variant).where(eq(variant.product, found.id)).orderBy(variant.sortOrder);
+      const variants = await db
+        .select()
+        .from(variant)
+        .where(eq(variant.product, found.id))
+        .orderBy(variant.sortOrder);
 
       // Get featured image
       const [featuredMedia] = await db
@@ -345,14 +395,15 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .orderBy(productMedia.sortOrder);
 
       // Get all option values used by this product's variants
-      const variantIds = variants.map(v => v.id);
-      const usedOptionValues = variantIds.length > 0
-        ? await db
-            .select({ optionValueId: variantOptionValue.optionValue })
-            .from(variantOptionValue)
-            .where(inArray(variantOptionValue.variant, variantIds))
-        : [];
-      const usedOptionValueIds = new Set(usedOptionValues.map(ov => ov.optionValueId));
+      const variantIds = variants.map((v) => v.id);
+      const usedOptionValues =
+        variantIds.length > 0
+          ? await db
+              .select({ optionValueId: variantOptionValue.optionValue })
+              .from(variantOptionValue)
+              .where(inArray(variantOptionValue.variant, variantIds))
+          : [];
+      const usedOptionValueIds = new Set(usedOptionValues.map((ov) => ov.optionValueId));
 
       // Get options for this product (only those with used values)
       const productOptions = await db
@@ -367,32 +418,39 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       const optionsWithValues = await Promise.all(
         productOptions.map(async (po) => {
-          const allValues = await db.select().from(optionValue).where(eq(optionValue.option, po.option.id)).orderBy(optionValue.sortOrder);
+          const allValues = await db
+            .select()
+            .from(optionValue)
+            .where(eq(optionValue.option, po.option.id))
+            .orderBy(optionValue.sortOrder);
           // Filter to only values used by this product's variants
-          const values = allValues.filter(v => usedOptionValueIds.has(v.id));
+          const values = allValues.filter((v) => usedOptionValueIds.has(v.id));
           return { ...po.option, sortOrder: po.sortOrder, values };
-        })
+        }),
       );
 
       // Filter out options with no values (shouldn't happen, but safety check)
-      const filteredOptions = optionsWithValues.filter(o => o.values.length > 0);
+      const filteredOptions = optionsWithValues.filter((o) => o.values.length > 0);
 
       const variantsWithOptions = await Promise.all(
         variants.map(async (v) => {
-          const optionValues = await db.select().from(variantOptionValue).where(eq(variantOptionValue.variant, v.id));
-          return { ...v, optionValues: optionValues.map(ov => ov.optionValue) };
-        })
+          const optionValues = await db
+            .select()
+            .from(variantOptionValue)
+            .where(eq(variantOptionValue.variant, v.id));
+          return { ...v, optionValues: optionValues.map((ov) => ov.optionValue) };
+        }),
       );
 
       return {
         ...found,
         featuredImage: featuredMedia?.mediaId ?? null,
-        images: allMedia.map(m => m.mediaId),
+        images: allMedia.map((m) => m.mediaId),
         variants: variantsWithOptions,
         options: filteredOptions,
       };
     },
-    { params: t.Object({ slug: t.String() }), response: withNotFound({}) }
+    { params: t.Object({ slug: t.String() }), response: withNotFound({}) },
   )
 
   // GET /products/:id - Get one with variants (public)
@@ -402,7 +460,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       const [found] = await db.select().from(product).where(eq(product.id, params.id));
       if (!found) return status(404, { message: 'Product not found' });
 
-      const variants = await db.select().from(variant).where(eq(variant.product, params.id)).orderBy(variant.sortOrder);
+      const variants = await db
+        .select()
+        .from(variant)
+        .where(eq(variant.product, params.id))
+        .orderBy(variant.sortOrder);
 
       // Get options for this product via junction table
       const productOptions = await db
@@ -418,32 +480,43 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       // Load option values for each option
       const optionsWithValues = await Promise.all(
         productOptions.map(async (po) => {
-          const values = await db.select().from(optionValue).where(eq(optionValue.option, po.option.id)).orderBy(optionValue.sortOrder);
+          const values = await db
+            .select()
+            .from(optionValue)
+            .where(eq(optionValue.option, po.option.id))
+            .orderBy(optionValue.sortOrder);
           return { ...po.option, sortOrder: po.sortOrder, values };
-        })
+        }),
       );
 
       // Load variant option values for each variant
       const variantsWithOptions = await Promise.all(
         variants.map(async (v) => {
-          const optionValues = await db.select().from(variantOptionValue).where(eq(variantOptionValue.variant, v.id));
-          return { ...v, optionValues: optionValues.map(ov => ov.optionValue) };
-        })
+          const optionValues = await db
+            .select()
+            .from(variantOptionValue)
+            .where(eq(variantOptionValue.variant, v.id));
+          return { ...v, optionValues: optionValues.map((ov) => ov.optionValue) };
+        }),
       );
 
       return { ...found, variants: variantsWithOptions, options: optionsWithValues };
     },
-    { params: productParams, response: withNotFound({}) }
+    { params: productParams, response: withNotFound({}) },
   )
 
   // GET /products/:id/variants (public)
   .get(
     '/:id/variants',
     async ({ params }) => {
-      const variants = await db.select().from(variant).where(eq(variant.product, params.id)).orderBy(variant.sortOrder);
+      const variants = await db
+        .select()
+        .from(variant)
+        .where(eq(variant.product, params.id))
+        .orderBy(variant.sortOrder);
       return variants;
     },
-    { params: productParams, response: t.Array(variantSchema) }
+    { params: productParams, response: t.Array(variantSchema) },
   )
 
   // === PROTECTED ROUTES (Admin) ===
@@ -476,7 +549,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return created;
     },
-    { permission: true, body: productCreateBody, response: withAuthErrors({ 200: productSchema }) }
+    { permission: true, body: productCreateBody, response: withAuthErrors({ 200: productSchema }) },
   )
 
   // PUT /products/:id - Update (full, slug immutable)
@@ -514,7 +587,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: productParams,
       body: productUpdateBody,
       response: withCrudErrors({ 200: productSchema }),
-    }
+    },
   )
 
   // PATCH /products/:id - Partial update
@@ -544,7 +617,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: productParams,
       body: productPatchBody,
       response: withCrudErrors({ 200: productSchema }),
-    }
+    },
   )
 
   // DELETE /products/:id - Delete
@@ -570,7 +643,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       response: withCrudErrors({ 200: successSchema }),
-    }
+    },
   )
 
   // === VARIANTS ===
@@ -610,7 +683,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: productParams,
       body: variantBody,
       response: withCrudErrors({ 200: variantSchema }),
-    }
+    },
   )
 
   // PUT /products/:id/variants/:variantId
@@ -646,7 +719,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: variantParams,
       body: variantBody,
       response: withCrudErrors({ 200: variantSchema }),
-    }
+    },
   )
 
   // DELETE /products/:id/variants/:variantId
@@ -665,7 +738,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: variantParams,
       response: withCrudErrors({ 200: successSchema }),
-    }
+    },
   )
 
   // PUT /products/:id/variants/:variantId/options - Set variant option values (replaces all)
@@ -688,7 +761,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
           body.optionValueIds.map((optionValueId: string) => ({
             variant: params.variantId,
             optionValue: optionValueId,
-          }))
+          })),
         );
       }
 
@@ -699,7 +772,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: variantParams,
       body: t.Object({ optionValueIds: t.Array(t.String({ format: 'uuid' })) }),
       response: withCrudErrors({ 200: successSchema }),
-    }
+    },
   )
 
   // === MEDIA ===
@@ -716,7 +789,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .orderBy(productMedia.sortOrder);
       return media;
     },
-    { permission: true, params: productParams, response: t.Array(productMediaSchema) }
+    { permission: true, params: productParams, response: t.Array(productMediaSchema) },
   )
 
   // POST /products/:id/media - Add media to product
@@ -752,7 +825,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: productParams,
       body: productMediaBody,
       response: withCrudErrors({ 200: productMediaSchema }),
-    }
+    },
   )
 
   // PUT /products/:id/media/:mediaId - Update media settings
@@ -793,7 +866,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: mediaParams,
       body: productMediaUpdateBody,
       response: withCrudErrors({ 200: productMediaSchema }),
-    }
+    },
   )
 
   // DELETE /products/:id/media/:mediaId
@@ -812,7 +885,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: mediaParams,
       response: withCrudErrors({ 200: successSchema }),
-    }
+    },
   )
 
   // === OPTIONS (globales) ===
@@ -825,7 +898,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       const options = await db.select().from(option).orderBy(option.name);
       return options;
     },
-    { permission: true, response: { 200: t.Array(optionSchema) } }
+    { permission: true, response: { 200: t.Array(optionSchema) } },
   )
 
   // POST /products/:id/options - Associe une option au produit (crée l'option si elle n'existe pas)
@@ -837,13 +910,14 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (!productExists) return status(404, { message: 'Product not found' });
 
       // Cherche ou crée l'option globale (case-insensitive)
-      let opt = await db.select().from(option).where(ilike(option.name, body.name)).then(r => r[0]);
+      let opt = await db
+        .select()
+        .from(option)
+        .where(ilike(option.name, body.name))
+        .then((r) => r[0]);
 
       if (!opt) {
-        [opt] = await db
-          .insert(option)
-          .values({ name: body.name })
-          .returning();
+        [opt] = await db.insert(option).values({ name: body.name }).returning();
       }
 
       // Vérifie si l'association existe déjà
@@ -870,7 +944,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: productParams,
       body: optionBody,
       response: withCrudErrors({ 200: optionSchema, 409: conflictResponse }),
-    }
+    },
   )
 
   // POST /products/:id/options/:optionId/values
@@ -905,5 +979,5 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       params: optionParams,
       body: optionValueBody,
       response: withCrudErrors({ 200: optionValueSchema }),
-    }
+    },
   );

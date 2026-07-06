@@ -1,5 +1,5 @@
-import { Elysia, t } from 'elysia';
 import { db, taxRate } from '@echoppe/core';
+import { Elysia, t } from 'elysia';
 
 const taxRateSchema = t.Object({
   id: t.String(),
@@ -10,7 +10,11 @@ const taxRateSchema = t.Object({
 
 export const taxRatesRoutes = new Elysia({ prefix: '/tax-rates', detail: { tags: ['Tax Rates'] } })
   // GET /tax-rates - List all (public for forms)
-  .get('/', async () => {
-    const rates = await db.select().from(taxRate);
-    return rates;
-  }, { response: t.Array(taxRateSchema) });
+  .get(
+    '/',
+    async () => {
+      const rates = await db.select().from(taxRate);
+      return rates;
+    },
+    { response: t.Array(taxRateSchema) },
+  );

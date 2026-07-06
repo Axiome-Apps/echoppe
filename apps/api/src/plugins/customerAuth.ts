@@ -1,5 +1,5 @@
+import { and, customer, customerSession, db, eq, gt } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { db, customer, customerSession, eq, and, gt } from '@echoppe/core';
 
 export const CUSTOMER_COOKIE_NAME = 'echoppe_customer_session';
 
@@ -30,7 +30,12 @@ export async function getCustomerSessionFromToken(
   token: string | undefined,
 ): Promise<SessionWithMeta> {
   if (!token) {
-    return { currentCustomer: null, isAuthenticated: false, storedUserAgent: null, storedIpAddress: null };
+    return {
+      currentCustomer: null,
+      isAuthenticated: false,
+      storedUserAgent: null,
+      storedIpAddress: null,
+    };
   }
 
   const [sessionData] = await db
@@ -53,7 +58,12 @@ export async function getCustomerSessionFromToken(
     .where(and(eq(customerSession.token, token), gt(customerSession.expiresAt, new Date())));
 
   if (!sessionData) {
-    return { currentCustomer: null, isAuthenticated: false, storedUserAgent: null, storedIpAddress: null };
+    return {
+      currentCustomer: null,
+      isAuthenticated: false,
+      storedUserAgent: null,
+      storedIpAddress: null,
+    };
   }
 
   return {

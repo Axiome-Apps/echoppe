@@ -1,5 +1,5 @@
-import { and, auditLog, count, db, desc, eq, gte, lte, user, isNotNull } from '@echoppe/core';
 import type { SQL } from '@echoppe/core';
+import { and, auditLog, count, db, desc, eq, gte, isNotNull, lte, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
 import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
@@ -109,7 +109,10 @@ export const auditLogsRoutes = new Elysia({ prefix: '/audit-logs', detail: { tag
           .orderBy(desc(auditLog.dateCreated))
           .limit(limit)
           .offset(offset),
-        db.select({ total: count(auditLog.id) }).from(auditLog).where(whereClause),
+        db
+          .select({ total: count(auditLog.id) })
+          .from(auditLog)
+          .where(whereClause),
       ]);
 
       // Transform null user objects (when user was deleted)

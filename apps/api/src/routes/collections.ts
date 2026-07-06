@@ -1,10 +1,26 @@
-import { Elysia, t } from 'elysia';
-import { db, collection, product, productCollection, variant, productMedia, eq, and, inArray, count } from '@echoppe/core';
+import {
+  and,
+  collection,
+  count,
+  db,
+  eq,
+  inArray,
+  product,
+  productCollection,
+  productMedia,
+  variant,
+} from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
+import { Elysia, t } from 'elysia';
+import { getClientIp, logAudit } from '../lib/audit';
 import { permissionGuard } from '../plugins/rbac';
-import { paginationQuery, paginatedResponse, getPaginationParams, buildPaginatedResponse } from '../utils/pagination';
+import {
+  buildPaginatedResponse,
+  getPaginationParams,
+  paginatedResponse,
+  paginationQuery,
+} from '../utils/pagination';
 import { successSchema, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
-import { logAudit, getClientIp } from '../lib/audit';
 
 // Schema de réponse pour les collections
 const collectionSchema = t.Object({
@@ -35,7 +51,6 @@ const collectionParams = t.Object({
   id: t.String({ format: 'uuid' }),
 });
 
-
 // Schema pour les produits (liste)
 const defaultVariantSchema = t.Object({
   priceHt: t.String(),
@@ -57,7 +72,10 @@ const productListSchema = t.Object({
   defaultVariant: t.Nullable(defaultVariantSchema),
 });
 
-export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { tags: ['Collections'] } })
+export const collectionsRoutes = new Elysia({
+  prefix: '/collections',
+  detail: { tags: ['Collections'] },
+})
 
   // === PUBLIC ROUTES ===
 
@@ -74,7 +92,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
 
       return buildPaginatedResponse(collections, total, page, limit);
     },
-    { query: paginationQuery, response: paginatedResponse(collectionSchema) }
+    { query: paginationQuery, response: paginatedResponse(collectionSchema) },
   )
 
   // GET /collections/:id - Get one (public)
@@ -88,7 +106,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
     {
       params: collectionParams,
       response: withNotFound({ 200: collectionSchema }),
-    }
+    },
   )
 
   // GET /collections/by-slug/:slug - Get one by slug (public)
@@ -102,14 +120,17 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
     {
       params: t.Object({ slug: t.String() }),
       response: withNotFound({ 200: collectionSchema }),
-    }
+    },
   )
 
   // GET /collections/:id/products - Get products in collection with pagination (public)
   .get(
     '/:id/products',
     async ({ params, query, status }) => {
-      const [collectionExists] = await db.select().from(collection).where(eq(collection.id, params.id));
+      const [collectionExists] = await db
+        .select()
+        .from(collection)
+        .where(eq(collection.id, params.id));
       if (!collectionExists) return status(404, { message: 'Collection not found' });
 
       const { page, limit, offset } = getPaginationParams(query);
@@ -127,8 +148,17 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       }
 
       const [products, [{ total }]] = await Promise.all([
-        db.select().from(product).where(inArray(product.id, ids)).orderBy(product.dateCreated).limit(limit).offset(offset),
-        db.select({ total: count(product.id) }).from(product).where(inArray(product.id, ids)),
+        db
+          .select()
+          .from(product)
+          .where(inArray(product.id, ids))
+          .orderBy(product.dateCreated)
+          .limit(limit)
+          .offset(offset),
+        db
+          .select({ total: count(product.id) })
+          .from(product)
+          .where(inArray(product.id, ids)),
       ]);
 
       // Fetch featured images and default variants
@@ -159,7 +189,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
         defaultVariants.map((dv) => [
           dv.productId,
           { priceHt: dv.priceHt, compareAtPriceHt: dv.compareAtPriceHt, quantity: dv.quantity },
-        ])
+        ]),
       );
 
       const enrichedProducts = products.map((p) => ({
@@ -174,7 +204,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       params: collectionParams,
       query: paginationQuery,
       response: withNotFound({ 200: paginatedResponse(productListSchema) }),
-    }
+    },
   )
 
   // === PROTECTED ROUTES (Admin) ===
@@ -206,7 +236,11 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
 
       return created;
     },
-    { permission: true, body: collectionCreateBody, response: withAuthErrors({ 200: collectionSchema }) }
+    {
+      permission: true,
+      body: collectionCreateBody,
+      response: withAuthErrors({ 200: collectionSchema }),
+    },
   )
 
   // PUT /collections/:id - Update (slug immutable)
@@ -242,7 +276,7 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       params: collectionParams,
       body: collectionUpdateBody,
       response: withCrudErrors({ 200: collectionSchema }),
-    }
+    },
   )
 
   // DELETE /collections/:id - Delete
@@ -268,5 +302,5 @@ export const collectionsRoutes = new Elysia({ prefix: '/collections', detail: { 
       permission: true,
       params: collectionParams,
       response: withCrudErrors({ 200: successSchema }),
-    }
+    },
   );

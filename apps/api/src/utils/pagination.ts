@@ -1,4 +1,4 @@
-import { t, type TSchema } from 'elysia';
+import { type TSchema, t } from 'elysia';
 
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 20;
@@ -54,7 +54,7 @@ export function buildPaginatedResponse<T>(
   data: T[],
   total: number,
   page: number,
-  limit: number
+  limit: number,
 ): PaginatedResponse<T> {
   return {
     data,

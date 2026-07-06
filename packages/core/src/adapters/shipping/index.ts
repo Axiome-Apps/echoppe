@@ -1,3 +1,15 @@
+export { ColissimoAdapter } from './colissimo';
+export {
+  type ColissimoCredentials,
+  getShippingProviderCredentials,
+  getShippingProviderStatus,
+  type MondialRelayCredentials,
+  type SendcloudCredentials,
+  saveShippingProviderCredentials,
+  setShippingProviderEnabled,
+} from './config';
+export { MondialRelayAdapter } from './mondialrelay';
+export { SendcloudAdapter } from './sendcloud';
 export type {
   Address,
   CreateLabelParams,
@@ -9,25 +21,11 @@ export type {
   TrackingEvent,
 } from './types';
 
-export { SendcloudAdapter } from './sendcloud';
-export { ColissimoAdapter } from './colissimo';
-export { MondialRelayAdapter } from './mondialrelay';
-
-export {
-  getShippingProviderCredentials,
-  getShippingProviderStatus,
-  saveShippingProviderCredentials,
-  setShippingProviderEnabled,
-  type ColissimoCredentials,
-  type MondialRelayCredentials,
-  type SendcloudCredentials,
-} from './config';
-
-import type { ShippingAdapter, ShippingProvider } from './types';
-import { SendcloudAdapter } from './sendcloud';
 import { ColissimoAdapter } from './colissimo';
-import { MondialRelayAdapter } from './mondialrelay';
 import { getShippingProviderStatus } from './config';
+import { MondialRelayAdapter } from './mondialrelay';
+import { SendcloudAdapter } from './sendcloud';
+import type { ShippingAdapter, ShippingProvider } from './types';
 
 // Singleton instances (lazy-initialized)
 let sendcloudAdapter: SendcloudAdapter | null = null;

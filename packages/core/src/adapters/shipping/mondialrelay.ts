@@ -1,12 +1,12 @@
+import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 import type {
+  CreateLabelParams,
+  GetRatesParams,
+  ShipmentLabel,
   ShippingAdapter,
   ShippingRate,
-  ShipmentLabel,
   TrackingEvent,
-  GetRatesParams,
-  CreateLabelParams,
 } from './types';
-import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 
 const MONDIAL_RELAY_API_URL = 'https://api.mondialrelay.com/Web_Services.asmx';
 
@@ -227,15 +227,16 @@ export class MondialRelayAdapter implements ShippingAdapter {
     const xml = await response.text();
     const events: TrackingEvent[] = [];
 
-    const trecRegex = /<Tracing_Libelle>([^<]+)<\/Tracing_Libelle>[\s\S]*?<Tracing_Date>([^<]+)<\/Tracing_Date>/g;
-    let match: RegExpExecArray | null;
-
-    while ((match = trecRegex.exec(xml)) !== null) {
+    const trecRegex =
+      /<Tracing_Libelle>([^<]+)<\/Tracing_Libelle>[\s\S]*?<Tracing_Date>([^<]+)<\/Tracing_Date>/g;
+    let match = trecRegex.exec(xml);
+    while (match !== null) {
       events.push({
         date: new Date(match[2]),
         status: match[1],
         description: match[1],
       });
+      match = trecRegex.exec(xml);
     }
 
     return events;

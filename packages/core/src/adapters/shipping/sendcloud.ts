@@ -1,12 +1,12 @@
+import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 import type {
+  CreateLabelParams,
+  GetRatesParams,
+  ShipmentLabel,
   ShippingAdapter,
   ShippingRate,
-  ShipmentLabel,
   TrackingEvent,
-  GetRatesParams,
-  CreateLabelParams,
 } from './types';
-import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 
 const SENDCLOUD_API_URL = 'https://panel.sendcloud.sc/api/v2';
 
@@ -48,10 +48,7 @@ export class SendcloudAdapter implements ShippingAdapter {
     return status.isConfigured && status.isEnabled;
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {},
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     await this.ensureInitialized();
 
     if (!this.authHeader) {
@@ -90,9 +87,7 @@ export class SendcloudAdapter implements ShippingAdapter {
         return inWeightRange && servesCountry;
       })
       .map((method) => {
-        const countryPrice = method.countries?.find(
-          (c) => c.iso_2 === params.toCountry,
-        )?.price;
+        const countryPrice = method.countries?.find((c) => c.iso_2 === params.toCountry)?.price;
         const price = countryPrice ?? method.price ?? 0;
 
         return {

@@ -1,3 +1,13 @@
+export {
+  getProviderCredentials,
+  getProviderStatus,
+  type PayPalCredentials,
+  type StripeCredentials,
+  saveProviderCredentials,
+  setProviderEnabled,
+} from './config';
+export { PayPalAdapter } from './paypal';
+export { StripeAdapter } from './stripe';
 export type {
   CheckoutParams,
   CheckoutSession,
@@ -9,22 +19,10 @@ export type {
   RefundResult,
 } from './types';
 
-export { StripeAdapter } from './stripe';
-export { PayPalAdapter } from './paypal';
-
-export {
-  getProviderCredentials,
-  getProviderStatus,
-  saveProviderCredentials,
-  setProviderEnabled,
-  type PayPalCredentials,
-  type StripeCredentials,
-} from './config';
-
-import type { PaymentAdapter, PaymentProvider } from './types';
-import { StripeAdapter } from './stripe';
-import { PayPalAdapter } from './paypal';
 import { getProviderStatus } from './config';
+import { PayPalAdapter } from './paypal';
+import { StripeAdapter } from './stripe';
+import type { PaymentAdapter, PaymentProvider } from './types';
 
 // Singleton instances (lazy-initialized)
 let stripeAdapter: StripeAdapter | null = null;
