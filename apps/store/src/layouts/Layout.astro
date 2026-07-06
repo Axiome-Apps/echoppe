@@ -1,0 +1,41 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'Boutique Échoppe', description = 'Boutique artisanale' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body class="flex min-h-full flex-col bg-white text-zinc-900">
+    <header class="border-b border-zinc-200">
+      <nav class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+        <a href="/" class="text-lg font-semibold tracking-tight">Échoppe</a>
+        <div class="flex gap-6 text-sm">
+          <a href="/" class="text-zinc-600 transition-colors hover:text-zinc-900">Accueil</a>
+          <a href="/produits" class="text-zinc-600 transition-colors hover:text-zinc-900">Produits</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+      <slot />
+    </main>
+
+    <footer class="border-t border-zinc-200">
+      <div class="mx-auto max-w-5xl px-4 py-6 text-sm text-zinc-500">
+        © {new Date().getFullYear()} Échoppe — boutique de démonstration.
+      </div>
+    </footer>
+  </body>
+</html>
