@@ -1,0 +1,44 @@
+{
+  "name": "@echoppe/client",
+  "version": "0.0.1",
+  "description": "SDK client typé pour l'API Échoppe — généré depuis l'OpenAPI.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./openapi.json": "./openapi.json"
+  },
+  "files": [
+    "dist",
+    "openapi.json",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "generate": "bun run scripts/generate.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "echoppe",
+    "ecommerce",
+    "sdk",
+    "openapi"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0",
+    "typescript": "5.9.3"
+  }
+}
