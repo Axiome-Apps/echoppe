@@ -30,7 +30,10 @@ export default [
       'no-console': 'warn',
       'no-debugger': 'warn',
       'no-undef': 'off', // TS handles this
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // La règle de base est désactivée au profit de @typescript-eslint/no-unused-vars :
+      // le core no-unused-vars ne comprend pas les positions de type (signatures de
+      // fonction dans les interfaces, defineEmits) et produit des faux positifs.
+      'no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'vue/multi-word-component-names': 'off',

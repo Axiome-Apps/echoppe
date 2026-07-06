@@ -190,7 +190,10 @@ function cancel() {
       </button>
     </div>
 
-    <div v-if="loading" class="text-gray-500">
+    <div
+      v-if="loading"
+      class="text-gray-500"
+    >
       Chargement...
     </div>
 
@@ -200,10 +203,18 @@ function cancel() {
           <h2 class="text-lg font-semibold">
             {{ pageTitle }}
           </h2>
-          <Badge v-if="isOwner" variant="warning">Owner</Badge>
+          <Badge
+            v-if="isOwner"
+            variant="warning"
+          >
+            Owner
+          </Badge>
         </div>
 
-        <div v-if="isOwner" class="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+        <div
+          v-if="isOwner"
+          class="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800"
+        >
           Le propriétaire ne peut pas être modifié par d'autres utilisateurs.
         </div>
 
@@ -251,8 +262,14 @@ function cancel() {
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Mot de passe
-                <span v-if="isNew" class="text-red-500">*</span>
-                <span v-else class="text-gray-400 text-xs">(laisser vide pour ne pas modifier)</span>
+                <span
+                  v-if="isNew"
+                  class="text-red-500"
+                >*</span>
+                <span
+                  v-else
+                  class="text-gray-400 text-xs"
+                >(laisser vide pour ne pas modifier)</span>
               </label>
               <input
                 v-model="form.password"
@@ -275,10 +292,17 @@ function cancel() {
                 :disabled="isOwner"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="" disabled>
+                <option
+                  value=""
+                  disabled
+                >
                   Sélectionner un rôle
                 </option>
-                <option v-for="role in roles" :key="role.id" :value="role.id">
+                <option
+                  v-for="role in roles"
+                  :key="role.id"
+                  :value="role.id"
+                >
                   {{ role.name }}
                 </option>
               </select>

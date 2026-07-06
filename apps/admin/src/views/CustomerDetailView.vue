@@ -138,13 +138,19 @@ function goToOrder(orderId: string) {
 </script>
 
 <template>
-  <div v-if="loading" class="flex items-center justify-center h-64">
+  <div
+    v-if="loading"
+    class="flex items-center justify-center h-64"
+  >
     <div class="text-gray-500">
       Chargement...
     </div>
   </div>
 
-  <div v-else-if="customer" class="flex gap-6">
+  <div
+    v-else-if="customer"
+    class="flex gap-6"
+  >
     <!-- Main content -->
     <div class="flex-1 space-y-6">
       <!-- Header -->
@@ -155,8 +161,18 @@ function goToOrder(orderId: string) {
             class="p-2 text-gray-400 hover:text-gray-600"
             @click="router.push('/clients')"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
           <div>
@@ -180,20 +196,36 @@ function goToOrder(orderId: string) {
         </h2>
         <dl class="grid grid-cols-2 gap-4">
           <div>
-            <dt class="text-sm text-gray-500">Email</dt>
-            <dd class="text-sm font-medium text-gray-900">{{ customer.email }}</dd>
+            <dt class="text-sm text-gray-500">
+              Email
+            </dt>
+            <dd class="text-sm font-medium text-gray-900">
+              {{ customer.email }}
+            </dd>
           </div>
           <div>
-            <dt class="text-sm text-gray-500">Téléphone</dt>
-            <dd class="text-sm font-medium text-gray-900">{{ customer.phone || '-' }}</dd>
+            <dt class="text-sm text-gray-500">
+              Téléphone
+            </dt>
+            <dd class="text-sm font-medium text-gray-900">
+              {{ customer.phone || '-' }}
+            </dd>
           </div>
           <div>
-            <dt class="text-sm text-gray-500">Email vérifié</dt>
-            <dd class="text-sm font-medium text-gray-900">{{ customer.emailVerified ? 'Oui' : 'Non' }}</dd>
+            <dt class="text-sm text-gray-500">
+              Email vérifié
+            </dt>
+            <dd class="text-sm font-medium text-gray-900">
+              {{ customer.emailVerified ? 'Oui' : 'Non' }}
+            </dd>
           </div>
           <div>
-            <dt class="text-sm text-gray-500">Marketing</dt>
-            <dd class="text-sm font-medium text-gray-900">{{ customer.marketingOptin ? 'Accepté' : 'Refusé' }}</dd>
+            <dt class="text-sm text-gray-500">
+              Marketing
+            </dt>
+            <dd class="text-sm font-medium text-gray-900">
+              {{ customer.marketingOptin ? 'Accepté' : 'Refusé' }}
+            </dd>
           </div>
         </dl>
       </div>
@@ -203,29 +235,70 @@ function goToOrder(orderId: string) {
         <h2 class="text-lg font-semibold text-gray-900 mb-4">
           Adresses
         </h2>
-        <div v-if="customer.addresses.length === 0" class="text-sm text-gray-500">
+        <div
+          v-if="customer.addresses.length === 0"
+          class="text-sm text-gray-500"
+        >
           Aucune adresse enregistrée
         </div>
-        <div v-else class="grid grid-cols-2 gap-4">
+        <div
+          v-else
+          class="grid grid-cols-2 gap-4"
+        >
           <div
             v-for="addr in customer.addresses"
             :key="addr.id"
             class="border border-gray-200 rounded-lg p-4"
           >
             <div class="flex items-center gap-2 mb-2">
-              <Badge variant="info" size="sm">{{ getAddressTypeLabel(addr.type) }}</Badge>
-              <Badge v-if="addr.isDefault" variant="success" size="sm">Par défaut</Badge>
-              <span v-if="addr.label" class="text-sm text-gray-500">{{ addr.label }}</span>
+              <Badge
+                variant="info"
+                size="sm"
+              >
+                {{ getAddressTypeLabel(addr.type) }}
+              </Badge>
+              <Badge
+                v-if="addr.isDefault"
+                variant="success"
+                size="sm"
+              >
+                Par défaut
+              </Badge>
+              <span
+                v-if="addr.label"
+                class="text-sm text-gray-500"
+              >{{ addr.label }}</span>
             </div>
             <p class="text-sm text-gray-900 font-medium">
               {{ addr.firstName }} {{ addr.lastName }}
             </p>
-            <p v-if="addr.company" class="text-sm text-gray-600">{{ addr.company }}</p>
-            <p class="text-sm text-gray-600">{{ addr.street }}</p>
-            <p v-if="addr.street2" class="text-sm text-gray-600">{{ addr.street2 }}</p>
-            <p class="text-sm text-gray-600">{{ addr.postalCode }} {{ addr.city }}</p>
-            <p class="text-sm text-gray-600">{{ addr.country }}</p>
-            <p v-if="addr.phone" class="text-sm text-gray-500 mt-1">{{ addr.phone }}</p>
+            <p
+              v-if="addr.company"
+              class="text-sm text-gray-600"
+            >
+              {{ addr.company }}
+            </p>
+            <p class="text-sm text-gray-600">
+              {{ addr.street }}
+            </p>
+            <p
+              v-if="addr.street2"
+              class="text-sm text-gray-600"
+            >
+              {{ addr.street2 }}
+            </p>
+            <p class="text-sm text-gray-600">
+              {{ addr.postalCode }} {{ addr.city }}
+            </p>
+            <p class="text-sm text-gray-600">
+              {{ addr.country }}
+            </p>
+            <p
+              v-if="addr.phone"
+              class="text-sm text-gray-500 mt-1"
+            >
+              {{ addr.phone }}
+            </p>
           </div>
         </div>
       </div>
@@ -237,10 +310,16 @@ function goToOrder(orderId: string) {
             Commandes récentes
           </h2>
         </div>
-        <div v-if="customer.recentOrders.length === 0" class="p-6 text-sm text-gray-500">
+        <div
+          v-if="customer.recentOrders.length === 0"
+          class="p-6 text-sm text-gray-500"
+        >
           Aucune commande
         </div>
-        <table v-else class="w-full">
+        <table
+          v-else
+          class="w-full"
+        >
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -318,12 +397,20 @@ function goToOrder(orderId: string) {
         </h3>
         <dl class="space-y-3">
           <div class="flex justify-between">
-            <dt class="text-sm text-gray-500">Total commandes</dt>
-            <dd class="text-sm font-medium text-gray-900">{{ customer.stats.totalOrders }}</dd>
+            <dt class="text-sm text-gray-500">
+              Total commandes
+            </dt>
+            <dd class="text-sm font-medium text-gray-900">
+              {{ customer.stats.totalOrders }}
+            </dd>
           </div>
           <div class="flex justify-between">
-            <dt class="text-sm text-gray-500">Montant total</dt>
-            <dd class="text-sm font-medium text-gray-900">{{ formatPrice(customer.stats.totalSpent) }}</dd>
+            <dt class="text-sm text-gray-500">
+              Montant total
+            </dt>
+            <dd class="text-sm font-medium text-gray-900">
+              {{ formatPrice(customer.stats.totalSpent) }}
+            </dd>
           </div>
         </dl>
       </div>
@@ -335,16 +422,28 @@ function goToOrder(orderId: string) {
         </h3>
         <dl class="space-y-3">
           <div class="flex justify-between">
-            <dt class="text-sm text-gray-500">Inscription</dt>
-            <dd class="text-sm text-gray-900">{{ formatDate(customer.dateCreated) }}</dd>
+            <dt class="text-sm text-gray-500">
+              Inscription
+            </dt>
+            <dd class="text-sm text-gray-900">
+              {{ formatDate(customer.dateCreated) }}
+            </dd>
           </div>
           <div class="flex justify-between">
-            <dt class="text-sm text-gray-500">Dernière connexion</dt>
-            <dd class="text-sm text-gray-900">{{ formatDateTime(customer.lastLogin) }}</dd>
+            <dt class="text-sm text-gray-500">
+              Dernière connexion
+            </dt>
+            <dd class="text-sm text-gray-900">
+              {{ formatDateTime(customer.lastLogin) }}
+            </dd>
           </div>
           <div class="flex justify-between">
-            <dt class="text-sm text-gray-500">Dernière mise à jour</dt>
-            <dd class="text-sm text-gray-900">{{ formatDate(customer.dateUpdated) }}</dd>
+            <dt class="text-sm text-gray-500">
+              Dernière mise à jour
+            </dt>
+            <dd class="text-sm text-gray-900">
+              {{ formatDate(customer.dateUpdated) }}
+            </dd>
           </div>
         </dl>
       </div>
@@ -366,7 +465,11 @@ function goToOrder(orderId: string) {
     </p>
 
     <template #footer>
-      <Button variant="secondary" size="lg" @click="showStatusModal = false">
+      <Button
+        variant="secondary"
+        size="lg"
+        @click="showStatusModal = false"
+      >
         Annuler
       </Button>
       <Button
@@ -393,7 +496,11 @@ function goToOrder(orderId: string) {
     </p>
 
     <template #footer>
-      <Button variant="secondary" size="lg" @click="showDeleteModal = false">
+      <Button
+        variant="secondary"
+        size="lg"
+        @click="showDeleteModal = false"
+      >
         Annuler
       </Button>
       <Button

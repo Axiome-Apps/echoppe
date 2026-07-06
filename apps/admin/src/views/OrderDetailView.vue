@@ -238,13 +238,19 @@ function getShipmentStatusLabel(status: string) {
 </script>
 
 <template>
-  <div v-if="loading" class="flex items-center justify-center h-64">
+  <div
+    v-if="loading"
+    class="flex items-center justify-center h-64"
+  >
     <div class="text-gray-500">
       Chargement...
     </div>
   </div>
 
-  <div v-else-if="order" class="flex gap-6">
+  <div
+    v-else-if="order"
+    class="flex gap-6"
+  >
     <!-- Main content -->
     <div class="flex-1 space-y-6">
       <!-- Header -->
@@ -255,8 +261,18 @@ function getShipmentStatusLabel(status: string) {
             class="p-2 text-gray-400 hover:text-gray-600"
             @click="router.push('/commandes')"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
           <div>
@@ -298,7 +314,10 @@ function getShipmentStatusLabel(status: string) {
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
-            <tr v-for="item in order.items" :key="item.id">
+            <tr
+              v-for="item in order.items"
+              :key="item.id"
+            >
               <td class="px-6 py-4">
                 <p class="font-medium text-gray-900">
                   {{ item.label }}
@@ -317,7 +336,10 @@ function getShipmentStatusLabel(status: string) {
           </tbody>
           <tfoot class="bg-gray-50">
             <tr>
-              <td colspan="3" class="px-6 py-3 text-right text-sm text-gray-500">
+              <td
+                colspan="3"
+                class="px-6 py-3 text-right text-sm text-gray-500"
+              >
                 Sous-total HT
               </td>
               <td class="px-6 py-3 text-right font-medium text-gray-900">
@@ -325,7 +347,10 @@ function getShipmentStatusLabel(status: string) {
               </td>
             </tr>
             <tr v-if="parseFloat(order.shippingHt) > 0">
-              <td colspan="3" class="px-6 py-3 text-right text-sm text-gray-500">
+              <td
+                colspan="3"
+                class="px-6 py-3 text-right text-sm text-gray-500"
+              >
                 Livraison HT
               </td>
               <td class="px-6 py-3 text-right font-medium text-gray-900">
@@ -333,7 +358,10 @@ function getShipmentStatusLabel(status: string) {
               </td>
             </tr>
             <tr v-if="parseFloat(order.discountHt) > 0">
-              <td colspan="3" class="px-6 py-3 text-right text-sm text-gray-500">
+              <td
+                colspan="3"
+                class="px-6 py-3 text-right text-sm text-gray-500"
+              >
                 Remise
               </td>
               <td class="px-6 py-3 text-right font-medium text-green-600">
@@ -341,7 +369,10 @@ function getShipmentStatusLabel(status: string) {
               </td>
             </tr>
             <tr>
-              <td colspan="3" class="px-6 py-3 text-right text-sm text-gray-500">
+              <td
+                colspan="3"
+                class="px-6 py-3 text-right text-sm text-gray-500"
+              >
                 TVA
               </td>
               <td class="px-6 py-3 text-right font-medium text-gray-900">
@@ -349,7 +380,10 @@ function getShipmentStatusLabel(status: string) {
               </td>
             </tr>
             <tr class="border-t border-gray-300">
-              <td colspan="3" class="px-6 py-4 text-right text-lg font-semibold text-gray-900">
+              <td
+                colspan="3"
+                class="px-6 py-4 text-right text-lg font-semibold text-gray-900"
+              >
                 Total TTC
               </td>
               <td class="px-6 py-4 text-right text-lg font-bold text-gray-900">
@@ -372,8 +406,16 @@ function getShipmentStatusLabel(status: string) {
           placeholder="Notes visibles uniquement par l'équipe..."
           @input="notesEdited = true"
         />
-        <div v-if="notesEdited" class="mt-3 flex justify-end">
-          <Button variant="primary" size="sm" :loading="saving" @click="saveNotes">
+        <div
+          v-if="notesEdited"
+          class="mt-3 flex justify-end"
+        >
+          <Button
+            variant="primary"
+            size="sm"
+            :loading="saving"
+            @click="saveNotes"
+          >
             Enregistrer
           </Button>
         </div>
@@ -421,7 +463,10 @@ function getShipmentStatusLabel(status: string) {
           >
             {{ getStatusConfig(status).label }}
           </Button>
-          <p v-if="availableStatuses.length === 0 && invoices.length > 0" class="text-sm text-gray-500 text-center py-2">
+          <p
+            v-if="availableStatuses.length === 0 && invoices.length > 0"
+            class="text-sm text-gray-500 text-center py-2"
+          >
             Aucune action disponible
           </p>
         </div>
@@ -439,7 +484,10 @@ function getShipmentStatusLabel(status: string) {
           <p class="text-sm text-gray-500">
             {{ order.customer.email }}
           </p>
-          <p v-if="order.customer.phone" class="text-sm text-gray-500">
+          <p
+            v-if="order.customer.phone"
+            class="text-sm text-gray-500"
+          >
             {{ order.customer.phone }}
           </p>
         </div>
@@ -470,7 +518,10 @@ function getShipmentStatusLabel(status: string) {
         <h3 class="text-sm font-semibold text-gray-900 mb-4">
           Paiement
         </h3>
-        <div v-if="order.payment" class="space-y-2">
+        <div
+          v-if="order.payment"
+          class="space-y-2"
+        >
           <div class="flex justify-between">
             <span class="text-sm text-gray-500">Provider</span>
             <span class="text-sm font-medium text-gray-900 capitalize">{{ order.payment.provider }}</span>
@@ -479,12 +530,18 @@ function getShipmentStatusLabel(status: string) {
             <span class="text-sm text-gray-500">Statut</span>
             <span class="text-sm font-medium text-gray-900">{{ getPaymentStatusLabel(order.payment.status) }}</span>
           </div>
-          <div v-if="order.payment.providerTransactionId" class="flex justify-between">
+          <div
+            v-if="order.payment.providerTransactionId"
+            class="flex justify-between"
+          >
             <span class="text-sm text-gray-500">Transaction</span>
             <span class="text-sm font-mono text-gray-600 truncate max-w-32">{{ order.payment.providerTransactionId }}</span>
           </div>
         </div>
-        <p v-else class="text-sm text-gray-500">
+        <p
+          v-else
+          class="text-sm text-gray-500"
+        >
           Aucun paiement
         </p>
       </div>
@@ -494,7 +551,10 @@ function getShipmentStatusLabel(status: string) {
         <h3 class="text-sm font-semibold text-gray-900 mb-4">
           Expédition
         </h3>
-        <div v-if="order.shipment" class="space-y-2">
+        <div
+          v-if="order.shipment"
+          class="space-y-2"
+        >
           <div class="flex justify-between">
             <span class="text-sm text-gray-500">Transporteur</span>
             <span class="text-sm font-medium text-gray-900">{{ order.shipment.provider?.name || '-' }}</span>
@@ -503,7 +563,10 @@ function getShipmentStatusLabel(status: string) {
             <span class="text-sm text-gray-500">Statut</span>
             <span class="text-sm font-medium text-gray-900">{{ getShipmentStatusLabel(order.shipment.status) }}</span>
           </div>
-          <div v-if="order.shipment.trackingNumber" class="flex justify-between">
+          <div
+            v-if="order.shipment.trackingNumber"
+            class="flex justify-between"
+          >
             <span class="text-sm text-gray-500">Suivi</span>
             <a
               v-if="order.shipment.trackingUrl"
@@ -513,14 +576,19 @@ function getShipmentStatusLabel(status: string) {
             >
               {{ order.shipment.trackingNumber }}
             </a>
-            <span v-else class="text-sm font-mono text-gray-600">{{ order.shipment.trackingNumber }}</span>
+            <span
+              v-else
+              class="text-sm font-mono text-gray-600"
+            >{{ order.shipment.trackingNumber }}</span>
           </div>
         </div>
-        <p v-else class="text-sm text-gray-500">
+        <p
+          v-else
+          class="text-sm text-gray-500"
+        >
           Non expédiée
         </p>
       </div>
-
     </div>
   </div>
 
@@ -537,7 +605,11 @@ function getShipmentStatusLabel(status: string) {
     </p>
 
     <template #footer>
-      <Button variant="secondary" size="lg" @click="showStatusModal = false">
+      <Button
+        variant="secondary"
+        size="lg"
+        @click="showStatusModal = false"
+      >
         Annuler
       </Button>
       <Button

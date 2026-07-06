@@ -31,7 +31,10 @@ defineEmits<{
           : 'text-gray-700 hover:bg-gray-100'"
         @click.stop="$emit('action', action.id)"
       >
-        <TrashIcon v-if="action.icon === 'trash'" size="sm" />
+        <TrashIcon
+          v-if="action.icon === 'trash'"
+          size="sm"
+        />
         <svg
           v-else-if="action.icon === 'archive'"
           class="w-4 h-4"
@@ -46,7 +49,10 @@ defineEmits<{
             d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
           />
         </svg>
-        <EditIcon v-else-if="action.icon === 'edit'" size="sm" />
+        <EditIcon
+          v-else-if="action.icon === 'edit'"
+          size="sm"
+        />
         {{ action.label }}
       </button>
       <button

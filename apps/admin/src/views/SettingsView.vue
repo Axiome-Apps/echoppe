@@ -797,15 +797,24 @@ const activeFiltersCount = computed(() => {
 
     <!-- Tab: Roles -->
     <div v-else-if="activeTab === 'roles'">
-      <div v-if="rolesLoading" class="text-gray-500">
+      <div
+        v-if="rolesLoading"
+        class="text-gray-500"
+      >
         Chargement...
       </div>
 
-      <div v-else-if="roles.length === 0" class="text-gray-500">
+      <div
+        v-else-if="roles.length === 0"
+        class="text-gray-500"
+      >
         Aucun rôle
       </div>
 
-      <div v-else class="bg-white rounded-lg shadow overflow-hidden">
+      <div
+        v-else
+        class="bg-white rounded-lg shadow overflow-hidden"
+      >
         <table class="w-full">
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr>

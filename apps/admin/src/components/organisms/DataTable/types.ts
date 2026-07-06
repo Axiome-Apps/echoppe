@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState } from '@tanstack/vue-table';
 import type { BadgeVariant } from '@/types/ui';
 

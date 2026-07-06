@@ -15,10 +15,16 @@ defineEmits<{
 
     <div class="flex justify-end gap-2 mt-4">
       <slot name="actions">
-        <Button variant="secondary" @click="$emit('reset')">
+        <Button
+          variant="secondary"
+          @click="$emit('reset')"
+        >
           Reinitialiser
         </Button>
-        <Button variant="primary" @click="$emit('apply')">
+        <Button
+          variant="primary"
+          @click="$emit('apply')"
+        >
           Appliquer
         </Button>
       </slot>

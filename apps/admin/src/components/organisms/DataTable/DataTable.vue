@@ -325,10 +325,16 @@ function handleBatchAction(actionId: string) {
       @reset-filters="emit('resetFilters')"
       @toggle-column="handleToggleColumn"
     >
-      <template v-if="$slots.filters" #filters>
+      <template
+        v-if="$slots.filters"
+        #filters
+      >
         <slot name="filters" />
       </template>
-      <template v-if="$slots.actions" #actions>
+      <template
+        v-if="$slots.actions"
+        #actions
+      >
         <slot name="actions" />
       </template>
     </PageHeader>

@@ -235,8 +235,12 @@ onMounted(async () => {
   <div>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Journal d'audit</h1>
-        <p class="text-gray-500 mt-1">Historique des actions effectuées sur la plateforme</p>
+        <h1 class="text-2xl font-bold text-gray-900">
+          Journal d'audit
+        </h1>
+        <p class="text-gray-500 mt-1">
+          Historique des actions effectuées sur la plateforme
+        </p>
       </div>
     </div>
 
@@ -256,9 +260,21 @@ onMounted(async () => {
       @reset-filters="resetFilters"
     >
       <template #filters>
-        <FilterSelect v-model="actionFilter" label="Action" :options="actionOptions" />
-        <FilterSelect v-model="entityTypeFilter" label="Type d'entité" :options="entityTypeOptions" />
-        <FilterSelect v-model="userFilter" label="Utilisateur" :options="userOptions" />
+        <FilterSelect
+          v-model="actionFilter"
+          label="Action"
+          :options="actionOptions"
+        />
+        <FilterSelect
+          v-model="entityTypeFilter"
+          label="Type d'entité"
+          :options="entityTypeOptions"
+        />
+        <FilterSelect
+          v-model="userFilter"
+          label="Utilisateur"
+          :options="userOptions"
+        />
         <FilterDateRange
           :from-value="dateFromFilter"
           :to-value="dateToFilter"
@@ -281,29 +297,51 @@ onMounted(async () => {
     />
 
     <!-- Detail Modal -->
-    <Modal v-if="showDetailModal" title="Détails de l'action" @close="showDetailModal = false">
-      <div v-if="selectedLog" class="space-y-4">
+    <Modal
+      v-if="showDetailModal"
+      title="Détails de l'action"
+      @close="showDetailModal = false"
+    >
+      <div
+        v-if="selectedLog"
+        class="space-y-4"
+      >
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-500">Date</label>
-            <p class="mt-1">{{ formatDateTime(selectedLog.dateCreated) }}</p>
+            <p class="mt-1">
+              {{ formatDateTime(selectedLog.dateCreated) }}
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-500">IP</label>
-            <p class="mt-1 font-mono text-sm">{{ selectedLog.ipAddress ?? '-' }}</p>
+            <p class="mt-1 font-mono text-sm">
+              {{ selectedLog.ipAddress ?? '-' }}
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-500">Utilisateur</label>
-            <p v-if="selectedLog.user" class="mt-1">
+            <p
+              v-if="selectedLog.user"
+              class="mt-1"
+            >
               {{ selectedLog.user.firstName }} {{ selectedLog.user.lastName }}
               <span class="text-gray-500">({{ selectedLog.user.email }})</span>
             </p>
-            <p v-else class="mt-1 text-gray-400 italic">Système</p>
+            <p
+              v-else
+              class="mt-1 text-gray-400 italic"
+            >
+              Système
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-500">Action</label>
             <p class="mt-1">
-              <Badge :variant="getBadgeVariant(selectedLog.action)" size="sm">
+              <Badge
+                :variant="getBadgeVariant(selectedLog.action)"
+                size="sm"
+              >
                 {{ formatAction(selectedLog.action) }}
               </Badge>
             </p>
@@ -316,7 +354,9 @@ onMounted(async () => {
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-500">ID Entité</label>
-            <p class="mt-1 font-mono text-sm">{{ selectedLog.entityId ?? '-' }}</p>
+            <p class="mt-1 font-mono text-sm">
+              {{ selectedLog.entityId ?? '-' }}
+            </p>
           </div>
         </div>
 
