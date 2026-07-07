@@ -4,7 +4,7 @@
   "description": "Scaffolde une boutique Astro connectée à une API Échoppe.",
   "type": "module",
   "bin": {
-    "create-echoppe": "./dist/index.js"
+    "create-echoppe": "dist/index.js"
   },
   "files": [
     "dist",
