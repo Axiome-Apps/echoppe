@@ -16,7 +16,8 @@
   "files": [
     "dist",
     "openapi.json",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "sideEffects": false,
   "publishConfig": {
@@ -33,7 +34,14 @@
     "sdk",
     "openapi"
   ],
-  "license": "MIT",
+  "author": "Axiome-Apps",
+  "license": "CECILL-2.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Axiome-Apps/echoppe.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/Axiome-Apps/echoppe#readme",
   "dependencies": {
     "openapi-fetch": "^0.17.0"
   },
