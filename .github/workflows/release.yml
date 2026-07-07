@@ -1,0 +1,56 @@
+name: Release
+
+# Publication npm des paquets publiables (@echoppe/client, create-echoppe).
+#
+# Auth : Trusted Publishing (OIDC) — AUCUN token npm. npm échange le jeton
+# OIDC de GitHub Actions contre un droit de publication éphémère, à condition
+# que le trusted publisher soit configuré côté npmjs.com pour chaque paquet
+# (repo Axiome-Apps/echoppe + workflow « release.yml »).
+#
+# Flux changesets :
+#   - push sur main AVEC des changesets  → ouvre/maj la PR « Version Packages ».
+#   - merge de cette PR (versions bumpées) → publie via `bun run release`.
+
+on:
+  push:
+    branches: [main]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write # commits/tags de la PR de version
+  pull-requests: write # PR « Version Packages »
+  id-token: write # OIDC pour le trusted publishing npm
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # OIDC/trusted publishing exige npm >= 11.5.1 (Node 22 embarque npm 10.x).
+      - name: Ensure npm supports OIDC
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Create Release PR or publish
+        uses: changesets/action@v1
+        with:
+          version: bun run version-packages
+          publish: bun run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true" # attestation de provenance (public, OIDC)
