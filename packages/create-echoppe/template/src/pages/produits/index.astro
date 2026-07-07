@@ -1,0 +1,29 @@
+---
+import ProductCard from '../../components/ProductCard.astro';
+import Layout from '../../layouts/Layout.astro';
+import { api } from '../../lib/api';
+
+const { data } = await api.GET('/products/');
+const products = (data?.data ?? []).filter((p) => p.status === 'published');
+---
+
+<Layout title="Produits — Boutique Échoppe">
+  <h1 class="mb-8 text-3xl font-bold">Produits</h1>
+
+  {
+    products.length > 0 ? (
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+        {products.map((product) => (
+          <ProductCard
+            name={product.name}
+            slug={product.slug}
+            price={product.defaultVariant?.priceHt}
+            imageId={product.featuredImage}
+          />
+        ))}
+      </div>
+    ) : (
+      <p class="text-zinc-500">Aucun produit disponible pour le moment.</p>
+    )
+  }
+</Layout>

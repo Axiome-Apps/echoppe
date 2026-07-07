@@ -481,7 +481,10 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         options: filteredOptions,
       };
     },
-    { params: t.Object({ slug: t.String() }), response: withNotFound({ 200: productDetailSchema }) },
+    {
+      params: t.Object({ slug: t.String() }),
+      response: withNotFound({ 200: productDetailSchema }),
+    },
   )
 
   // GET /products/:id - Get one with variants (public)

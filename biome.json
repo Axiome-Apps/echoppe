@@ -11,7 +11,8 @@
       "packages/**",
       "apps/api/**",
       "!packages/client/src/openapi.ts",
-      "!packages/client/openapi.json"
+      "!packages/client/openapi.json",
+      "!packages/create-echoppe/template"
     ]
   },
   "formatter": {

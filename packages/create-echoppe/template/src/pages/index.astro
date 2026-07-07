@@ -1,0 +1,41 @@
+---
+import ProductCard from '../components/ProductCard.astro';
+import Layout from '../layouts/Layout.astro';
+import { api } from '../lib/api';
+
+const { data } = await api.GET('/products/');
+const featured = (data?.data ?? []).filter((p) => p.status === 'published').slice(0, 8);
+---
+
+<Layout title="Boutique Échoppe">
+  <section class="py-12 text-center">
+    <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">Bienvenue sur la boutique</h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-zinc-600">
+      Une sélection de produits artisanaux, faits main.
+    </p>
+    <a
+      href="/produits"
+      class="mt-8 inline-block rounded-lg bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+    >
+      Voir les produits
+    </a>
+  </section>
+
+  {
+    featured.length > 0 && (
+      <section class="mt-8">
+        <h2 class="mb-6 text-2xl font-bold">Produits à la une</h2>
+        <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+          {featured.map((product) => (
+            <ProductCard
+              name={product.name}
+              slug={product.slug}
+              price={product.defaultVariant?.priceHt}
+              imageId={product.featuredImage}
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
+</Layout>

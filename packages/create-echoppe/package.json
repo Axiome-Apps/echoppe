@@ -1,0 +1,44 @@
+{
+  "name": "create-echoppe",
+  "version": "0.0.1",
+  "description": "Scaffolde une boutique Astro connectée à une API Échoppe.",
+  "type": "module",
+  "bin": {
+    "create-echoppe": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "echoppe",
+    "ecommerce",
+    "cli",
+    "astro",
+    "create"
+  ],
+  "author": "Axiome-Apps",
+  "license": "CECILL-2.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Axiome-Apps/echoppe.git",
+    "directory": "packages/create-echoppe"
+  },
+  "homepage": "https://github.com/Axiome-Apps/echoppe#readme",
+  "dependencies": {
+    "@clack/prompts": "^1.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "typescript": "6.0.3"
+  }
+}
