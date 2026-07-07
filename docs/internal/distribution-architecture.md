@@ -102,29 +102,45 @@ proscrire.
 2. Scaffold un **repo boutique Astro** préconfiguré, avec `@echoppe/client` installé.
 3. Optionnel : proposer de lancer le backend Docker (`docker compose up`).
 
-## Publier des packages npm (workflow)
+## Publier des packages npm (workflow) — **changesets câblé**
 
-Pour un package isolé :
+Deux paquets publiables : `@echoppe/client` (scopé) et `create-echoppe` (non-scopé,
+comme `create-next-app`). Tous les autres workspaces sont `private: true` → ignorés.
 
-1. Un `package.json` : `name`, `version`, `exports` (ce qui est exposé), `files`
-   (ce qui est publié), `bin` (pour une CLI), `publishConfig.access: "public"`.
-2. `npm login` puis `npm publish --access public` (le `--access public` est requis
-   pour les packages **scopés** publics comme `@echoppe/*`).
+**Outillage en place** ([changesets](https://github.com/changesets/changesets)) :
 
-Pour un **monorepo**, outil standard : **[changesets](https://github.com/changesets/changesets)**.
-On déclare les changements (« client en mineure »), il bump les versions, génère les
-changelogs et publie tous les packages concernés d'un coup. C'est le modèle de Medusa,
-Astro, etc.
+- `.changeset/config.json` : `access: public`, `privatePackages.version: false`
+  (changesets ne touche QUE les 2 paquets publiables).
+- Scripts racine : `bun run changeset` (déclarer un changement), `bun run
+  version-packages` (`changeset version` → bump + CHANGELOG), `bun run release`
+  (`scripts/release.sh` : build des 2 paquets + `changeset publish`).
+- Publier : `npm login` **une fois**, puis `bun run release`. Le `publishConfig.access:
+  public` de chaque paquet gère le `--access public` des scopés.
 
-Nuance de nommage : `@echoppe/client` est **scopé** (scope `@echoppe`) ;
-`create-echoppe` est **non-scopé** (comme `create-next-app`).
+### Politique de versions (actée)
+
+**Invariante mécanique** : *suffixe présent → dist-tag `next` ; pas de suffixe →
+`latest`*. Elle couvre tout, y compris un futur `2.0.0-alpha`.
+
+- **Pré-1.0** : mode pre changesets (`changeset pre enter alpha`) → versions
+  `0.1.0-alpha.N`, `0.x.0-beta.N`… Publiées sur **`next`** (opt-in obligatoire :
+  `npm install @echoppe/client@next`). **Rien sur `latest`** → `npm install` nu échoue,
+  c'est voulu (« pas fini, faut le vouloir »). `scripts/release.sh` force `--tag next`
+  tant que `.changeset/pre.json` existe.
+- **1.0.0** : `changeset pre exit` → plus de suffixe → publié sur **`latest`**. Ensuite
+  semver normal (1.0.1, 1.1.0…). Le script bascule automatiquement sur `latest`.
+- **Majeur suivant** : `pre enter` à nouveau (`2.0.0-alpha.N` sur `next`), puis stable.
+
+Point de départ : les 2 paquets sont à **`0.1.0-alpha.0`**, mode pre `alpha` actif.
+
+Conséquence sur la CLI : pendant le 0.x, le template référence `@echoppe/client@next`
+(pas `latest`, qui n'existe pas encore). À basculer sur un caret `^1.0.0` au palier 1.0.
 
 ## Versioning : aligner SDK ↔ API
 
 Le SDK est généré depuis le contrat de l'API → il doit être **versionné en phase avec
-les tags Docker de l'API**. Une boutique déployée contre l'API `v0.3` consomme le SDK
-`v0.3`. C'est l'intérêt du monorepo : régénération + publication atomiques, versions
-cohérentes, tests d'intégration API↔SDK dans la même CI.
+l'API**. Une boutique déployée contre l'API `v0.3` consomme le SDK `0.3.x`. C'est
+l'intérêt du monorepo : régénération + publication atomiques, versions cohérentes.
 
 ## Ordre de réalisation
 

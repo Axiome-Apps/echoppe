@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@astrojs/node": "^11.0.2",
-    "@echoppe/client": "latest",
+    "@echoppe/client": "next",
     "astro": "^7.0.6"
   },
   "devDependencies": {
