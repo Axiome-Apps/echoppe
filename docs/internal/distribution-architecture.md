@@ -119,19 +119,22 @@ comme `create-next-app`). Tous les autres workspaces sont `private: true` → ig
 
 ### Politique de versions (actée)
 
-**Invariante mécanique** : *suffixe présent → dist-tag `next` ; pas de suffixe →
-`latest`*. Elle couvre tout, y compris un futur `2.0.0-alpha`.
+**Contrainte changesets** : en mode pre, le dist-tag **est** l'identifiant du pre
+(impossible de le surcharger — `--tag` est refusé en pre mode). On ne peut donc pas
+avoir des versions `-alpha.N` **et** un tag `next`. On tranche pour **un canal `next`
+stable** : identifiant = `next` → versions **`-next.N`**, tag **`next`**. La maturité
+(alpha/beta/rc) se raconte dans le **CHANGELOG**, pas dans le numéro. C'est le modèle
+`@next` de Next.js / Astro.
 
-- **Pré-1.0** : mode pre changesets (`changeset pre enter alpha`) → versions
-  `0.1.0-alpha.N`, `0.x.0-beta.N`… Publiées sur **`next`** (opt-in obligatoire :
-  `npm install @echoppe/client@next`). **Rien sur `latest`** → `npm install` nu échoue,
-  c'est voulu (« pas fini, faut le vouloir »). `scripts/release.sh` force `--tag next`
-  tant que `.changeset/pre.json` existe.
+- **Pré-1.0** : `changeset pre enter next` → versions `0.1.0-next.N`, `0.2.0-next.N`…
+  publiées sur **`next`** (opt-in : `npm install @echoppe/client@next`). **Rien sur
+  `latest`** → `npm install` nu échoue, c'est voulu.
 - **1.0.0** : `changeset pre exit` → plus de suffixe → publié sur **`latest`**. Ensuite
-  semver normal (1.0.1, 1.1.0…). Le script bascule automatiquement sur `latest`.
-- **Majeur suivant** : `pre enter` à nouveau (`2.0.0-alpha.N` sur `next`), puis stable.
+  semver normal (1.0.1, 1.1.0…). `scripts/release.sh` = juste `changeset publish` :
+  changesets choisit le tag automatiquement selon le mode.
+- **Majeur suivant** : `pre enter next` à nouveau (`2.0.0-next.N` sur `next`), puis stable.
 
-Point de départ : les 2 paquets sont à **`0.1.0-alpha.0`**, mode pre `alpha` actif.
+Point de départ : les 2 paquets à **`0.1.0-next.0`**, mode pre `next` actif.
 
 Conséquence sur la CLI : pendant le 0.x, le template référence `@echoppe/client@next`
 (pas `latest`, qui n'existe pas encore). À basculer sur un caret `^1.0.0` au palier 1.0.

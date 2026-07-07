@@ -1,14 +1,14 @@
 {
   "mode": "pre",
-  "tag": "alpha",
+  "tag": "next",
   "initialVersions": {
     "@echoppe/admin": "0.0.1",
     "@echoppe/api": "0.0.1",
     "@echoppe/store": "0.0.1",
     "@echoppe/docs": "0.0.1",
-    "@echoppe/client": "0.1.0-alpha.0",
+    "@echoppe/client": "0.1.0-next.0",
     "@echoppe/core": "0.0.1",
-    "create-echoppe": "0.1.0-alpha.0",
+    "create-echoppe": "0.1.0-next.0",
     "@echoppe/shared": "0.0.1"
   },
   "changesets": []
