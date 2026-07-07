@@ -127,8 +127,7 @@ stable** : identifiant = `next` → versions **`-next.N`**, tag **`next`**. La m
 `@next` de Next.js / Astro.
 
 - **Pré-1.0** : `changeset pre enter next` → versions `0.1.0-next.N`, `0.2.0-next.N`…
-  publiées sur **`next`** (opt-in : `npm install @echoppe/client@next`). **Rien sur
-  `latest`** → `npm install` nu échoue, c'est voulu.
+  publiées sur **`next`** (`npm install @echoppe/client@next`).
 - **1.0.0** : `changeset pre exit` → plus de suffixe → publié sur **`latest`**. Ensuite
   semver normal (1.0.1, 1.1.0…). `scripts/release.sh` = juste `changeset publish` :
   changesets choisit le tag automatiquement selon le mode.
@@ -136,8 +135,17 @@ stable** : identifiant = `next` → versions **`-next.N`**, tag **`next`**. La m
 
 Point de départ : les 2 paquets à **`0.1.0-next.0`**, mode pre `next` actif.
 
-Conséquence sur la CLI : pendant le 0.x, le template référence `@echoppe/client@next`
-(pas `latest`, qui n'existe pas encore). À basculer sur un caret `^1.0.0` au palier 1.0.
+**Sur le tag `latest` en pré-1.0** (constaté au premier publish) : le **tout premier**
+publish d'un paquet reçoit **toujours** le tag `latest` en plus de `next` (comportement
+npm ; changesets le signale — « *packages that have not had normal releases will be
+published to latest* »), et npm **interdit de supprimer** `latest`. Donc pendant le 0.x,
+`latest` pointe sur la dernière pré. En pratique inoffensif : pour `create-echoppe` c'est
+même souhaité (`npm create echoppe` résout via `latest`) ; pour `@echoppe/client` le
+template épingle `@next`, personne ne l'installe « nu ». Au palier 1.0 (`pre exit`),
+`latest` bascule naturellement sur le stable.
+
+Conséquence sur la CLI : pendant le 0.x, le template référence `@echoppe/client@next`.
+À basculer sur un caret `^1.0.0` au palier 1.0.
 
 ## Versioning : aligner SDK ↔ API
 
