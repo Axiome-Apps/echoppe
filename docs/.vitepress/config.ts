@@ -27,6 +27,7 @@ export default defineConfig({
             { text: 'Présentation', link: '/guide/' },
             { text: 'Installation', link: '/guide/installation' },
             { text: 'Configuration', link: '/guide/configuration' },
+            { text: 'Mise à jour', link: '/guide/mise-a-jour' },
           ],
         },
       ],
