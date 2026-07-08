@@ -25,6 +25,8 @@ FROM base AS deps
 COPY package.json bun.lock ./
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/client/package.json ./packages/client/
+COPY packages/create-echoppe/package.json ./packages/create-echoppe/
 COPY apps/api/package.json ./apps/api/
 COPY apps/admin/package.json ./apps/admin/
 COPY apps/store/package.json ./apps/store/
