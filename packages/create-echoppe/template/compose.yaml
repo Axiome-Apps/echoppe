@@ -11,6 +11,7 @@
 services:
   db:
     image: postgres:17-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-echoppe}-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -26,6 +27,7 @@ services:
 
   api:
     image: axiomeapp/echoppe-api:${ECHOPPE_VERSION:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-echoppe}-api
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
@@ -44,6 +46,7 @@ services:
 
   admin:
     image: axiomeapp/echoppe-admin:${ECHOPPE_VERSION:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-echoppe}-admin
     restart: unless-stopped
     ports:
       - '${ADMIN_PORT}:80'

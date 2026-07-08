@@ -19,8 +19,12 @@ function bail(message: string): never {
 }
 
 /** Contenu du .env généré : front + backend (compose), clé de chiffrement incluse. */
-function buildEnv(apiUrl: string, encryptionKey: string): string {
-  return `# ─── Front (Astro + SDK) ────────────────────────────────────────────────
+function buildEnv(projectName: string, apiUrl: string, encryptionKey: string): string {
+  return `# ─── Docker Compose ─────────────────────────────────────────────────────
+# Préfixe des conteneurs/réseau/volumes (noms propres, sans suffixe « -1 »).
+COMPOSE_PROJECT_NAME=${projectName}
+
+# ─── Front (Astro + SDK) ────────────────────────────────────────────────
 # URL de l'API interrogée par la boutique (SSR + images).
 PUBLIC_API_URL=${apiUrl}
 
@@ -60,7 +64,7 @@ async function scaffold(projectName: string, apiUrl: string, targetDir: string):
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
   const encryptionKey = randomBytes(32).toString('base64');
-  await writeFile(join(targetDir, '.env'), buildEnv(apiUrl, encryptionKey));
+  await writeFile(join(targetDir, '.env'), buildEnv(projectName, apiUrl, encryptionKey));
 }
 
 async function main(): Promise<void> {
