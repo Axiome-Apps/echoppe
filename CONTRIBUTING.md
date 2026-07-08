@@ -9,20 +9,20 @@ Soyez respectueux et constructif dans toutes vos interactions. Nous souhaitons m
 ## Prérequis
 
 - [Bun](https://bun.sh) (runtime principal)
-- [Docker](https://docker.com) (pour PostgreSQL et Redis)
+- [Docker](https://docker.com) (pour PostgreSQL)
 
 ## Installation
 
 ```bash
-# Cloner le repo
-git clone https://github.com/Axiome-Apps/echoppe.git
+# Cloner VOTRE fork (voir « Pull Requests » plus bas)
+git clone https://github.com/VOTRE-USER/echoppe.git
 cd echoppe
 
 # Installer les dépendances
 bun install
 
-# Lancer les services
-docker compose up -d
+# Lancer PostgreSQL (compose de dev : Postgres exposé sur 5432)
+docker compose -f compose.dev.yaml up -d postgres
 
 # Initialiser la base de données
 bun run db:push --force
@@ -41,10 +41,12 @@ echoppe/
 ├── apps/
 │   ├── api/          # Backend Elysia
 │   ├── admin/        # Dashboard Vue 3
-│   └── store/        # Boutique Next.js
+│   └── store/        # Exemple de boutique Astro
 ├── packages/
-│   ├── core/         # DB + Schema Drizzle
-│   └── shared/       # Types partagés
+│   ├── core/         # DB + Schema Drizzle + migrations (drizzle/)
+│   ├── shared/       # Types partagés
+│   ├── client/       # SDK @echoppe/client (npm)
+│   └── create-echoppe/ # CLI de scaffolding (npm)
 └── docs/             # Documentation VitePress
 ```
 
@@ -96,18 +98,32 @@ refactor: simplifier la gestion des médias
 
 ## Pull Requests
 
-1. Créer une branche depuis `main`
-2. Faire vos modifications
-3. Tester localement avec `bun run dev`
-4. Créer une PR avec une description claire
-5. Référencer les issues liées si applicable
+Le dépôt se contribue par **fork + Pull Request** :
+
+1. **Forkez** `Axiome-Apps/echoppe` sur votre compte GitHub.
+2. Clonez votre fork et ajoutez le dépôt d'origine en remote `upstream` :
+   ```bash
+   git clone https://github.com/VOTRE-USER/echoppe.git
+   cd echoppe
+   git remote add upstream https://github.com/Axiome-Apps/echoppe.git
+   ```
+3. Créez une **branche** depuis `main` (`feat/…`, `fix/…`, cf. « Branches »).
+4. Faites vos modifications et testez localement (`bun run dev`, `bun run lint`,
+   `bun run type-check`).
+5. Si vous modifiez un paquet publié (`@echoppe/client`, `create-echoppe`), ajoutez
+   un changeset : `bun run changeset`.
+6. Poussez sur votre fork et ouvrez une **PR** vers `Axiome-Apps/echoppe:main`, avec
+   une description claire et les issues liées.
+
+> Mainteneurs (droit de push) : branche + PR directement sur le dépôt, sans fork.
 
 ## Scripts utiles
 
 | Commande | Description |
 |----------|-------------|
-| `bun run dev` | Lance API + Admin + Store |
-| `bun run db:push --force` | Push le schema |
+| `bun run dev` | Lance API + Admin + exemple Astro |
+| `bun run db:push --force` | Push le schema (itération dev) |
+| `bun run db:generate` | Génère une migration SQL après un changement de schéma |
 | `bun run db:seed` | Seed les données |
 | `bun run db:studio` | Interface Drizzle Studio |
 

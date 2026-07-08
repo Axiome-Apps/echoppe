@@ -157,8 +157,8 @@ bun install
 # 3. Copier la configuration
 cp .env.example .env
 
-# 4. Lancer PostgreSQL
-docker compose up -d
+# 4. Lancer PostgreSQL (compose de dev : Postgres exposé sur 5432)
+docker compose -f compose.dev.yaml up -d postgres
 
 # 5. Initialiser la base de données
 bun run db:push --force

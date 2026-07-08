@@ -1,0 +1,76 @@
+# Échoppe - Docker Compose (Development)
+# Build locally from source
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: echoppe-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: echoppe
+      POSTGRES_PASSWORD: echoppe
+      POSTGRES_DB: echoppe
+    ports:
+      - '5432:5432'
+    volumes:
+      - echoppe-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U echoppe -d echoppe']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: echoppe-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - echoppe-redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    container_name: echoppe-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
+      REDIS_URL: redis://redis:6379
+      ADMIN_URL: http://localhost:3211
+      STORE_URL: http://localhost:3141
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - '7532:7532'
+    volumes:
+      - ./apps/api/uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: admin
+      args:
+        VITE_API_URL: http://localhost:7532
+    container_name: echoppe-admin
+    restart: unless-stopped
+    ports:
+      - '3211:80'
+    depends_on:
+      - api
+
+volumes:
+  echoppe-data:
+  echoppe-redis:
