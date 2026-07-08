@@ -11,5 +11,7 @@
     "create-echoppe": "0.1.0-next.0",
     "@echoppe/shared": "0.0.1"
   },
-  "changesets": []
+  "changesets": [
+    "verify-oidc-pipeline"
+  ]
 }
