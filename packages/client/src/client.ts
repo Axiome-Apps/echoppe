@@ -1,5 +1,5 @@
 import createOpenApiClient, { type ClientOptions } from 'openapi-fetch';
-import type { paths } from './openapi';
+import type { paths } from './openapi.js';
 
 export interface EchoppeClientOptions {
   /** URL de base de l'API Échoppe, ex. `https://api.maboutique.fr`. */
