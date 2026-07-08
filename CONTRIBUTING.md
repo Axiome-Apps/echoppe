@@ -8,8 +8,14 @@ Soyez respectueux et constructif dans toutes vos interactions. Nous souhaitons m
 
 ## Prérequis
 
-- [Bun](https://bun.sh) (runtime principal)
+- [Bun](https://bun.sh) — **requis** comme outil de build (`bun build --compile` de l'API) et runtime de l'API, **quel que soit** votre gestionnaire de paquets
+- Le **gestionnaire de paquets de votre choix** : npm, bun, pnpm ou yarn
 - [Docker](https://docker.com) (pour PostgreSQL)
+
+> **Repo PM-agnostique** — le dépôt n'impose aucun PM (pas de champ `packageManager`).
+> Le lockfile **canonique versionné est `bun.lock`** (utilisé par la CI/Docker). Si vous
+> installez avec un autre PM, votre lockfile (`pnpm-lock.yaml`, `package-lock.json`,
+> `yarn.lock`) est **gitignoré** et reste local — ne le committez pas.
 
 ## Installation
 
@@ -18,17 +24,16 @@ Soyez respectueux et constructif dans toutes vos interactions. Nous souhaitons m
 git clone https://github.com/VOTRE-USER/echoppe.git
 cd echoppe
 
-# Installer les dépendances
-bun install
+# Installer les dépendances (au choix : bun / pnpm / npm / yarn)
+bun install        # ou : pnpm install / npm install / yarn
 
 # Lancer PostgreSQL (compose de dev : Postgres exposé sur 5432)
 docker compose -f compose.dev.yaml up -d postgres
 
-# Initialiser la base de données
+# Initialiser la base de données puis lancer le dev
+# (via votre PM : `pnpm db:push` / `npm run db:push` … ; `bun` reste requis en interne)
 bun run db:push --force
 bun run db:seed
-
-# Lancer le dev
 bun run dev
 ```
 
