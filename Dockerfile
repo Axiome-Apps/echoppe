@@ -1,10 +1,12 @@
 # Échoppe - Monorepo Dockerfile (Optimized)
-# Build targets: api, admin, init
+# Build targets: api, admin
 #
 # Usage:
 #   docker build --target api -t echoppe/api .
-#   docker build --target init -t echoppe/init .
 #   docker build --target admin --build-arg VITE_API_URL=https://api.example.com -t echoppe/admin .
+#
+# L'API applique les migrations SQL versionnées au démarrage (RUN_MIGRATIONS=1,
+# dossier /app/drizzle) : plus de conteneur d'init séparé.
 #
 # NB : apps/store (exemple Astro) n'est pas distribué en image Docker. C'est un
 # template de référence exécuté localement (bun dev/build) ou servi de base au
@@ -43,16 +45,6 @@ COPY --from=deps /app/docs/node_modules ./docs/node_modules
 COPY . .
 
 # ==============================================================================
-# Init (migrations only - minimal image)
-# ==============================================================================
-FROM base AS init
-WORKDIR /app
-RUN bun add drizzle-kit drizzle-orm postgres zod
-COPY packages/core/drizzle.config.ts ./
-COPY packages/core/src/db/schema ./src/db/schema
-CMD ["bunx", "drizzle-kit", "push", "--force"]
-
-# ==============================================================================
 # API (compiled binary - no node_modules needed)
 # ==============================================================================
 FROM source AS api-builder
@@ -68,11 +60,15 @@ FROM oven/bun:1-alpine AS api
 WORKDIR /app
 ENV NODE_ENV=production
 ENV UPLOAD_DIR=/app/uploads
+# Migrations SQL versionnées appliquées au boot par l'API elle-même.
+ENV RUN_MIGRATIONS=1
+ENV MIGRATIONS_DIR=/app/drizzle
 
 RUN addgroup -g 1001 -S echoppe && \
     adduser -S echoppe -u 1001
 
 COPY --from=api-builder --chown=echoppe:echoppe /app/apps/api/api ./api
+COPY --chown=echoppe:echoppe packages/core/drizzle ./drizzle
 
 RUN mkdir -p /app/uploads && chown -R echoppe:echoppe /app/uploads
 

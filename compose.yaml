@@ -71,20 +71,6 @@ services:
     depends_on:
       - api
 
-  store:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: store
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:7532
-    container_name: echoppe-store
-    restart: unless-stopped
-    ports:
-      - '3142:3000'
-    depends_on:
-      - api
-
 volumes:
   echoppe-data:
   echoppe-redis:

@@ -42,3 +42,6 @@ docs/.vitepress/dist/
 
 # Uploads
 /apps/api/uploads/
+
+# Claude Code — réglages personnels (le CLAUDE.md partagé reste versionné)
+.claude/settings.local.json

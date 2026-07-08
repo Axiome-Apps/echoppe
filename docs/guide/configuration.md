@@ -10,11 +10,14 @@
 |----------|-------------|--------|
 | `DATABASE_URL` | URL de connexion PostgreSQL | `postgresql://echoppe:echoppe@localhost:5432/echoppe` |
 
-### Redis
+### Redis (optionnel)
+
+Fournir `REDIS_URL` active le rate-limit distribué ; sans lui, l'API fonctionne
+normalement (dégradation sans erreur).
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `REDIS_URL` | URL de connexion Redis | `redis://localhost:6379` |
+| `REDIS_URL` | URL de connexion Redis | *(non défini)* |
 
 ### API
 
@@ -76,8 +79,8 @@ openssl rand -base64 32
 # Database
 DATABASE_URL=postgresql://echoppe:echoppe@localhost:5432/echoppe
 
-# Redis
-REDIS_URL=redis://localhost:6379
+# Redis (optionnel — rate-limit distribué)
+# REDIS_URL=redis://localhost:6379
 
 # API
 API_PORT=7532

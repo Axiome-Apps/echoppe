@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+import { runMigrations } from '@echoppe/core';
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
@@ -119,8 +121,19 @@ const app = new Elysia()
   .use(customersRoutes)
   .use(usersRoutes)
   .use(contactRoutes)
-  .use(auditLogsRoutes)
-  .listen({ port: Number(port), hostname: '0.0.0.0' });
+  .use(auditLogsRoutes);
+
+// Migrations SQL versionnées appliquées au boot (activé dans l'image via
+// RUN_MIGRATIONS ; off en dev, où l'on utilise `db:push`). Idempotent.
+if (process.env.RUN_MIGRATIONS) {
+  const migrationsFolder =
+    process.env.MIGRATIONS_DIR ??
+    fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
+  await runMigrations(migrationsFolder);
+  console.log('[Migrate] Schéma à jour');
+}
+
+app.listen({ port: Number(port), hostname: '0.0.0.0' });
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);
 

@@ -3,22 +3,36 @@
 Boutique e-commerce **Astro** (SSR) connectée à une API [Échoppe](https://github.com/Axiome-Apps/echoppe)
 via le SDK [`@echoppe/client`](https://www.npmjs.com/package/@echoppe/client).
 
-Générée avec `npm create echoppe@latest`.
+Générée avec `npm create echoppe@latest`. Ce repo contient **le front** (que vous
+possédez et modifiez) ; le **backend** (API + Admin + base de données) tourne à côté
+via Docker, à partir d'images publiées.
+
+## Prérequis
+
+Avant le premier démarrage, renseignez dans `.env` :
+
+```bash
+ADMIN_EMAIL=vous@exemple.fr       # compte admin créé au premier lancement
+ADMIN_PASSWORD=un-mot-de-passe-solide
+# ENCRYPTION_KEY est déjà générée automatiquement par la CLI.
+```
 
 ## Démarrage
 
 ```bash
-# 1. Installer les dépendances
-npm install
+# 1. Backend : API + Admin + PostgreSQL (l'API crée/migre le schéma au boot)
+docker compose up -d
+#    → API    http://localhost:7532
+#    → Admin  http://localhost:3211
 
-# 2. Configurer l'URL de l'API (déjà écrite dans .env par la CLI)
-#    PUBLIC_API_URL=http://localhost:7532
-
-# 3. Lancer en développement
-npm run dev
+# 2. Front : dépendances puis dev
+pnpm install
+pnpm dev
+#    → Boutique http://localhost:4321
 ```
 
-L'API Échoppe doit tourner et être joignable à l'URL de `PUBLIC_API_URL`.
+Toutes les valeurs (ports, identifiants, version d'images) sont dans `.env` ;
+`compose.yaml` les lit automatiquement.
 
 ## Pages
 
@@ -29,9 +43,16 @@ L'API Échoppe doit tourner et être joignable à l'URL de `PUBLIC_API_URL`.
 Tout part de `src/` : `layouts/`, `components/`, `pages/`, et `lib/api.ts`
 (client SDK typé). Étendez librement.
 
-## Build & production
+## Build & production (front)
 
 ```bash
-npm run build     # build SSR (adapter Node standalone)
-npm run start     # node ./dist/server/entry.mjs
+pnpm build     # build SSR (adapter Node standalone)
+pnpm start     # node ./dist/server/entry.mjs
+```
+
+## Mettre à jour le backend
+
+```bash
+docker compose pull   # récupère la dernière image (ECHOPPE_VERSION dans .env)
+docker compose up -d  # l'API applique les nouvelles migrations au démarrage
 ```

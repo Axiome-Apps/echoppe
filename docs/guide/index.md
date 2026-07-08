@@ -34,9 +34,9 @@
 |-----------|-------------|
 | API | [Elysia](https://elysiajs.com/) sur [Bun](https://bun.sh/) |
 | Admin | [Vue 3](https://vuejs.org/) + [Vite](https://vitejs.dev/) + [Tailwind CSS](https://tailwindcss.com/) |
-| Store | [Next.js 15](https://nextjs.org/) + [React 19](https://react.dev/) |
+| Store | [Astro](https://astro.build/) (exemple + scaffolding `create-echoppe`) |
 | Base de données | [PostgreSQL](https://www.postgresql.org/) + [Drizzle ORM](https://orm.drizzle.team/) |
-| Cache/Sessions | [Redis](https://redis.io/) |
+| Cache (optionnel) | [Redis](https://redis.io/) — rate-limit distribué |
 
 ## Prochaines étapes
 

@@ -22,7 +22,7 @@ features:
     details: Authentification par sessions, RBAC, rate limiting, protection CSRF.
   - icon: 🚀
     title: Performant
-    details: API Elysia sur Bun, admin Vue 3, store Next.js 15.
+    details: API Elysia sur Bun, admin Vue 3, store Astro.
   - icon: 🎨
     title: Headless
     details: API REST documentée avec OpenAPI/Swagger pour créer votre propre frontend.

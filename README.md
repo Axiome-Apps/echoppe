@@ -1,23 +1,41 @@
 # Échoppe
 
-[![Bun](https://img.shields.io/badge/Bun-1.0+-black.svg)](https://bun.sh/)
-[![Elysia](https://img.shields.io/badge/Elysia-1.0-blue.svg)](https://elysiajs.com/)
-[![Vue](https://img.shields.io/badge/Vue-3-42b883.svg)](https://vuejs.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791.svg)](https://www.postgresql.org/)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Bun](https://img.shields.io/badge/Bun-000000?logo=bun&logoColor=white)
+![Elysia](https://img.shields.io/badge/Elysia-F4339A?logoUrl=https://elysiajs.com/assets/elysia.svg&logoColor=white)
+![Vue](https://img.shields.io/badge/Vue.js-31465B?logo=vuedotjs&logoColor=3DB27F)
+![Astro](https://img.shields.io/badge/Astro-000000?logo=astro&logoColor=FF5D00)
+![Drizzle](https://img.shields.io/badge/Drizzle-C5F74F?logo=drizzle&logoColor=000000)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-FFFFFF?logo=tailwind-css&logoColor=34B7F1)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Caddy](https://img.shields.io/badge/Caddy-123043?logo=caddy&logoColor=17B717)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=github-actions&logoColor=white)
 
 > Framework e-commerce pour artisans français — Shopify en mieux et gratuit
 
 **[Documentation](https://axiome-apps.github.io/echoppe/)** · **[API Docs](http://localhost:7532/docs)** · **[Contribuer](CONTRIBUTING.md)**
 
-## Déploiement rapide (Docker)
+## Démarrage rapide
 
-**1. Créez un fichier `docker-compose.yaml` :**
+### Le plus simple : `create-echoppe`
+
+Scaffolde un projet complet — front **Astro** + orchestration Docker du backend :
+
+```bash
+npm create echoppe@latest
+cd ma-boutique
+docker compose up -d      # backend : API + Admin + PostgreSQL
+pnpm install && pnpm dev  # front
+```
+
+### Backend seul (Docker)
+
+Pour ne déployer que le backend (API + Admin), un `compose.yaml` minimal :
 
 ```yaml
 services:
-  postgres:
+  db:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
@@ -32,35 +50,12 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - echoppe-redis:/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  init:
-    image: axiomeapp/echoppe-init:latest
-    environment:
-      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: 'no'
-
   api:
     image: axiomeapp/echoppe-api:latest
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
       ADMIN_URL: http://localhost:3211
-      STORE_URL: http://localhost:3141
       # === À MODIFIER ===
       ADMIN_EMAIL: admin@example.com        # Votre email
       ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
@@ -70,9 +65,7 @@ services:
     volumes:
       - echoppe-uploads:/app/uploads
     depends_on:
-      init:
-        condition: service_completed_successfully
-      redis:
+      db:
         condition: service_healthy
 
   admin:
@@ -83,39 +76,20 @@ services:
     depends_on:
       - api
 
-  store:
-    image: axiomeapp/echoppe-store:latest
-    restart: unless-stopped
-    ports:
-      - '3141:3000'
-    depends_on:
-      - api
-
 volumes:
   echoppe-data:
-  echoppe-redis:
   echoppe-uploads:
 ```
 
-**2. Modifiez les 3 valeurs dans la section `api` :**
-
-| Variable | Description |
-|----------|-------------|
-| `ADMIN_EMAIL` | Votre adresse email pour le compte admin |
-| `ADMIN_PASSWORD` | Votre mot de passe (min. 8 caractères) |
-| `ENCRYPTION_KEY` | Générez avec `openssl rand -base64 32` |
-
-**3. Lancez :**
-
-```bash
-docker compose up -d
-```
+L'API **crée et migre le schéma au démarrage** (plus de conteneur d'init séparé).
+Renseignez `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ENCRYPTION_KEY`, puis `docker compose up -d`.
 
 **URLs :**
 - Admin : http://localhost:3211
-- Store : http://localhost:3141
 - API : http://localhost:7532
 - API Docs : http://localhost:7532/docs (OpenAPI/Scalar)
+
+> Redis n'est plus requis (rate-limit distribué optionnel via `REDIS_URL`).
 
 ---
 
@@ -151,22 +125,29 @@ bun run dev
 
 | Commande | Description |
 |----------|-------------|
-| `bun run dev` | Lance API + Dashboard + Store |
-| `bun run db:push` | Push schema vers DB |
+| `bun run dev` | Lance API + Dashboard + exemple Astro |
+| `bun run db:push` | Push schema vers DB (itération dev) |
+| `bun run db:generate` | Génère une migration SQL après un changement de `schema/` |
 | `bun run db:seed` | Seed données de base |
 | `bun run db:studio` | Interface Drizzle Studio |
+
+> **Migrations** : en dev on itère avec `db:push`. Quand un changement de schéma est
+> prêt, `bun run db:generate` crée la migration SQL versionnée (à **committer**) —
+> l'image `api` l'applique automatiquement au démarrage chez les selfhosters.
 
 ## Structure
 
 ```
 echoppe/
 ├── apps/
-│   ├── api/          # Backend Elysia
-│   ├── admin/        # Dashboard Vue
-│   └── store/        # Boutique Next.js
+│   ├── api/          # Backend Elysia (image Docker, migre au boot)
+│   ├── admin/        # Dashboard Vue (image Docker)
+│   └── store/        # Exemple de boutique Astro (non distribué en image)
 ├── packages/
-│   ├── core/         # DB + Schema
-│   └── shared/       # Types partagés
+│   ├── core/         # DB + Schema + migrations (drizzle/)
+│   ├── shared/       # Types partagés
+│   ├── client/       # SDK @echoppe/client (npm)
+│   └── create-echoppe/ # CLI de scaffolding (npm)
 └── docs/             # Documentation VitePress
 ```
 
@@ -176,10 +157,9 @@ echoppe/
 - [Elysia](https://elysiajs.com/) - Framework web TypeScript avec OpenAPI
 - [Drizzle ORM](https://orm.drizzle.team/) - ORM TypeScript type-safe
 - [Vue 3](https://vuejs.org/) - Framework frontend pour le dashboard
-- [Next.js](https://nextjs.org/) - Framework React pour la boutique
+- [Astro](https://astro.build/) - Framework pour la boutique (exemple + scaffolding)
 - [Tailwind CSS](https://tailwindcss.com/) - Framework CSS utility-first
 - [PostgreSQL](https://www.postgresql.org/) - Base de données relationnelle
-- [Redis](https://redis.io/) - Cache et sessions
 
 ## Support
 

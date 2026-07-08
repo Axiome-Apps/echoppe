@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { randomBytes } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { cp, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -17,7 +18,37 @@ function bail(message: string): never {
   process.exit(1);
 }
 
-/** Copie le template et le personnalise (nom du projet + URL de l'API). */
+/** Contenu du .env généré : front + backend (compose), clé de chiffrement incluse. */
+function buildEnv(apiUrl: string, encryptionKey: string): string {
+  return `# ─── Front (Astro + SDK) ────────────────────────────────────────────────
+# URL de l'API interrogée par la boutique (SSR + images).
+PUBLIC_API_URL=${apiUrl}
+
+# ─── Version des images Échoppe (backend, cf. compose.yaml) ─────────────
+ECHOPPE_VERSION=latest
+
+# ─── Base de données ────────────────────────────────────────────────────
+POSTGRES_USER=echoppe
+POSTGRES_PASSWORD=echoppe
+POSTGRES_DB=echoppe
+
+# ─── Ports exposés sur l'hôte ───────────────────────────────────────────
+API_PORT=7532
+ADMIN_PORT=3211
+
+# URL publique du front, transmise à l'API (CORS / liens absolus).
+STORE_URL=http://localhost:4321
+
+# ─── Compte admin — À MODIFIER avant le premier \`docker compose up\` ─────
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me
+
+# Clé de chiffrement — générée automatiquement, gardez-la secrète.
+ENCRYPTION_KEY=${encryptionKey}
+`;
+}
+
+/** Copie le template et le personnalise (nom du projet + URL de l'API + .env). */
 async function scaffold(projectName: string, apiUrl: string, targetDir: string): Promise<void> {
   await cp(templateDir, targetDir, { recursive: true });
   // npm supprime les .gitignore des paquets : le template le livre sous _gitignore.
@@ -28,7 +59,8 @@ async function scaffold(projectName: string, apiUrl: string, targetDir: string):
   pkg.name = projectName;
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
-  await writeFile(join(targetDir, '.env'), `PUBLIC_API_URL=${apiUrl}\n`);
+  const encryptionKey = randomBytes(32).toString('base64');
+  await writeFile(join(targetDir, '.env'), buildEnv(apiUrl, encryptionKey));
 }
 
 async function main(): Promise<void> {
@@ -93,7 +125,19 @@ async function main(): Promise<void> {
   await scaffold(projectName, apiUrl, targetDir);
   progress.stop('Projet généré');
 
-  note(`cd ${projectName}\nnpm install\nnpm run dev`, 'Prochaines étapes');
+  note(
+    [
+      `cd ${projectName}`,
+      '',
+      '# Backend (API + Admin + DB) — renseignez ADMIN_EMAIL/PASSWORD dans .env',
+      'docker compose up -d',
+      '',
+      '# Front Astro',
+      'pnpm install',
+      'pnpm dev',
+    ].join('\n'),
+    'Prochaines étapes',
+  );
   outro('Boutique prête. Bon commerce ✦');
 }
 

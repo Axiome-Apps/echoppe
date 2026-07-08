@@ -66,7 +66,7 @@ export default defineConfig({
     },
 
     footer: {
-      message: 'Publié sous licence MIT.',
+      message: 'Publié sous licence CeCILL v2.1.',
       copyright: 'Copyright © 2024-present Échoppe',
     },
 

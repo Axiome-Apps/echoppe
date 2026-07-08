@@ -118,7 +118,10 @@ await db.transaction(async (tx) => {
 
 ## Migrations
 
-En production, utilisez les migrations plutôt que `db:push` :
+En production, ce sont les **migrations versionnées** qui font foi, pas `db:push`.
+L'image `api` embarque le dossier `drizzle/` et **applique les migrations au
+démarrage** (`RUN_MIGRATIONS=1`) : le selfhoster n'a rien à lancer. Côté framework,
+après un changement de schéma :
 
 ```bash
 # Générer une migration après modification du schéma

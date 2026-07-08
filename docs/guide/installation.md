@@ -1,12 +1,31 @@
 # Installation
 
-## Déploiement rapide (Production)
+## Le plus simple : `create-echoppe`
 
-### 1. Créez un fichier `docker-compose.yaml`
+Pour démarrer une boutique complète (front **Astro** + orchestration Docker du backend) :
+
+```bash
+npm create echoppe@latest
+cd ma-boutique
+docker compose up -d      # backend : API + Admin + PostgreSQL
+pnpm install && pnpm dev  # front
+```
+
+La CLI génère un `compose.yaml` et un `.env` pré-remplis (avec une `ENCRYPTION_KEY`
+générée). Voir le [guide de la CLI](https://www.npmjs.com/package/create-echoppe).
+
+---
+
+## Backend seul (Production)
+
+Pour ne déployer que le backend (API + Admin), par exemple derrière votre propre
+reverse proxy.
+
+### 1. Créez un fichier `compose.yaml`
 
 ```yaml
 services:
-  postgres:
+  db:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
@@ -21,35 +40,12 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - echoppe-redis:/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  init:
-    image: axiomeapp/echoppe-init:latest
-    environment:
-      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: 'no'
-
   api:
     image: axiomeapp/echoppe-api:latest
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
       ADMIN_URL: http://localhost:3211
-      STORE_URL: http://localhost:3141
       # === À MODIFIER ===
       ADMIN_EMAIL: admin@example.com        # Votre email
       ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
@@ -59,9 +55,7 @@ services:
     volumes:
       - echoppe-uploads:/app/uploads
     depends_on:
-      init:
-        condition: service_completed_successfully
-      redis:
+      db:
         condition: service_healthy
 
   admin:
@@ -72,17 +66,8 @@ services:
     depends_on:
       - api
 
-  store:
-    image: axiomeapp/echoppe-store:latest
-    restart: unless-stopped
-    ports:
-      - '3141:3000'
-    depends_on:
-      - api
-
 volumes:
   echoppe-data:
-  echoppe-redis:
   echoppe-uploads:
 ```
 
@@ -110,9 +95,9 @@ docker compose up -d
 ```
 
 ::: info Premier démarrage
-- Les migrations sont automatiquement appliquées
+- L'API **crée et migre le schéma** au démarrage (plus de conteneur d'init séparé)
 - Le compte admin est créé avec vos identifiants
-- Les images sont téléchargées depuis Docker Hub (~600MB au total)
+- Les images sont téléchargées depuis Docker Hub
 :::
 
 ### Accès aux services
@@ -120,9 +105,11 @@ docker compose up -d
 | Service | URL |
 |---------|-----|
 | **Admin** | http://localhost:3211 |
-| **Store** | http://localhost:3141 |
 | **API** | http://localhost:7532 |
 | **API Docs** | http://localhost:7532/docs |
+
+Le **front** (boutique) vit dans son propre repo — généré par `create-echoppe` — et
+pointe sur l'API via `PUBLIC_API_URL`.
 
 ### Variables optionnelles
 
@@ -131,9 +118,21 @@ Pour changer les ports ou les URLs :
 ```yaml
 environment:
   ADMIN_URL: https://admin.maboutique.fr   # URL publique de l'admin
-  STORE_URL: https://maboutique.fr         # URL publique du store
+  STORE_URL: https://maboutique.fr         # URL publique du front (CORS)
 ports:
   - '8080:7532'  # Changer le port exposé
+```
+
+::: tip Redis (optionnel)
+Le rate-limit distribué s'active en fournissant `REDIS_URL` à l'`api` (sinon il se
+dégrade sans erreur). Non requis pour un déploiement standard.
+:::
+
+### Mise à jour
+
+```bash
+docker compose pull   # dernière image
+docker compose up -d  # l'API applique les nouvelles migrations au démarrage
 ```
 
 ---
@@ -158,7 +157,7 @@ bun install
 # 3. Copier la configuration
 cp .env.example .env
 
-# 4. Lancer PostgreSQL + Redis
+# 4. Lancer PostgreSQL
 docker compose up -d
 
 # 5. Initialiser la base de données
@@ -178,25 +177,34 @@ bun run dev
 bun run dev              # Lancer tous les services
 bun run dev:api          # API seule
 bun run dev:admin        # Admin seul
-bun run dev:store        # Store seul
+bun run dev:store        # Exemple Astro seul
 
 # Base de données
-bun run db:push --force  # Appliquer le schéma
+bun run db:push --force  # Appliquer le schéma (itération dev)
+bun run db:generate      # Générer une migration SQL après un changement de schéma
 bun run db:seed          # Données de test
 bun run db:studio        # Interface Drizzle Studio
 ```
+
+::: info Migrations
+En dev on itère avec `db:push`. Quand un changement de schéma est prêt,
+`bun run db:generate` crée la migration SQL versionnée (à **committer**) : l'image
+`api` l'applique automatiquement au démarrage chez les selfhosters.
+:::
 
 ## Structure du projet
 
 ```
 echoppe/
 ├── apps/
-│   ├── api/          # API Elysia
-│   ├── admin/        # Dashboard Vue 3
-│   └── store/        # Boutique Next.js
+│   ├── api/          # API Elysia (image Docker, migre au boot)
+│   ├── admin/        # Dashboard Vue 3 (image Docker)
+│   └── store/        # Exemple de boutique Astro (non distribué en image)
 ├── packages/
-│   ├── core/         # DB, schemas, utils partagés
-│   └── shared/       # Types partagés
+│   ├── core/         # DB, schemas, migrations (drizzle/), utils
+│   ├── shared/       # Types partagés
+│   ├── client/       # SDK @echoppe/client (npm)
+│   └── create-echoppe/ # CLI de scaffolding (npm)
 ├── docs/             # Cette documentation
 └── uploads/          # Fichiers uploadés
 ```

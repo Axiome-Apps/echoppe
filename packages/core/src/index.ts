@@ -60,6 +60,7 @@ export * from './adapters/shipping';
 export * from './constants/resources';
 export type { Database } from './db/index';
 export { db } from './db/index';
+export { runMigrations } from './db/migrate';
 export * from './db/schema/index';
 // Email service
 export {

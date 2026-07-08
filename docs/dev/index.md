@@ -11,10 +11,12 @@ echoppe/
 ├── apps/
 │   ├── api/          # API REST (Elysia)
 │   ├── admin/        # Dashboard (Vue 3)
-│   └── store/        # Boutique (Next.js)
+│   └── store/        # Exemple de boutique (Astro)
 ├── packages/
-│   ├── core/         # Base de données, schemas, utils
-│   └── shared/       # Types partagés
+│   ├── core/         # Base de données, schemas, migrations, utils
+│   ├── shared/       # Types partagés
+│   ├── client/       # SDK @echoppe/client (npm)
+│   └── create-echoppe/ # CLI de scaffolding (npm)
 └── docs/             # Documentation (VitePress)
 ```
 
@@ -28,7 +30,7 @@ echoppe/
 | [Elysia](https://elysiajs.com/) | Framework web |
 | [Drizzle ORM](https://orm.drizzle.team/) | ORM type-safe |
 | [PostgreSQL](https://www.postgresql.org/) | Base de données |
-| [Redis](https://redis.io/) | Cache et sessions |
+| [Redis](https://redis.io/) | Cache / rate-limit distribué (optionnel) |
 
 ### Admin (`apps/admin`)
 
@@ -41,10 +43,13 @@ echoppe/
 
 ### Store (`apps/store`)
 
+Exemple de boutique — non distribué en image ; sert de base au scaffolding
+`create-echoppe`.
+
 | Technologie | Usage |
 |-------------|-------|
-| [Next.js 15](https://nextjs.org/) | Framework React |
-| [React 19](https://react.dev/) | UI library |
+| [Astro](https://astro.build/) | Framework SSR (adapter Node) |
+| [@echoppe/client](https://www.npmjs.com/package/@echoppe/client) | SDK API typé |
 | [Tailwind CSS 4](https://tailwindcss.com/) | Styling |
 
 ## Flux de données
@@ -52,14 +57,14 @@ echoppe/
 ```
 ┌─────────┐     ┌─────────┐     ┌──────────────┐
 │  Admin  │────▶│   API   │◀────│    Store     │
-│ (Vue 3) │     │(Elysia) │     │  (Next.js)   │
+│ (Vue 3) │     │(Elysia) │     │   (Astro)    │
 └─────────┘     └────┬────┘     └──────────────┘
                      │
-              ┌──────┴──────┐
-              │             │
-         ┌────▼────┐  ┌─────▼─────┐
-         │PostgreSQL│  │   Redis   │
-         └─────────┘  └───────────┘
+              ┌──────┴───────┐
+              │              │
+         ┌────▼─────┐  ┌─────▼──────────┐
+         │PostgreSQL│  │ Redis (option) │
+         └──────────┘  └────────────────┘
 ```
 
 ## Packages partagés

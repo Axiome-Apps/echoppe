@@ -12,6 +12,7 @@
       "apps/api/**",
       "!packages/client/src/openapi.ts",
       "!packages/client/openapi.json",
+      "!packages/core/drizzle",
       "!packages/create-echoppe/template"
     ]
   },
