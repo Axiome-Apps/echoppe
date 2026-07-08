@@ -114,38 +114,44 @@ comme `create-next-app`). Tous les autres workspaces sont `private: true` → ig
 - Scripts racine : `bun run changeset` (déclarer un changement), `bun run
   version-packages` (`changeset version` → bump + CHANGELOG), `bun run release`
   (`scripts/release.sh` : build des 2 paquets + `changeset publish`).
-- Publier : `npm login` **une fois**, puis `bun run release`. Le `publishConfig.access:
-  public` de chaque paquet gère le `--access public` des scopés.
 
-### Politique de versions (actée)
+**Publication = CI via Trusted Publishing (OIDC), aucun token.** Le workflow
+`.github/workflows/release.yml` (action changesets) :
 
-**Contrainte changesets** : en mode pre, le dist-tag **est** l'identifiant du pre
-(impossible de le surcharger — `--tag` est refusé en pre mode). On ne peut donc pas
-avoir des versions `-alpha.N` **et** un tag `next`. On tranche pour **un canal `next`
-stable** : identifiant = `next` → versions **`-next.N`**, tag **`next`**. La maturité
-(alpha/beta/rc) se raconte dans le **CHANGELOG**, pas dans le numéro. C'est le modèle
-`@next` de Next.js / Astro.
+1. push sur `main` **avec** des changesets → ouvre/maj la PR « Version Packages »
+   (bump + CHANGELOG). Requiert le toggle orga *« Allow GitHub Actions to create and
+   approve pull requests »*.
+2. merge de cette PR → l'étape `publish` s'exécute et publie via **OIDC** (npm échange
+   le jeton GitHub Actions, pas de `NPM_TOKEN`), avec **provenance**. Prérequis : trusted
+   publisher configuré sur npmjs.com pour chaque paquet (repo `Axiome-Apps/echoppe` +
+   workflow `release.yml`), et npm ≥ 11.5.1 dans le runner.
 
-- **Pré-1.0** : `changeset pre enter next` → versions `0.1.0-next.N`, `0.2.0-next.N`…
-  publiées sur **`next`** (`npm install @echoppe/client@next`).
-- **1.0.0** : `changeset pre exit` → plus de suffixe → publié sur **`latest`**. Ensuite
-  semver normal (1.0.1, 1.1.0…). `scripts/release.sh` = juste `changeset publish` :
-  changesets choisit le tag automatiquement selon le mode.
-- **Majeur suivant** : `pre enter next` à nouveau (`2.0.0-next.N` sur `next`), puis stable.
+Le seul publish manuel de toute la vie du projet est le **premier** (bootstrap) : npm ne
+sait pas initialiser un paquet inexistant via OIDC → première version publiée en
+interactif (`bun run release` + OTP), le reste passe par la CI.
 
-Point de départ : les 2 paquets à **`0.1.0-next.0`**, mode pre `next` actif.
+### Politique de versions (actée — simplifiée)
 
-**Sur le tag `latest` en pré-1.0** (constaté au premier publish) : le **tout premier**
-publish d'un paquet reçoit **toujours** le tag `latest` en plus de `next` (comportement
-npm ; changesets le signale — « *packages that have not had normal releases will be
-published to latest* »), et npm **interdit de supprimer** `latest`. Donc pendant le 0.x,
-`latest` pointe sur la dernière pré. En pratique inoffensif : pour `create-echoppe` c'est
-même souhaité (`npm create echoppe` résout via `latest`) ; pour `@echoppe/client` le
-template épingle `@next`, personne ne l'installe « nu ». Au palier 1.0 (`pre exit`),
-`latest` bascule naturellement sur le stable.
+**Canal unique `latest`.** On avait envisagé un canal `next` séparé en pré-1.0, mais
+changesets, en mode pre, publie de toute façon sur **`latest`** tant qu'un paquet n'a
+jamais eu de release stable (il ignore le `tag` de `pre.json`). On s'aligne sur ce
+comportement plutôt que de le combattre.
 
-Conséquence sur la CLI : pendant le 0.x, le template référence `@echoppe/client@next`.
-À basculer sur un caret `^1.0.0` au palier 1.0.
+- **Pré-1.0 (0.x)** : semver **propre**, sans suffixe → `0.1.0`, `0.2.0`, `0.5.0`,
+  `0.9.0`… publié sur **`latest`**. Le `0.x` **est** le signal « pré-1.0/instable » par
+  convention semver — pas besoin de suffixe `-next.N`. Mode pre changesets **désactivé**
+  (`changeset pre exit`).
+- **1.0.0** : passage stable, toujours sur **`latest`**, puis semver normal
+  (1.0.1, 1.1.0…).
+- **Pré-release ponctuelle** (si un jour besoin d'un vrai canal beta) : `changeset pre
+  enter <tag>` au coup par coup, puis `pre exit`. Pas le mode par défaut.
+
+Template CLI : `@echoppe/client` épinglé sur **`latest`** (résout toujours la dernière
+version publiée). À figer sur un caret `^x.y.z` si on veut borner au palier 1.0.
+
+> Historique : les `0.1.0-next.0` / `0.1.0-next.1` initiales (mode pre) restent publiées ;
+> le tag `next` pointe sur une version périmée et est ignoré. La prochaine release sort en
+> `0.1.0` propre sur `latest`.
 
 ## Versioning : aligner SDK ↔ API
 
