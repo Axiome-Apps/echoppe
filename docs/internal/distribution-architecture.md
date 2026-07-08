@@ -149,9 +149,9 @@ comportement plutôt que de le combattre.
 Template CLI : `@echoppe/client` épinglé sur **`latest`** (résout toujours la dernière
 version publiée). À figer sur un caret `^x.y.z` si on veut borner au palier 1.0.
 
-> Historique : les `0.1.0-next.0` / `0.1.0-next.1` initiales (mode pre) restent publiées ;
-> le tag `next` pointe sur une version périmée et est ignoré. La prochaine release sort en
-> `0.1.0` propre sur `latest`.
+> Historique : les `0.1.0-next.0` / `0.1.0-next.1` initiales (mode pre) ont été
+> **unpubliées** (fenêtre npm 72h) et le tag `next` retiré → npm est **pristine en
+> `0.1.0`** (`@echoppe/client` en `0.1.1` après correction des imports ESM `.js`).
 
 ## Versioning : aligner SDK ↔ API
 
@@ -159,18 +159,25 @@ Le SDK est généré depuis le contrat de l'API → il doit être **versionné e
 l'API**. Une boutique déployée contre l'API `v0.3` consomme le SDK `0.3.x`. C'est
 l'intérêt du monorepo : régénération + publication atomiques, versions cohérentes.
 
-## Ordre de réalisation
+## Ordre de réalisation — ✅ livré en 0.1.0
 
-1. **Stabiliser l'OpenAPI** de l'API (le contrat).
-2. **`@echoppe/client`** (SDK OpenAPI) → publié npm.
-3. **`examples/store-astro`** (template Astro, remplace `apps/store` Next).
-4. **`create-echoppe`** (CLI) → scaffold depuis le template + installe le SDK.
-5. Première **boutique réelle** = repo Astro externe généré par la CLI.
+1. ✅ **Stabiliser l'OpenAPI** de l'API (le contrat).
+2. ✅ **`@echoppe/client`** (SDK OpenAPI) → publié npm (`0.1.1`).
+3. ✅ Exemple **Astro** à `apps/store` (remplace le store Next, supprimé).
+4. ✅ **`create-echoppe`** (CLI) → publié npm (`0.1.0`) : scaffolde front + `compose.yaml` + `.env`.
+5. ⏳ Première **boutique réelle** (repo Astro externe via la CLI) — flux validé nativement sur arm64, reste le test grandeur nature sur VM x86.
+
+Livré en plus : **migrations au boot** de l'API (plus de conteneur init), **images Docker
+multi-arch** (amd64+arm64), **release CI par Trusted Publishing / OIDC** (aucun token),
+**guide de mise à jour** selfhoster.
 
 ## Points ouverts
 
-- Contrat externe : SDK publié (**B**) vs génération locale depuis `openapi.json` (**C**).
-- Template : interne (`examples/`) vs starter clonable sorti du repo.
-- Sort de `apps/store` (Next, obsolète vs choix Astro) : figer comme exemple /
-  remplacer par Astro / supprimer.
-- Alignement des versions SDK ↔ tags Docker de l'API (stratégie de release).
+- ✅ Contrat externe : **B** (SDK publié) retenu.
+- ✅ Template : **exemple interne** (`apps/store`) retenu ; pas de starter clonable sorti pour l'instant.
+- ✅ Sort de `apps/store` : **remplacé par un exemple Astro** ; le Next est supprimé.
+- Alignement versions SDK ↔ images API : principe acté (versionner en phase) ; à
+  formaliser dans le process de release quand les contrats évolueront.
+- Modules / plugins / thèmes (customisation par boutique) : **cap post-1.0** (modèle C
+  « framework-as-dependency » envisagé plus tard).
+- Migration runtime **Bun → pnpm/Node** : en exploration.

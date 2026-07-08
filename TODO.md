@@ -41,7 +41,9 @@
 - [x] Permissions RBAC (middleware + admin)
 
 ### Front Store
-- [x] Setup Next.js 16 + React 19 + Tailwind 4
+> ⚠️ **Pivot (0.1.0)** : le store **Next.js** ci-dessous a été **remplacé par un exemple Astro simple** (accueil, `/produits`, `/produits/[slug]`) qui consomme le SDK et sert de base au scaffolding `create-echoppe`. Les features riches (checkout, espace client, filtres, recherche…) restent à **re-porter** dans le template/thème Astro — voir V2 « Store : Thèmes ».
+
+- [x] Setup Next.js 16 + React 19 + Tailwind 4 *(remplacé par Astro)*
 - [x] API Cart (routes Elysia, sessions anonymes/client)
 - [x] Composants réutilisables (Button, Input, Price, Badge, ProductCard, etc.)
 - [x] Header/Footer + Providers (Cart, Auth)
@@ -89,12 +91,12 @@
 - [x] Logger structuré pour erreurs webhook
 
 ### Docker / Déploiement
-- [x] Dockerfile monorepo optimisé (API ~200MB, Admin ~50MB, Store ~180MB, Init ~155MB)
-- [x] Publier les images sur Docker Hub (axiomeapp/echoppe-*)
-- [x] GitHub Actions pour build/push automatique à chaque tag
+- [x] Dockerfile monorepo optimisé (images **api + admin** ; cibles store/init retirées en 0.1.0)
+- [x] Publier les images sur Docker Hub (axiomeapp/echoppe-api, -admin) — **multi-arch amd64+arm64**
+- [x] GitHub Actions pour build/push automatique à chaque tag `v*`
 - [x] GitHub Actions pour déployer la doc VitePress sur GitHub Pages
-- [x] Compose de distribution (docker-compose.dist.yaml)
-- [x] Auto-migrations au premier lancement (container init)
+- [x] Compose de distribution (**`compose.yaml`**, ex-`docker-compose.dist.yaml` ; `compose.dev.yaml` = build source)
+- [x] Migrations appliquées **par l'API au démarrage** (`RUN_MIGRATIONS`, migrations SQL versionnées) — plus de conteneur `init`
 - [x] Création admin via variables d'environnement
 - [x] Documentation en ligne : https://axiome-apps.github.io/echoppe/
 
@@ -174,14 +176,22 @@
 
 ## V2
 
-### Distribution & découpage repo (framework / template / SDK / CLI)
-> Objectif : framework clé en main « à la Medusa » + front agnostique + CLI wizard `create-echoppe`. **Détail complet : [`docs/internal/distribution-architecture.md`](docs/internal/distribution-architecture.md).** Docker = runtime backend (déjà là) ; npm = SDK + CLI (à créer). Monorepo = plusieurs packages npm publiés depuis 1 repo (pas 1 repo/couche).
+### Distribution & découpage repo (framework / template / SDK / CLI) — ✅ livré en 0.1.0
+> Framework clé en main « à la Medusa » + front agnostique + CLI wizard `create-echoppe`. **Détail : [`docs/internal/distribution-architecture.md`](docs/internal/distribution-architecture.md).**
+>
+> **Modèle acté** : *A raffiné* — API + Admin = images Docker opaques ; la CLI scaffolde un front Astro + `compose.yaml` (backend) + `.env`. Customiser API/Admin = forker ce repo. Modules/plugins/thèmes = cap post-1.0. Contrat externe = **B** (SDK OpenAPI publié) ; Eden reste pour le dashboard interne.
 
-- [ ] `@echoppe/client` — SDK TS généré depuis l'OpenAPI, publié npm, versionné en phase avec les tags Docker de l'API (Eden reste pour le dashboard interne)
-- [ ] `examples/store-astro` — template front Astro (remplace `apps/store` Next, obsolète vs choix Astro)
-- [ ] `create-echoppe` — CLI wizard (npm) : scaffold une boutique Astro + SDK configuré + option lancer le backend Docker
-- [ ] Première boutique réelle = **repo Astro hors monorepo**, généré par la CLI, parle à l'API via le SDK
-- [ ] Trancher : contrat externe SDK publié (B) vs génération locale depuis `openapi.json` (C) ; template interne (`examples/`) vs starter sorti
+- [x] `@echoppe/client` — SDK TS généré depuis l'OpenAPI, **publié npm** (0.1.1, imports ESM `.js`-corrigés), versionné en phase avec les images
+- [x] Exemple front **Astro** à `apps/store` (remplace le store Next), consomme le SDK
+- [x] `create-echoppe` — CLI wizard **publiée npm** (0.1.0) : scaffolde front Astro + `compose.yaml` + `.env` (`ENCRYPTION_KEY` générée)
+- [x] **Migrations au boot** : l'API applique les migrations SQL versionnées au démarrage → plus de conteneur `init`
+- [x] **Release CI par Trusted Publishing (OIDC)** — changesets, aucun token npm ; semver 0.x propre, canal `latest` unique
+- [x] **Images Docker multi-arch** (amd64 + arm64), tag `v0.1.0` + `latest`
+- [x] Registres **remis à plat en 0.1.0** : npm (client 0.1.1 / create-echoppe 0.1.0) + Docker Hub (api/admin) nettoyés
+- [x] **Guide de mise à jour** selfhoster (`docs/guide/mise-a-jour`)
+- [x] Tranché : contrat externe = **B** (SDK publié) ; exemple interne (`apps/store`) plutôt que starter sorti
+- [ ] Créer/tester une **vraie boutique** (repo Astro hors monorepo) via la CLI — flux validé localement sur arm64, reste le test grandeur nature sur VM x86
+- [ ] (émergé) Migration Bun → pnpm/Node en cours d'exploration (`pnpm-lock.yaml`, `pnpm-workspace.yaml`)
 
 ### Tests
 - [ ] Tests unitaires services critiques (checkout, payments, stock) - `bun:test`
