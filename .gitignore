@@ -10,6 +10,12 @@ build/
 .bun/
 bun.lockb
 
+# Lockfiles non canoniques — repo PM-agnostique, canonique = bun.lock.
+# Chaque dev peut utiliser npm/pnpm/yarn ; son lockfile reste local.
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
 # Environment
 .env
 .env.local
