@@ -142,6 +142,12 @@ export function routeFor(model: string): Route | null {
   return r ? { method: r.method, path: r.path } : null;
 }
 
+/** Namespace de façade du modèle = celui de la route qui le renvoie (via son tag). */
+export function namespaceFor(model: string): string | null {
+  const tag = routeIndex.get(model)?.op.tags?.[0];
+  return tag ? (TAG_NAMESPACE[tag] ?? null) : null;
+}
+
 function indent(text: string, pad: string): string {
   return text
     .split('\n')
