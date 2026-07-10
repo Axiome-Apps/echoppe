@@ -472,6 +472,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/customer/orders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCustomerOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customer/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCustomerOrdersById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/checkout/": {
         parameters: {
             query?: never;
@@ -751,6 +783,107 @@ export interface components {
                 emailVerified: boolean;
                 /** @description Consentement aux communications marketing. */
                 marketingOptin: boolean;
+            };
+        };
+        Order: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique de la commande.
+             */
+            id: string;
+            /** @description Numéro de commande lisible (ex. « CMD-2025-00001 »). */
+            orderNumber: string;
+            /** @enum {string} */
+            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
+            /** @description Adresse de livraison figée au moment de la commande. */
+            shippingAddress: unknown;
+            /** @description Adresse de facturation figée au moment de la commande. */
+            billingAddress: unknown;
+            /** @description Sous-total HT des articles (chaîne décimale). */
+            subtotalHt: string;
+            /** @description Frais de port HT (chaîne décimale). */
+            shippingHt: string;
+            /** @description Remise HT appliquée (chaîne décimale). */
+            discountHt: string;
+            /** @description Total HT (chaîne décimale). */
+            totalHt: string;
+            /** @description Montant total de TVA (chaîne décimale). */
+            totalTax: string;
+            /** @description Total TTC (chaîne décimale). */
+            totalTtc: string;
+            customerNote: (string | null) | null;
+            /** @description Date de création de la commande. */
+            dateCreated: Record<string, never> | string | number;
+            /** @description Date de dernière mise à jour. */
+            dateUpdated: Record<string, never> | string | number;
+            /** @description Lignes de la commande. */
+            items: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de la ligne.
+                 */
+                id: string;
+                variant: (string | null) | null;
+                /** @description Libellé du produit tel qu’acheté (ex. « Bague Lune — Argent / 52 »). */
+                label: string;
+                /** @description Quantité commandée. */
+                quantity: number;
+                /** @description Prix unitaire HT (chaîne décimale). */
+                unitPriceHt: string;
+                /** @description Taux de TVA appliqué, en pourcentage (chaîne décimale). */
+                taxRate: string;
+                /** @description Total HT de la ligne (chaîne décimale). */
+                totalHt: string;
+                /** @description Total TTC de la ligne (chaîne décimale). */
+                totalTtc: string;
+            }[];
+            payment: ({
+                /** @description Prestataire de paiement (ex. « stripe », « paypal »). */
+                provider: string;
+                /** @description Statut du paiement. */
+                status: string;
+                /** @description Montant payé (chaîne décimale). */
+                amount: string;
+                /** @description Date du paiement. */
+                dateCreated: Record<string, never> | string | number;
+            } | null) | null;
+            shipment: ({
+                /** @description Statut de l’expédition. */
+                status: string;
+                trackingNumber: (string | null) | null;
+                trackingUrl: (string | null) | null;
+                shippedAt: ((Record<string, never> | string | number) | null) | null;
+                deliveredAt: ((Record<string, never> | string | number) | null) | null;
+                /** @description Transporteur. */
+                provider: {
+                    /** @description Nom du transporteur (ex. « Colissimo »). */
+                    name: string;
+                    /** @description Type de transporteur (ex. « colissimo »). */
+                    type: string;
+                };
+            } | null) | null;
+        };
+        OrderList: {
+            data: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de la commande.
+                 */
+                id: string;
+                /** @description Numéro de commande lisible (ex. « CMD-2025-00001 »). */
+                orderNumber: string;
+                /** @enum {string} */
+                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
+                /** @description Total TTC de la commande (chaîne décimale). */
+                totalTtc: string;
+                /** @description Date de création de la commande. */
+                dateCreated: Record<string, never> | string | number;
+            }[];
+            meta: {
+                total: number;
+                page: number;
+                limit: number;
+                totalPages: number;
             };
         };
         PaymentProviderList: {
@@ -2831,6 +2964,163 @@ export interface operations {
                 content: {
                     "application/json": {
                         /** @description Description de l'erreur */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCustomerOrders: {
+        parameters: {
+            query?: {
+                page?: string | number;
+                limit?: string | number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderList"];
+                };
+            };
+            /** @description Non authentifié - Session invalide ou expirée */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Raison du refus d'authentification */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Permission refusée - Droits insuffisants */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Permission manquante */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCustomerOrdersById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: {
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Non authentifié - Session invalide ou expirée */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Raison du refus d'authentification */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Permission refusée - Droits insuffisants */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Permission manquante */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
                         message: string;
                     };
                 };

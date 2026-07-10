@@ -3989,6 +3989,299 @@
         "operationId": "deleteCustomerAddressesById"
       }
     },
+    "/customer/orders/": {
+      "get": {
+        "tags": [
+          "Customer Orders"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "default": 1,
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 100,
+                  "default": 20,
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          {
+            "name": "echoppe_customer_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié - Session invalide ou expirée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Non authentifié - Session invalide ou expirée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Raison du refus d'authentification",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission refusée - Droits insuffisants",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Permission refusée - Droits insuffisants",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Permission manquante",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entité non traitable - Règle métier non respectée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Entité non traitable - Règle métier non respectée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Détail de l'erreur métier",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Erreur serveur interne",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Erreur interne",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getCustomerOrders"
+      }
+    },
+    "/customer/orders/{id}": {
+      "get": {
+        "tags": [
+          "Customer Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "echoppe_customer_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié - Session invalide ou expirée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Non authentifié - Session invalide ou expirée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Raison du refus d'authentification",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission refusée - Droits insuffisants",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Permission refusée - Droits insuffisants",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Permission manquante",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource non trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Ressource non trouvée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Ressource non trouvée",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entité non traitable - Règle métier non respectée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Entité non traitable - Règle métier non respectée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Détail de l'erreur métier",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Erreur serveur interne",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Erreur interne",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getCustomerOrdersById"
+      }
+    },
     "/checkout/": {
       "post": {
         "tags": [
@@ -5631,6 +5924,464 @@
           }
         },
         "$id": "#/components/schemas/CustomerAuth"
+      },
+      "Order": {
+        "type": "object",
+        "required": [
+          "id",
+          "orderNumber",
+          "status",
+          "shippingAddress",
+          "billingAddress",
+          "subtotalHt",
+          "shippingHt",
+          "discountHt",
+          "totalHt",
+          "totalTax",
+          "totalTtc",
+          "customerNote",
+          "dateCreated",
+          "dateUpdated",
+          "items",
+          "payment",
+          "shipment"
+        ],
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "description": "Identifiant unique de la commande.",
+            "type": "string"
+          },
+          "orderNumber": {
+            "description": "Numéro de commande lisible (ex. « CMD-2025-00001 »).",
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "confirmed",
+              "processing",
+              "shipped",
+              "delivered",
+              "cancelled",
+              "refunded"
+            ]
+          },
+          "shippingAddress": {
+            "description": "Adresse de livraison figée au moment de la commande."
+          },
+          "billingAddress": {
+            "description": "Adresse de facturation figée au moment de la commande."
+          },
+          "subtotalHt": {
+            "description": "Sous-total HT des articles (chaîne décimale).",
+            "type": "string"
+          },
+          "shippingHt": {
+            "description": "Frais de port HT (chaîne décimale).",
+            "type": "string"
+          },
+          "discountHt": {
+            "description": "Remise HT appliquée (chaîne décimale).",
+            "type": "string"
+          },
+          "totalHt": {
+            "description": "Total HT (chaîne décimale).",
+            "type": "string"
+          },
+          "totalTax": {
+            "description": "Montant total de TVA (chaîne décimale).",
+            "type": "string"
+          },
+          "totalTtc": {
+            "description": "Total TTC (chaîne décimale).",
+            "type": "string"
+          },
+          "customerNote": {
+            "nullable": true,
+            "anyOf": [
+              {
+                "description": "Note laissée par le client à la commande.",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dateCreated": {
+            "description": "Date de création de la commande.",
+            "anyOf": [
+              {
+                "description": "Date de création de la commande.",
+                "type": "Date"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "dateUpdated": {
+            "description": "Date de dernière mise à jour.",
+            "anyOf": [
+              {
+                "description": "Date de dernière mise à jour.",
+                "type": "Date"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "items": {
+            "description": "Lignes de la commande.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "variant",
+                "label",
+                "quantity",
+                "unitPriceHt",
+                "taxRate",
+                "totalHt",
+                "totalTtc"
+              ],
+              "properties": {
+                "id": {
+                  "format": "uuid",
+                  "description": "Identifiant unique de la ligne.",
+                  "type": "string"
+                },
+                "variant": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "format": "uuid",
+                      "description": "UUID de la variante achetée (null si la variante a depuis été supprimée).",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "label": {
+                  "description": "Libellé du produit tel qu’acheté (ex. « Bague Lune — Argent / 52 »).",
+                  "type": "string"
+                },
+                "quantity": {
+                  "description": "Quantité commandée.",
+                  "type": "number"
+                },
+                "unitPriceHt": {
+                  "description": "Prix unitaire HT (chaîne décimale).",
+                  "type": "string"
+                },
+                "taxRate": {
+                  "description": "Taux de TVA appliqué, en pourcentage (chaîne décimale).",
+                  "type": "string"
+                },
+                "totalHt": {
+                  "description": "Total HT de la ligne (chaîne décimale).",
+                  "type": "string"
+                },
+                "totalTtc": {
+                  "description": "Total TTC de la ligne (chaîne décimale).",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "payment": {
+            "nullable": true,
+            "anyOf": [
+              {
+                "description": "Paiement de la commande, ou null si non réglée.",
+                "type": "object",
+                "required": [
+                  "provider",
+                  "status",
+                  "amount",
+                  "dateCreated"
+                ],
+                "properties": {
+                  "provider": {
+                    "description": "Prestataire de paiement (ex. « stripe », « paypal »).",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "Statut du paiement.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "description": "Montant payé (chaîne décimale).",
+                    "type": "string"
+                  },
+                  "dateCreated": {
+                    "description": "Date du paiement.",
+                    "anyOf": [
+                      {
+                        "description": "Date du paiement.",
+                        "type": "Date"
+                      },
+                      {
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      {
+                        "format": "date",
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shipment": {
+            "nullable": true,
+            "anyOf": [
+              {
+                "description": "Expédition de la commande, ou null si non expédiée.",
+                "type": "object",
+                "required": [
+                  "status",
+                  "trackingNumber",
+                  "trackingUrl",
+                  "shippedAt",
+                  "deliveredAt",
+                  "provider"
+                ],
+                "properties": {
+                  "status": {
+                    "description": "Statut de l’expédition.",
+                    "type": "string"
+                  },
+                  "trackingNumber": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Numéro de suivi transporteur.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "trackingUrl": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "URL de suivi transporteur.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "shippedAt": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Date d’expédition.",
+                        "anyOf": [
+                          {
+                            "description": "Date d’expédition.",
+                            "type": "Date"
+                          },
+                          {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          {
+                            "format": "date",
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "deliveredAt": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Date de livraison.",
+                        "anyOf": [
+                          {
+                            "description": "Date de livraison.",
+                            "type": "Date"
+                          },
+                          {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          {
+                            "format": "date",
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "description": "Transporteur.",
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "type"
+                    ],
+                    "properties": {
+                      "name": {
+                        "description": "Nom du transporteur (ex. « Colissimo »).",
+                        "type": "string"
+                      },
+                      "type": {
+                        "description": "Type de transporteur (ex. « colissimo »).",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$id": "#/components/schemas/Order"
+      },
+      "OrderList": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "orderNumber",
+                "status",
+                "totalTtc",
+                "dateCreated"
+              ],
+              "properties": {
+                "id": {
+                  "format": "uuid",
+                  "description": "Identifiant unique de la commande.",
+                  "type": "string"
+                },
+                "orderNumber": {
+                  "description": "Numéro de commande lisible (ex. « CMD-2025-00001 »).",
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "confirmed",
+                    "processing",
+                    "shipped",
+                    "delivered",
+                    "cancelled",
+                    "refunded"
+                  ]
+                },
+                "totalTtc": {
+                  "description": "Total TTC de la commande (chaîne décimale).",
+                  "type": "string"
+                },
+                "dateCreated": {
+                  "description": "Date de création de la commande.",
+                  "anyOf": [
+                    {
+                      "description": "Date de création de la commande.",
+                      "type": "Date"
+                    },
+                    {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    {
+                      "format": "date",
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "total",
+              "page",
+              "limit",
+              "totalPages"
+            ],
+            "properties": {
+              "total": {
+                "type": "number"
+              },
+              "page": {
+                "type": "number"
+              },
+              "limit": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "$id": "#/components/schemas/OrderList"
       },
       "PaymentProviderList": {
         "type": "array",

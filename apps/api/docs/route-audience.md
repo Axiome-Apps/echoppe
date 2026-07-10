@@ -77,6 +77,8 @@ PSP (signature). Aucune route de mutation orpheline détectée.
 | POST | `/customer/addresses/` | customer-addresses | ✅ |
 | PUT | `/customer/addresses/:id` | customer-addresses | ✅ |
 | DELETE | `/customer/addresses/:id` | customer-addresses | ✅ |
+| GET | `/customer/orders/` | customer-orders | ✅ |
+| GET | `/customer/orders/:id` | customer-orders | ✅ |
 | POST | `/checkout/` | checkout | ✅ |
 | POST | `/payments/checkout` | payments | ✅ |
 
@@ -118,9 +120,11 @@ Routes admin **au sein de groupes mixtes** :
 
 ## Angles morts identifiés (→ backlog features API)
 
-- **Espace commandes client absent** : `orders/*` est 100 % admin. Le storefront ne peut
-  ni lister ni consulter les commandes du client connecté. Manque `GET /customer/orders`
-  et `GET /customer/orders/:id` (gardés `customerAuth`, filtrés sur `customer.id`).
+- ~~**Espace commandes client absent**~~ ✅ **fait (2026-07)** : `GET /customer/orders/` et
+  `GET /customer/orders/:id` (groupe `customer-orders`, gardés `customerAuth`, filtrés sur
+  `order.customer = currentCustomer.id`). Projection storefront `Order`/`OrderList`
+  (`src/models/order.ts`) : sans `internalNote`, paiement et expédition allégés (pas de
+  référence transaction ni de poids colis). La vue admin `orders/*` reste inchangée.
 - **Self-update du profil client absent** : `customer-auth` = register/login/logout/me/
   refresh. Aucune route pour que le client édite son propre profil (nom, email) ou change
   son mot de passe (le `PATCH /customers/:id` est admin). Manque des routes `customerAuth`

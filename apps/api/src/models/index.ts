@@ -7,6 +7,7 @@ import { checkoutModels } from './checkout';
 import { collectionModels } from './collection';
 import { companyModels } from './company';
 import { customerModels } from './customer';
+import { orderModels } from './order';
 import { taxRateModels } from './tax-rate';
 
 // Registre central des modèles nommés du contrat. Une seule source qui alimente :
@@ -28,6 +29,7 @@ export const allModels = {
   ...addressModels,
   ...customerModels,
   ...checkoutModels,
+  ...orderModels,
 };
 
 /** Union des noms de modèles enregistrés — remplace un `string` permissif. */

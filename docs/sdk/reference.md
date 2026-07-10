@@ -374,6 +374,70 @@ const data = await res.json();
 
 <ResponseSample name="CustomerAuth" />
 
+## Order
+
+<ModelDoc name="Order" />
+
+**Exemple d’appel**
+
+::: code-group
+
+```ts [SDK]
+import { createEchoppeClient } from '@echoppe/client';
+
+const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
+
+const { data, error } = await echoppe.GET('/customer/orders/{id}', {
+  params: { path: { id: '3fa85f64-…' } },
+});
+```
+
+```js [REST]
+const res = await fetch('https://api.maboutique.fr/customer/orders/3fa85f64-…', {
+  method: 'GET',
+  credentials: 'include',
+});
+const data = await res.json();
+```
+
+:::
+
+**Exemple de réponse**
+
+<ResponseSample name="Order" />
+
+## OrderList
+
+<ModelDoc name="OrderList" />
+
+**Exemple d’appel**
+
+::: code-group
+
+```ts [SDK]
+import { createEchoppeClient } from '@echoppe/client';
+
+const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
+
+const { data, error } = await echoppe.GET('/customer/orders/', {
+  params: { query: { page: 1, limit: 20 } },
+});
+```
+
+```js [REST]
+const res = await fetch('https://api.maboutique.fr/customer/orders/?page=1&limit=20', {
+  method: 'GET',
+  credentials: 'include',
+});
+const data = await res.json();
+```
+
+:::
+
+**Exemple de réponse**
+
+<ResponseSample name="OrderList" />
+
 ## PaymentProviderList
 
 <ModelDoc name="PaymentProviderList" />
