@@ -374,6 +374,46 @@ const data = await res.json();
 
 <ResponseSample name="CustomerAuth" />
 
+## LoginResult
+
+<ModelDoc name="LoginResult" />
+
+**Exemple d’appel**
+
+::: code-group
+
+```ts [SDK]
+import { createEchoppeClient } from '@echoppe/client';
+
+const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
+
+const { data, error } = await echoppe.POST('/customer/auth/login', {
+  body: {
+    "email": "client@exemple.fr",
+    "password": "string"
+  },
+});
+```
+
+```js [REST]
+const res = await fetch('https://api.maboutique.fr/customer/auth/login', {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    "email": "client@exemple.fr",
+    "password": "string"
+  }),
+});
+const data = await res.json();
+```
+
+:::
+
+**Exemple de réponse**
+
+<ResponseSample name="LoginResult" />
+
 ## Order
 
 <ModelDoc name="Order" />

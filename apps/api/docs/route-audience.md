@@ -72,6 +72,8 @@ PSP (signature). Aucune route de mutation orpheline détectée.
 | POST | `/customer/auth/logout` | customer-auth | ✅ |
 | POST | `/customer/auth/refresh` | customer-auth | ✅ |
 | GET | `/customer/auth/me` | customer-auth | ✅ |
+| POST | `/customer/auth/password` | customer-auth | ✅ |
+| PATCH | `/customer/profile` | customer-account | ✅ |
 | GET | `/customer/addresses/` | customer-addresses | ✅ |
 | GET | `/customer/addresses/:id` | customer-addresses | ✅ |
 | POST | `/customer/addresses/` | customer-addresses | ✅ |

@@ -2860,65 +2860,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "customer"
-                  ],
-                  "properties": {
-                    "customer": {
-                      "type": "object",
-                      "required": [
-                        "id",
-                        "email",
-                        "firstName",
-                        "lastName",
-                        "phone",
-                        "emailVerified",
-                        "marketingOptin"
-                      ],
-                      "properties": {
-                        "id": {
-                          "format": "uuid",
-                          "description": "Identifiant unique du client.",
-                          "type": "string"
-                        },
-                        "email": {
-                          "format": "email",
-                          "description": "Adresse e-mail du client.",
-                          "type": "string"
-                        },
-                        "firstName": {
-                          "description": "Prénom.",
-                          "type": "string"
-                        },
-                        "lastName": {
-                          "description": "Nom.",
-                          "type": "string"
-                        },
-                        "phone": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Numéro de téléphone.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "emailVerified": {
-                          "description": "L'adresse e-mail a été vérifiée.",
-                          "type": "boolean"
-                        },
-                        "marketingOptin": {
-                          "description": "Consentement aux communications marketing.",
-                          "type": "boolean"
-                        }
-                      },
-                      "$id": "#/components/schemas/Customer"
-                    }
-                  }
+                  "$ref": "#/components/schemas/CustomerAuth"
                 }
               }
             }
@@ -3050,35 +2992,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "customer"
-                  ],
-                  "properties": {
-                    "customer": {
-                      "type": "object",
-                      "required": [
-                        "id",
-                        "email",
-                        "firstName",
-                        "lastName"
-                      ],
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "firstName": {
-                          "type": "string"
-                        },
-                        "lastName": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/LoginResult"
                 }
               }
             }
@@ -3275,6 +3189,279 @@
           }
         },
         "operationId": "getCustomerAuthMe"
+      }
+    },
+    "/customer/auth/password": {
+      "post": {
+        "tags": [
+          "Customer Auth"
+        ],
+        "parameters": [
+          {
+            "name": "echoppe_customer_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "minLength": 8,
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "minLength": 8,
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "minLength": 8,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "description": "Opération réussie",
+                      "const": true,
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié - Session invalide ou expirée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Non authentifié - Session invalide ou expirée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Raison du refus d'authentification",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postCustomerAuthPassword"
+      }
+    },
+    "/customer/profile": {
+      "patch": {
+        "tags": [
+          "Customer Account"
+        ],
+        "parameters": [
+          {
+            "name": "echoppe_customer_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "phone": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "maxLength": 20,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "marketingOptin": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "phone": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "maxLength": 20,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "marketingOptin": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "phone": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "maxLength": 20,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "marketingOptin": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAuth"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié - Session invalide ou expirée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Non authentifié - Session invalide ou expirée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Raison du refus d'authentification",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "patchCustomerProfile"
       }
     },
     "/customer/addresses/": {
@@ -5924,6 +6111,44 @@
           }
         },
         "$id": "#/components/schemas/CustomerAuth"
+      },
+      "LoginResult": {
+        "type": "object",
+        "required": [
+          "customer"
+        ],
+        "properties": {
+          "customer": {
+            "type": "object",
+            "required": [
+              "id",
+              "email",
+              "firstName",
+              "lastName"
+            ],
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "description": "Identifiant unique du client.",
+                "type": "string"
+              },
+              "email": {
+                "format": "email",
+                "description": "Adresse e-mail du client.",
+                "type": "string"
+              },
+              "firstName": {
+                "description": "Prénom.",
+                "type": "string"
+              },
+              "lastName": {
+                "description": "Nom.",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "$id": "#/components/schemas/LoginResult"
       },
       "Order": {
         "type": "object",

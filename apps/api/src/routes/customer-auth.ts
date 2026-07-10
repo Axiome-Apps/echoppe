@@ -1,9 +1,9 @@
 import { randomBytes } from 'node:crypto';
-import { and, customer, customerSession, db, eq, gt, sendWelcomeEmail } from '@echoppe/core';
+import { and, customer, customerSession, db, eq, gt, ne, sendWelcomeEmail } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { models } from '../models';
-import { customerSchema } from '../models/customer';
+import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
 import { authRateLimitOptions, strictRateLimitOptions } from '../utils/rate-limit';
 import {
   conflictResponse,
@@ -19,23 +19,9 @@ const cookieSchema = t.Cookie({
   [COOKIE_NAME]: t.Optional(t.String()),
 });
 
-// Response schemas — le profil complet `customerSchema` vient du modèle nommé
-// (src/models/customer.ts). register (instance séparée, sans .use(models)) le référence par
-// valeur ; `/me` référence le modèle nommé `CustomerAuth`.
-const registerResponseSchema = t.Object({
-  customer: customerSchema,
-});
-
-const loginCustomerSchema = t.Object({
-  id: t.String(),
-  email: t.String(),
-  firstName: t.String(),
-  lastName: t.String(),
-});
-
-const loginResponseSchema = t.Object({
-  customer: loginCustomerSchema,
-});
+// Les réponses sont des modèles nommés (src/models/customer.ts), référencés par nom :
+// register/`me` → `CustomerAuth` (profil complet), login → `LoginResult` (identité réduite).
+// Chaque instance qui les référence fait `.use(models)`.
 
 function generateToken(): string {
   return randomBytes(32).toString('hex');
@@ -48,7 +34,7 @@ function getExpiresAt(): Date {
 }
 
 // Rate-limited register route (strict: 5 requests / 15 min)
-const registerRoute = new Elysia().use(rateLimit(strictRateLimitOptions)).post(
+const registerRoute = new Elysia().use(rateLimit(strictRateLimitOptions)).use(models).post(
   '/register',
   async ({ body, cookie, request, status }) => {
     // Check if email already exists
@@ -137,7 +123,7 @@ const registerRoute = new Elysia().use(rateLimit(strictRateLimitOptions)).post(
     }),
     cookie: cookieSchema,
     response: {
-      200: registerResponseSchema,
+      200: 'CustomerAuth',
       409: conflictResponse,
       429: rateLimitResponse,
     },
@@ -145,7 +131,7 @@ const registerRoute = new Elysia().use(rateLimit(strictRateLimitOptions)).post(
 );
 
 // Rate-limited login route (auth: 10 requests / 15 min)
-const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).post(
+const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).use(models).post(
   '/login',
   async ({ body, cookie, request, status }) => {
     const [found] = await db
@@ -213,7 +199,7 @@ const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).post(
     }),
     cookie: cookieSchema,
     response: {
-      200: loginResponseSchema,
+      200: 'LoginResult',
       401: unauthorizedResponse,
       429: rateLimitResponse,
     },
@@ -226,6 +212,8 @@ export const customerAuthRoutes = new Elysia({
 })
   // Registre central des modèles nommés → components.schemas.
   .use(models)
+  // Garde session client (macro `customerAuth`) pour les routes profil/mot de passe.
+  .use(customerAuthPlugin)
 
   // Rate-limited routes
   .use(registerRoute)
@@ -354,6 +342,57 @@ export const customerAuthRoutes = new Elysia({
     },
     {
       cookie: cookieSchema,
+      response: {
+        200: successSchema,
+        401: unauthorizedResponse,
+      },
+    },
+  )
+
+  // POST /customer/auth/password - Changement de mot de passe (client connecté).
+  // Vérifie l'ancien mot de passe puis révoque toutes les AUTRES sessions (garde la courante).
+  .post(
+    '/password',
+    async ({ body, cookie, currentCustomer, status }) => {
+      const c = currentCustomer as SessionCustomer;
+
+      const [row] = await db
+        .select({ passwordHash: customer.passwordHash })
+        .from(customer)
+        .where(eq(customer.id, c.id));
+
+      const valid = row && (await Bun.password.verify(body.currentPassword, row.passwordHash));
+      if (!valid) {
+        return status(401, { message: 'Mot de passe actuel incorrect' });
+      }
+
+      const passwordHash = await Bun.password.hash(body.newPassword, {
+        algorithm: 'bcrypt',
+        cost: 10,
+      });
+
+      await db
+        .update(customer)
+        .set({ passwordHash, dateUpdated: new Date() })
+        .where(eq(customer.id, c.id));
+
+      // Révoque les autres sessions (sécurité) — la session courante reste valide.
+      const token = cookie[COOKIE_NAME].value;
+      if (token) {
+        await db
+          .delete(customerSession)
+          .where(and(eq(customerSession.customer, c.id), ne(customerSession.token, token)));
+      }
+
+      return { success: true };
+    },
+    {
+      customerAuth: true,
+      cookie: cookieSchema,
+      body: t.Object({
+        currentPassword: t.String({ minLength: 1 }),
+        newPassword: t.String({ minLength: 8 }),
+      }),
       response: {
         200: successSchema,
         401: unauthorizedResponse,

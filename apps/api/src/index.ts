@@ -16,6 +16,7 @@ import { collectionsRoutes } from './routes/collections';
 import { communicationsRoutes } from './routes/communications';
 import { companyRoutes } from './routes/company';
 import { contactRoutes } from './routes/contact';
+import { customerAccountRoutes } from './routes/customer-account';
 import { customerAddressesRoutes } from './routes/customer-addresses';
 import { customerOrdersRoutes } from './routes/customer-orders';
 import { customerAuthRoutes } from './routes/customer-auth';
@@ -118,6 +119,7 @@ const app = new Elysia()
   .use(cartRoutes)
   .use(customerAddressesRoutes)
   .use(customerOrdersRoutes)
+  .use(customerAccountRoutes)
   .use(checkoutRoutes)
   .use(communicationsRoutes)
   .use(customersRoutes)

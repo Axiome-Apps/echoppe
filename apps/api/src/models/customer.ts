@@ -15,8 +15,19 @@ export const customerSchema = t.Object({
   marketingOptin: t.Boolean({ description: 'Consentement aux communications marketing.' }),
 });
 
+// Réponse de connexion — profil réduit (pas de champs profil complets, juste l'identité).
+export const loginResultSchema = t.Object({
+  customer: t.Object({
+    id: t.String({ format: 'uuid', description: 'Identifiant unique du client.' }),
+    email: t.String({ format: 'email', description: 'Adresse e-mail du client.' }),
+    firstName: t.String({ description: 'Prénom.' }),
+    lastName: t.String({ description: 'Nom.' }),
+  }),
+});
+
 // Modèles nommés exposés dans le contrat (components.schemas).
 export const customerModels = {
   Customer: customerSchema,
   CustomerAuth: t.Object({ customer: customerSchema }),
+  LoginResult: loginResultSchema,
 };

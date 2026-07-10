@@ -14,6 +14,7 @@ export type CheckoutResult = components['schemas']['CheckoutResult'];
 export type Collection = components['schemas']['Collection'];
 export type CollectionList = components['schemas']['CollectionList'];
 export type CustomerAuth = components['schemas']['CustomerAuth'];
+export type LoginResult = components['schemas']['LoginResult'];
 export type Order = components['schemas']['Order'];
 export type OrderList = components['schemas']['OrderList'];
 export type PaymentProviderList = components['schemas']['PaymentProviderList'];

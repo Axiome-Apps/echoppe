@@ -440,6 +440,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/customer/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postCustomerAuthPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customer/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["patchCustomerProfile"];
+        trace?: never;
+    };
     "/customer/addresses/": {
         parameters: {
             query?: never;
@@ -783,6 +815,24 @@ export interface components {
                 emailVerified: boolean;
                 /** @description Consentement aux communications marketing. */
                 marketingOptin: boolean;
+            };
+        };
+        LoginResult: {
+            customer: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique du client.
+                 */
+                id: string;
+                /**
+                 * Format: email
+                 * @description Adresse e-mail du client.
+                 */
+                email: string;
+                /** @description Prénom. */
+                firstName: string;
+                /** @description Nom. */
+                lastName: string;
             };
         };
         Order: {
@@ -2462,29 +2512,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        customer: {
-                            /**
-                             * Format: uuid
-                             * @description Identifiant unique du client.
-                             */
-                            id: string;
-                            /**
-                             * Format: email
-                             * @description Adresse e-mail du client.
-                             */
-                            email: string;
-                            /** @description Prénom. */
-                            firstName: string;
-                            /** @description Nom. */
-                            lastName: string;
-                            phone: (string | null) | null;
-                            /** @description L'adresse e-mail a été vérifiée. */
-                            emailVerified: boolean;
-                            /** @description Consentement aux communications marketing. */
-                            marketingOptin: boolean;
-                        };
-                    };
+                    "application/json": components["schemas"]["CustomerAuth"];
                 };
             };
             /** @description Conflit - La ressource existe déjà ou est en conflit */
@@ -2548,14 +2576,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        customer: {
-                            id: string;
-                            email: string;
-                            firstName: string;
-                            lastName: string;
-                        };
-                    };
+                    "application/json": components["schemas"]["LoginResult"];
                 };
             };
             /** @description Non authentifié - Session invalide ou expirée */
@@ -2662,6 +2683,116 @@ export interface operations {
             };
         };
         requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerAuth"];
+                };
+            };
+            /** @description Non authentifié - Session invalide ou expirée */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Raison du refus d'authentification */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    postCustomerAuthPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    currentPassword: string;
+                    newPassword: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    currentPassword: string;
+                    newPassword: string;
+                };
+                "multipart/form-data": {
+                    currentPassword: string;
+                    newPassword: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Opération réussie
+                         * @constant
+                         */
+                        success: true;
+                    };
+                };
+            };
+            /** @description Non authentifié - Session invalide ou expirée */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Raison du refus d'authentification */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    patchCustomerProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    firstName?: string;
+                    lastName?: string;
+                    phone?: (string | null) | null;
+                    marketingOptin?: boolean;
+                };
+                "application/x-www-form-urlencoded": {
+                    firstName?: string;
+                    lastName?: string;
+                    phone?: (string | null) | null;
+                    marketingOptin?: boolean;
+                };
+                "multipart/form-data": {
+                    firstName?: string;
+                    lastName?: string;
+                    phone?: (string | null) | null;
+                    marketingOptin?: boolean;
+                };
+            };
+        };
         responses: {
             /** @description Response for status 200 */
             200: {

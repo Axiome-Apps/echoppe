@@ -256,7 +256,11 @@
 - [ ] Bannière cookies (consentement granulaire)
 - [ ] CGU/CGV personnalisables dans l'admin
 - [ ] Export données client (RGPD art. 20)
-- [ ] Suppression compte client avec anonymisation
+- [ ] **Suppression de compte client — protocole complet** (feature à part, PAS un simple bouton delete)
+  > Le RGPD n'impose pas un bouton de suppression, mais une boutique en ligne DOIT conserver et tracer certains documents/informations légales (transactions, factures, comptabilité…). La suppression est donc un **protocole**, pas une opération directe.
+  - [ ] Pas de route de suppression directe : **demande** de suppression via formulaire ou email
+  - [ ] Protocole de suppression sécurisée : distinguer **données à conserver** (légal obligatoire : transactions, factures, traçabilité) VS **données à supprimer** (non obligatoire légalement)
+  - [ ] **Archivage légal** des données obligatoires : à trancher — BDD annexe, tables dédiées, ou statut `archived` sur le client (avec anonymisation des champs non requis)
 
 ### Analytics
 - [ ] Dashboard stats (CA, commandes, panier moyen, tendances)
