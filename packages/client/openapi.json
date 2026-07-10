@@ -5730,6 +5730,8 @@
                     "id",
                     "sku",
                     "priceHt",
+                    "compareAtPriceHt",
+                    "optionValues",
                     "product"
                   ],
                   "properties": {
@@ -5753,6 +5755,39 @@
                     "priceHt": {
                       "description": "Prix HT unitaire, décimal en chaîne (ex. « 12.90 »).",
                       "type": "string"
+                    },
+                    "compareAtPriceHt": {
+                      "nullable": true,
+                      "anyOf": [
+                        {
+                          "description": "Prix HT barré (avant remise), ou null. Décimal en chaîne.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "optionValues": {
+                      "description": "Options de la variante (ex. Couleur : Argent, Taille : 52).",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "option",
+                          "value"
+                        ],
+                        "properties": {
+                          "option": {
+                            "description": "Nom de l’option (ex. « Couleur »).",
+                            "type": "string"
+                          },
+                          "value": {
+                            "description": "Valeur choisie (ex. « Argent »).",
+                            "type": "string"
+                          }
+                        }
+                      }
                     },
                     "product": {
                       "description": "Produit rattaché à la variante.",

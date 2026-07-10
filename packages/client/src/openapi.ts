@@ -699,6 +699,14 @@ export interface components {
                     sku: (string | null) | null;
                     /** @description Prix HT unitaire, décimal en chaîne (ex. « 12.90 »). */
                     priceHt: string;
+                    compareAtPriceHt: (string | null) | null;
+                    /** @description Options de la variante (ex. Couleur : Argent, Taille : 52). */
+                    optionValues: {
+                        /** @description Nom de l’option (ex. « Couleur »). */
+                        option: string;
+                        /** @description Valeur choisie (ex. « Argent »). */
+                        value: string;
+                    }[];
                     /** @description Produit rattaché à la variante. */
                     product: {
                         /**

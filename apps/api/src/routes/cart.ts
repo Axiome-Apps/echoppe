@@ -9,9 +9,12 @@ import {
   eq,
   gt,
   inArray,
+  option,
+  optionValue,
   product,
   productMedia,
   variant,
+  variantOptionValue,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { models } from '../models';
@@ -118,6 +121,7 @@ async function getCartWithItems(cartId: string) {
         id: variant.id,
         sku: variant.sku,
         priceHt: variant.priceHt,
+        compareAtPriceHt: variant.compareAtPriceHt,
       },
       product: {
         id: product.id,
@@ -141,6 +145,30 @@ async function getCartWithItems(cartId: string) {
       : [];
   const featuredImageMap = new Map(featuredImages.map((fi) => [fi.productId, fi.mediaId]));
 
+  // Get option values (Couleur : Argent, Taille : 52…) for all variants in cart.
+  const variantIds = [...new Set(items.map((item) => item.variant.id))];
+  const optionRows =
+    variantIds.length > 0
+      ? await db
+          .select({
+            variant: variantOptionValue.variant,
+            option: option.name,
+            value: optionValue.value,
+            optionSort: option.sortOrder,
+            valueSort: optionValue.sortOrder,
+          })
+          .from(variantOptionValue)
+          .innerJoin(optionValue, eq(variantOptionValue.optionValue, optionValue.id))
+          .innerJoin(option, eq(optionValue.option, option.id))
+          .where(inArray(variantOptionValue.variant, variantIds))
+      : [];
+  const optionValuesMap = new Map<string, { option: string; value: string }[]>();
+  for (const row of optionRows.sort((a, b) => a.optionSort - b.optionSort || a.valueSort - b.valueSort)) {
+    const list = optionValuesMap.get(row.variant) ?? [];
+    list.push({ option: row.option, value: row.value });
+    optionValuesMap.set(row.variant, list);
+  }
+
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalHt = items
     .reduce((sum, item) => sum + parseFloat(item.variant.priceHt) * item.quantity, 0)
@@ -155,6 +183,8 @@ async function getCartWithItems(cartId: string) {
         id: item.variant.id,
         sku: item.variant.sku,
         priceHt: item.variant.priceHt,
+        compareAtPriceHt: item.variant.compareAtPriceHt,
+        optionValues: optionValuesMap.get(item.variant.id) ?? [],
         product: {
           ...item.product,
           featuredImage: featuredImageMap.get(item.product.id) ?? null,

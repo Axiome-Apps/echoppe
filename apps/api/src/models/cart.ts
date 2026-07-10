@@ -8,6 +8,16 @@ const variantInCartSchema = t.Object({
   id: t.String({ format: 'uuid', description: 'UUID de la variante.' }),
   sku: t.Nullable(t.String({ description: 'Référence interne (SKU).' })),
   priceHt: t.String({ description: 'Prix HT unitaire, décimal en chaîne (ex. « 12.90 »).' }),
+  compareAtPriceHt: t.Nullable(
+    t.String({ description: 'Prix HT barré (avant remise), ou null. Décimal en chaîne.' }),
+  ),
+  optionValues: t.Array(
+    t.Object({
+      option: t.String({ description: 'Nom de l’option (ex. « Couleur »).' }),
+      value: t.String({ description: 'Valeur choisie (ex. « Argent »).' }),
+    }),
+    { description: 'Options de la variante (ex. Couleur : Argent, Taille : 52).' },
+  ),
   product: t.Object(
     {
       id: t.String({ format: 'uuid', description: 'UUID du produit.' }),
