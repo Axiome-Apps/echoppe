@@ -3,6 +3,7 @@ export * from './auth';
 export * from './cart';
 export * from './catalog';
 export * from './communication';
+export * from './content';
 export * from './customer';
 export * from './document';
 export * from './engagement';

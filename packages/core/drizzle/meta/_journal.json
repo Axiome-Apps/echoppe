@@ -15,6 +15,13 @@
       "when": 1783695756670,
       "tag": "0001_right_supreme_intelligence",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783701652320,
+      "tag": "0002_dry_captain_marvel",
+      "breakpoints": true
     }
   ]
 }

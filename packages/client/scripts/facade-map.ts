@@ -25,6 +25,7 @@ export const TAG_NAMESPACE: Record<string, string> = {
   Company: 'company',
   'Tax Rates': 'taxRates',
   Contact: 'contact',
+  Pages: 'pages',
   'Customer Auth': 'auth',
   'Customer Account': 'account',
   'Customer Addresses': 'addresses',
@@ -60,6 +61,9 @@ export const METHOD_NAMES: Record<string, string> = {
   postCheckout: 'create',
   'getCheckoutPayment-providers': 'paymentProviders',
   postPaymentsCheckout: 'pay',
+  // pages (content)
+  getPages: 'list',
+  'getPagesBy-slugBySlug': 'bySlug',
   // company / taxRates / contact
   getCompany: 'get',
   'getTax-rates': 'list',

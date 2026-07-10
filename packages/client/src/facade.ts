@@ -62,6 +62,10 @@ export function createResources(client: Client<paths>) {
       get: (init: MaybeOptionalInit<paths['/customer/orders/{id}'], 'get'>) => client.GET('/customer/orders/{id}', init),
       list: (init?: MaybeOptionalInit<paths['/customer/orders/'], 'get'>) => client.GET('/customer/orders/', init),
     },
+    pages: {
+      bySlug: (init: MaybeOptionalInit<paths['/pages/by-slug/{slug}'], 'get'>) => client.GET('/pages/by-slug/{slug}', init),
+      list: (init?: MaybeOptionalInit<paths['/pages/'], 'get'>) => client.GET('/pages/', init),
+    },
     products: {
       bySlug: (init: MaybeOptionalInit<paths['/products/by-slug/{slug}'], 'get'>) => client.GET('/products/by-slug/{slug}', init),
       get: (init: MaybeOptionalInit<paths['/products/{id}'], 'get'>) => client.GET('/products/{id}', init),

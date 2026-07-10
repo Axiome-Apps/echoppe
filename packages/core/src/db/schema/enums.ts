@@ -1,6 +1,7 @@
 import { pgEnum } from 'drizzle-orm/pg-core';
 
 export const productStatusEnum = pgEnum('product_status', ['draft', 'published', 'archived']);
+export const contentStatusEnum = pgEnum('content_status', ['draft', 'published']);
 export const addressTypeEnum = pgEnum('address_type', ['billing', 'shipping']);
 export const cartStatusEnum = pgEnum('cart_status', ['active', 'converted', 'abandoned']);
 export const orderStatusEnum = pgEnum('order_status', [

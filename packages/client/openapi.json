@@ -1567,6 +1567,156 @@
         "operationId": "getCollectionsByIdProducts"
       }
     },
+    "/pages/": {
+      "get": {
+        "tags": [
+          "Pages"
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entité non traitable - Règle métier non respectée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Entité non traitable - Règle métier non respectée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Détail de l'erreur métier",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Erreur serveur interne",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Erreur interne",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getPages"
+      }
+    },
+    "/pages/by-slug/{slug}": {
+      "get": {
+        "tags": [
+          "Pages"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource non trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Ressource non trouvée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Ressource non trouvée",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entité non traitable - Règle métier non respectée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Entité non traitable - Règle métier non respectée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Détail de l'erreur métier",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Erreur serveur interne",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Erreur interne",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getPagesBy-slugBySlug"
+      }
+    },
     "/cart/": {
       "get": {
         "tags": [
@@ -6870,6 +7020,119 @@
           }
         },
         "$id": "#/components/schemas/OrderList"
+      },
+      "Page": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "seoTitle",
+          "seoDescription",
+          "status",
+          "sections"
+        ],
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "description": "UUID de la page.",
+            "type": "string"
+          },
+          "slug": {
+            "description": "Identifiant lisible pour l’URL.",
+            "type": "string"
+          },
+          "title": {
+            "description": "Titre de la page.",
+            "type": "string"
+          },
+          "seoTitle": {
+            "nullable": true,
+            "anyOf": [
+              {
+                "description": "Titre SEO, ou null.",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "seoDescription": {
+            "nullable": true,
+            "anyOf": [
+              {
+                "description": "Meta description SEO, ou null.",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ]
+          },
+          "sections": {
+            "description": "Sections de la page, ordonnées.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "data"
+              ],
+              "properties": {
+                "id": {
+                  "format": "uuid",
+                  "description": "UUID de la section.",
+                  "type": "string"
+                },
+                "type": {
+                  "description": "Type de bloc (hero, richText, productGrid, image, cta…).",
+                  "type": "string"
+                },
+                "data": {
+                  "description": "Champs du bloc — forme selon `type`."
+                }
+              },
+              "$id": "#/components/schemas/Section"
+            }
+          }
+        },
+        "$id": "#/components/schemas/Page"
+      },
+      "PageList": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "slug",
+            "title"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "description": "UUID de la page.",
+              "type": "string"
+            },
+            "slug": {
+              "description": "Identifiant lisible pour l’URL.",
+              "type": "string"
+            },
+            "title": {
+              "description": "Titre de la page.",
+              "type": "string"
+            }
+          }
+        },
+        "$id": "#/components/schemas/PageList"
       },
       "PaymentProviderList": {
         "type": "array",

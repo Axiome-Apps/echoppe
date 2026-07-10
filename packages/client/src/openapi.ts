@@ -228,6 +228,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/pages/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pages/by-slug/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPagesBy-slugBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cart/": {
         parameters: {
             query?: never;
@@ -976,6 +1008,44 @@ export interface components {
                 totalPages: number;
             };
         };
+        Page: {
+            /**
+             * Format: uuid
+             * @description UUID de la page.
+             */
+            id: string;
+            /** @description Identifiant lisible pour l’URL. */
+            slug: string;
+            /** @description Titre de la page. */
+            title: string;
+            seoTitle: (string | null) | null;
+            seoDescription: (string | null) | null;
+            /** @enum {string} */
+            status: "draft" | "published";
+            /** @description Sections de la page, ordonnées. */
+            sections: {
+                /**
+                 * Format: uuid
+                 * @description UUID de la section.
+                 */
+                id: string;
+                /** @description Type de bloc (hero, richText, productGrid, image, cta…). */
+                type: string;
+                /** @description Champs du bloc — forme selon `type`. */
+                data: unknown;
+            }[];
+        };
+        PageList: {
+            /**
+             * Format: uuid
+             * @description UUID de la page.
+             */
+            id: string;
+            /** @description Identifiant lisible pour l’URL. */
+            slug: string;
+            /** @description Titre de la page. */
+            title: string;
+        }[];
         PaymentProviderList: {
             /** @description Identifiant du moyen de paiement (ex. « stripe », « paypal »). */
             id: string;
@@ -1919,6 +1989,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductList"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getPages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageList"];
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "getPagesBy-slugBySlug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page"];
                 };
             };
             /** @description Ressource non trouvée */
