@@ -89,6 +89,9 @@
 - [x] Réduire durée session (30j → 7j + refresh token)
 - [x] Vérification User-Agent sur sessions admin + customer (+ log IP changes)
 - [x] Logger structuré pour erreurs webhook
+- [ ] **Reset mot de passe oublié côté ADMIN** : même angle mort que le client (résolu en
+  2026-07 pour le client via `password/forgot`+`reset`). `sendResetPasswordEmail` est prête ;
+  reste à câbler un flux jeton pour les users admin (`auth.ts`).
 
 ### Docker / Déploiement
 - [x] Dockerfile monorepo optimisé (images **api + admin** ; cibles store/init retirées en 0.1.0)
