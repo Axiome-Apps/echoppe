@@ -17,6 +17,9 @@ export const RESOURCES = {
   // Médias (folder operations are protected by media permission)
   MEDIA: 'media',
 
+  // Contenu (page builder)
+  CONTENT: 'content',
+
   // Commerce
   ORDER: 'order',
   CART: 'cart',

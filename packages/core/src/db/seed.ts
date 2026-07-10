@@ -303,6 +303,7 @@ async function seed() {
     { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'wishlist', canRead: true },
+    { resource: 'content', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
   ]);
 
   // =============================================
@@ -339,6 +340,7 @@ async function seed() {
     { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     { resource: 'address', canCreate: true, canRead: true, canUpdate: true },
     { resource: 'cart', canRead: true },
+    { resource: 'content', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
   ]);
 
   // =============================================
