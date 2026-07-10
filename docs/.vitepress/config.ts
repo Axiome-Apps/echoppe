@@ -16,6 +16,7 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'Admin', link: '/admin/' },
+      { text: 'SDK', link: '/sdk/' },
       { text: 'Développeur', link: '/dev/' },
     ],
 
@@ -43,6 +44,18 @@ export default defineConfig({
             { text: 'Stock', link: '/admin/stock' },
             { text: 'Médiathèque', link: '/admin/media' },
             { text: 'Paramètres', link: '/admin/settings' },
+          ],
+        },
+      ],
+      '/sdk/': [
+        {
+          text: 'SDK @echoppe/client',
+          items: [
+            { text: 'Présentation', link: '/sdk/' },
+            { text: 'Installation', link: '/sdk/installation' },
+            { text: 'Utilisation', link: '/sdk/usage' },
+            { text: 'Types & surface', link: '/sdk/types' },
+            { text: 'Référence des modèles', link: '/sdk/reference' },
           ],
         },
       ],
