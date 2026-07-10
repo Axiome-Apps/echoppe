@@ -14,6 +14,7 @@ import {
   variant,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { models } from '../models';
 import {
   badRequestResponse,
   forbiddenResponse,
@@ -31,48 +32,7 @@ const cookieSchema = t.Cookie({
   [CUSTOMER_COOKIE_NAME]: t.Optional(t.String()),
 });
 
-// Response schemas for OpenAPI documentation
-const variantInCartSchema = t.Object({
-  id: t.String(),
-  sku: t.Nullable(t.String()),
-  priceHt: t.String(),
-  product: t.Object({
-    id: t.String(),
-    name: t.String(),
-    slug: t.String(),
-    featuredImage: t.Nullable(t.String()),
-  }),
-});
-
-const cartItemSchema = t.Object({
-  id: t.String(),
-  variant: variantInCartSchema,
-  quantity: t.Number(),
-  dateAdded: t.Date(),
-});
-
-const cartStatusEnum = t.Union([
-  t.Literal('active'),
-  t.Literal('converted'),
-  t.Literal('abandoned'),
-  t.Literal('empty'),
-]);
-
-const cartResponseSchema = t.Object({
-  id: t.Union([t.String(), t.Null()]),
-  status: cartStatusEnum,
-  items: t.Array(cartItemSchema),
-  itemCount: t.Number(),
-  totalHt: t.String(),
-  dateCreated: t.Union([t.Date(), t.Null()]),
-  dateUpdated: t.Union([t.Date(), t.Null()]),
-});
-
-const mergeResponseSchema = t.Object({
-  success: t.Boolean(),
-  merged: t.Optional(t.Number()),
-  converted: t.Optional(t.Boolean()),
-});
+// Schémas d'entité panier (Cart, CartMerge) → src/models/cart.ts
 
 function generateSessionId(): string {
   return randomBytes(32).toString('hex');
@@ -214,6 +174,9 @@ export const cartRoutes = new Elysia({
   prefix: '/cart',
   detail: { tags: ['Cart'] },
 })
+  // Registre central des modèles nommés → components.schemas.
+  .use(models)
+
   // GET /cart - Get current cart
   .get(
     '/',
@@ -252,7 +215,7 @@ export const cartRoutes = new Elysia({
     },
     {
       cookie: cookieSchema,
-      response: { 200: cartResponseSchema },
+      response: { 200: 'Cart' },
     },
   )
 
@@ -337,7 +300,7 @@ export const cartRoutes = new Elysia({
       }),
       cookie: cookieSchema,
       response: {
-        200: cartResponseSchema,
+        200: 'Cart',
         400: badRequestResponse,
         404: notFoundResponse,
       },
@@ -405,7 +368,7 @@ export const cartRoutes = new Elysia({
       body: t.Object({ quantity: t.Number({ minimum: 1 }) }),
       cookie: cookieSchema,
       response: {
-        200: cartResponseSchema,
+        200: 'Cart',
         400: badRequestResponse,
         403: forbiddenResponse,
         404: notFoundResponse,
@@ -458,7 +421,7 @@ export const cartRoutes = new Elysia({
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       cookie: cookieSchema,
       response: {
-        200: cartResponseSchema,
+        200: 'Cart',
         403: forbiddenResponse,
         404: notFoundResponse,
       },
@@ -595,7 +558,7 @@ export const cartRoutes = new Elysia({
     {
       cookie: cookieSchema,
       response: {
-        200: mergeResponseSchema,
+        200: 'CartMerge',
         401: unauthorizedResponse,
       },
     },

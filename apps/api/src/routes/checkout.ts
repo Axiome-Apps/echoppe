@@ -1,6 +1,7 @@
 import { getAvailablePaymentProviders, getPaymentAdapter } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
+import { models } from '../models';
 import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
 import {
   calculateOrderTotals,
@@ -14,7 +15,7 @@ import {
   validateStock,
 } from '../services/checkout';
 import { checkoutRateLimitOptions } from '../utils/rate-limit';
-import { errorSchema } from '../utils/responses';
+import { errorSchema, withReadErrors } from '../utils/responses';
 import { validateCheckoutUrls } from '../utils/url-validation';
 
 // ============================================================================
@@ -43,18 +44,7 @@ const checkoutBodySchema = t.Object({
   cancelUrl: t.String({ format: 'uri' }),
 });
 
-const providerInfoSchema = t.Object({
-  id: t.String(),
-  name: t.String(),
-  description: t.String(),
-});
-
-const checkoutResultSchema = t.Object({
-  orderId: t.String(),
-  orderNumber: t.String(),
-  paymentUrl: t.String(),
-  provider: t.String(),
-});
+// Schémas d'entité (PaymentProvider(List), CheckoutResult) → src/models/checkout.ts
 
 // ============================================================================
 // ROUTES
@@ -64,6 +54,9 @@ export const checkoutRoutes = new Elysia({
   prefix: '/checkout',
   detail: { tags: ['Checkout'] },
 })
+  // Registre central des modèles nommés → components.schemas.
+  .use(models)
+
   .get(
     '/payment-providers',
     async () => {
@@ -74,7 +67,7 @@ export const checkoutRoutes = new Elysia({
       };
       return providers.map((id) => ({ id, ...meta[id] }));
     },
-    { response: { 200: t.Array(providerInfoSchema) } },
+    { response: withReadErrors({ 200: 'PaymentProviderList' }) },
   )
 
   .use(customerAuthPlugin)
@@ -157,6 +150,6 @@ export const checkoutRoutes = new Elysia({
       customerAuth: true,
       cookie: t.Cookie({ echoppe_customer_session: t.Optional(t.String()) }),
       body: checkoutBodySchema,
-      response: { 200: checkoutResultSchema, 400: errorSchema, 429: errorSchema },
+      response: { 200: 'CheckoutResult', 400: errorSchema, 429: errorSchema },
     },
   );

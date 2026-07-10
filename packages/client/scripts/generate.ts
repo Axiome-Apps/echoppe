@@ -10,6 +10,8 @@
  * ou `ECHOPPE_API_URL=https://api.exemple.fr bun run generate`.
  */
 import { $ } from 'bun';
+import { filterStorefront, type OpenApiSpec } from './filter';
+import { STOREFRONT_SURFACE } from './storefront-surface';
 
 const apiUrl = (process.env.ECHOPPE_API_URL ?? 'http://localhost:7532').replace(/\/+$/, '');
 const specUrl = `${apiUrl}/docs/json`;
@@ -19,9 +21,18 @@ if (!response.ok) {
   throw new Error(`Récupération du spec OpenAPI échouée : ${response.status} sur ${specUrl}`);
 }
 
-const spec = (await response.json()) as { paths: Record<string, unknown> };
+// Le contrat de l'API décrit TOUTES les routes (admin + boutique). Le SDK boutique ne doit
+// exposer que la surface storefront → on filtre + tree-shake avant de figer.
+const fullSpec = (await response.json()) as OpenApiSpec;
+const { spec, missing, keptPaths, keptSchemas } = filterStorefront(fullSpec, STOREFRONT_SURFACE);
+
+if (missing.length > 0) {
+  console.warn(`⚠ ${missing.length} route(s) de la surface absente(s) du contrat (dérive ?) :`);
+  for (const m of missing) console.warn(`   - ${m}`);
+}
+
 await Bun.write('openapi.json', `${JSON.stringify(spec, null, 2)}\n`);
-console.log(`✓ openapi.json figé (${Object.keys(spec.paths).length} routes)`);
+console.log(`✓ openapi.json figé (boutique : ${keptPaths} routes, ${keptSchemas} schémas)`);
 
 await $`bunx openapi-typescript openapi.json -o src/openapi.ts`;
 console.log('✓ src/openapi.ts généré');

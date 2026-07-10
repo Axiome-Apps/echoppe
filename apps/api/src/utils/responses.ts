@@ -1,4 +1,5 @@
 import { type TSchema, t } from 'elysia';
+import type { ModelName } from '../models';
 
 // ============================================
 // Schemas de réponse communs
@@ -102,152 +103,79 @@ export const serviceUnavailableResponse = t.Object(
 // Types de réponse
 // ============================================
 
-type ResponseMap = Record<number, TSchema>;
+// Une réponse peut être un schéma (TSchema) OU le nom d'un modèle enregistré dans le
+// registre central (src/models) — union stricte `ModelName`, pas un `string` permissif.
+// Un nom → référence $ref dans l'OpenAPI (composant réutilisable).
+type ResponseMap = Record<number, TSchema | ModelName>;
 
 // ============================================
 // Helpers pour combiner les réponses
 // ============================================
+//
+// Chaque helper ajoute :
+// - un SOCLE UNIVERSEL d'erreurs (422 validation d'input, émise auto par Elysia ; 500
+//   serveur) présent sur quasiment toutes les routes ;
+// - les codes spécifiques au type de route (401/403/404/429/503…).
+// `const T` préserve les littéraux (noms de modèles) passés en entrée.
+// NOTE : les shapes d'erreur restent INLINE pour l'instant ; le passage au modèle nommé
+// `ErrorResponse` (dédup + type client) se fera au flip final, une fois toutes les routes
+// migrées sur `.use(models)` (contrainte de propagation enfant→parent des modèles Elysia).
 
-/**
- * Ajoute les réponses d'erreur communes à un objet de réponses.
- * Utile pour les routes protégées par authentification.
- *
- * @example
- * response: withAuthErrors({
- *   200: productSchema,
- *   404: notFoundResponse,
- * })
- * // Ajoute automatiquement 401 et 403
- */
-export function withAuthErrors<T extends ResponseMap>(
-  responses: T,
-): T & { 401: typeof unauthorizedResponse; 403: typeof forbiddenResponse } {
-  return {
-    ...responses,
-    401: unauthorizedResponse,
-    403: forbiddenResponse,
-  };
+/** Socle d'erreurs universel : validation d'input (422) + erreur serveur (500). */
+const COMMON_ERRORS = { 422: unprocessableResponse, 500: serverErrorResponse };
+
+/** Routes publiques de lecture (liste/détail sans not-found) : uniquement le socle. */
+export function withReadErrors<const T extends ResponseMap>(responses: T) {
+  return { ...responses, ...COMMON_ERRORS };
 }
 
-/**
- * Ajoute les réponses d'erreur communes pour les routes avec rate limiting.
- *
- * @example
- * response: withRateLimitErrors({
- *   200: loginResponseSchema,
- *   401: unauthorizedResponse,
- * })
- * // Ajoute automatiquement 429
- */
-export function withRateLimitErrors<T extends ResponseMap>(
-  responses: T,
-): T & { 429: typeof rateLimitResponse } {
-  return {
-    ...responses,
-    429: rateLimitResponse,
-  };
+/** Routes protégées par auth : 401 + 403 (+ socle). */
+export function withAuthErrors<const T extends ResponseMap>(responses: T) {
+  return { ...responses, ...COMMON_ERRORS, 401: unauthorizedResponse, 403: forbiddenResponse };
 }
 
-/**
- * Ajoute les réponses d'erreur pour les routes d'authentification (login, register).
- * Combine auth errors + rate limit.
- *
- * @example
- * response: withLoginErrors({
- *   200: loginResponseSchema,
- * })
- * // Ajoute 401, 403, 429
- */
-export function withLoginErrors<T extends ResponseMap>(
-  responses: T,
-): T & {
-  401: typeof unauthorizedResponse;
-  403: typeof forbiddenResponse;
-  429: typeof rateLimitResponse;
-} {
+/** Routes avec rate limiting : 429 (+ socle). */
+export function withRateLimitErrors<const T extends ResponseMap>(responses: T) {
+  return { ...responses, ...COMMON_ERRORS, 429: rateLimitResponse };
+}
+
+/** Routes d'authentification (login/register) : 401 + 403 + 429 (+ socle). */
+export function withLoginErrors<const T extends ResponseMap>(responses: T) {
   return {
     ...responses,
+    ...COMMON_ERRORS,
     401: unauthorizedResponse,
     403: forbiddenResponse,
     429: rateLimitResponse,
   };
 }
 
-/**
- * Ajoute les réponses d'erreur communes pour les routes CRUD protégées.
- * Inclut: 401 (non auth), 403 (forbidden), 404 (not found)
- *
- * @example
- * response: withCrudErrors({
- *   200: productSchema,
- * })
- * // Ajoute 401, 403, 404
- */
-export function withCrudErrors<T extends ResponseMap>(
-  responses: T,
-): T & {
-  401: typeof unauthorizedResponse;
-  403: typeof forbiddenResponse;
-  404: typeof notFoundResponse;
-} {
+/** Routes CRUD protégées : 401 + 403 + 404 (+ socle). */
+export function withCrudErrors<const T extends ResponseMap>(responses: T) {
   return {
     ...responses,
+    ...COMMON_ERRORS,
     401: unauthorizedResponse,
     403: forbiddenResponse,
     404: notFoundResponse,
   };
 }
 
-/**
- * Ajoute uniquement 404 pour les routes publiques qui peuvent ne pas trouver la ressource.
- *
- * @example
- * response: withNotFound({
- *   200: productSchema,
- * })
- */
-export function withNotFound<T extends ResponseMap>(
-  responses: T,
-): T & { 404: typeof notFoundResponse } {
-  return {
-    ...responses,
-    404: notFoundResponse,
-  };
+/** Routes publiques pouvant ne pas trouver la ressource : 404 (+ socle). */
+export function withNotFound<const T extends ResponseMap>(responses: T) {
+  return { ...responses, ...COMMON_ERRORS, 404: notFoundResponse };
 }
 
-/**
- * Ajoute les erreurs de service (500, 503) pour les routes qui dépendent de services externes.
- *
- * @example
- * response: withServiceErrors({
- *   200: messageSchema,
- * })
- * // Ajoute 500, 503
- */
-export function withServiceErrors<T extends ResponseMap>(
-  responses: T,
-): T & { 500: typeof serverErrorResponse; 503: typeof serviceUnavailableResponse } {
-  return {
-    ...responses,
-    500: serverErrorResponse,
-    503: serviceUnavailableResponse,
-  };
+/** Routes dépendant de services externes : 503 (+ socle, qui inclut déjà 500). */
+export function withServiceErrors<const T extends ResponseMap>(responses: T) {
+  return { ...responses, ...COMMON_ERRORS, 503: serviceUnavailableResponse };
 }
 
-/**
- * Combinaison complète pour les routes CRUD avec rate limiting.
- * Inclut: 401, 403, 404, 429
- */
-export function withFullErrors<T extends ResponseMap>(
-  responses: T,
-): T & {
-  401: typeof unauthorizedResponse;
-  403: typeof forbiddenResponse;
-  404: typeof notFoundResponse;
-  429: typeof rateLimitResponse;
-} {
+/** Combinaison complète CRUD + rate limit : 401 + 403 + 404 + 429 (+ socle). */
+export function withFullErrors<const T extends ResponseMap>(responses: T) {
   return {
     ...responses,
+    ...COMMON_ERRORS,
     401: unauthorizedResponse,
     403: forbiddenResponse,
     404: notFoundResponse,
@@ -255,14 +183,5 @@ export function withFullErrors<T extends ResponseMap>(
   };
 }
 
-/**
- * Helper pour créer une réponse paginée avec erreurs auth.
- * Utile pour les routes de liste protégées.
- *
- * @example
- * response: withAuthErrors({
- *   200: paginatedResponse(productSchema),
- * })
- */
 // Ré-export de paginatedResponse pour centraliser les imports
 export { paginatedResponse } from './pagination';

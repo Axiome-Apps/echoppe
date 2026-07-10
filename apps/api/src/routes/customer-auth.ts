@@ -2,6 +2,8 @@ import { randomBytes } from 'node:crypto';
 import { and, customer, customerSession, db, eq, gt, sendWelcomeEmail } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
+import { models } from '../models';
+import { customerSchema } from '../models/customer';
 import { authRateLimitOptions, strictRateLimitOptions } from '../utils/rate-limit';
 import {
   conflictResponse,
@@ -17,17 +19,9 @@ const cookieSchema = t.Cookie({
   [COOKIE_NAME]: t.Optional(t.String()),
 });
 
-// Response schemas
-const customerSchema = t.Object({
-  id: t.String(),
-  email: t.String(),
-  firstName: t.String(),
-  lastName: t.String(),
-  phone: t.Nullable(t.String()),
-  emailVerified: t.Boolean(),
-  marketingOptin: t.Boolean(),
-});
-
+// Response schemas — le profil complet `customerSchema` vient du modèle nommé
+// (src/models/customer.ts). register (instance séparée, sans .use(models)) le référence par
+// valeur ; `/me` référence le modèle nommé `CustomerAuth`.
 const registerResponseSchema = t.Object({
   customer: customerSchema,
 });
@@ -41,10 +35,6 @@ const loginCustomerSchema = t.Object({
 
 const loginResponseSchema = t.Object({
   customer: loginCustomerSchema,
-});
-
-const meResponseSchema = t.Object({
-  customer: customerSchema,
 });
 
 function generateToken(): string {
@@ -234,6 +224,9 @@ export const customerAuthRoutes = new Elysia({
   prefix: '/customer/auth',
   detail: { tags: ['Customer Auth'] },
 })
+  // Registre central des modèles nommés → components.schemas.
+  .use(models)
+
   // Rate-limited routes
   .use(registerRoute)
   .use(loginRoute)
@@ -300,7 +293,7 @@ export const customerAuthRoutes = new Elysia({
     {
       cookie: cookieSchema,
       response: {
-        200: meResponseSchema,
+        200: 'CustomerAuth',
         401: unauthorizedResponse,
       },
     },

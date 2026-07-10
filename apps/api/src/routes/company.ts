@@ -1,8 +1,10 @@
 import { company, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
+import { models } from '../models';
+import { companySchema } from '../models/company';
 import { permissionGuard } from '../plugins/rbac';
-import { withAuthErrors } from '../utils/responses';
+import { withAuthErrors, withReadErrors } from '../utils/responses';
 
 const companyBody = t.Object({
   shopName: t.String({ minLength: 1, maxLength: 255 }),
@@ -30,50 +32,20 @@ const companyBody = t.Object({
   hostingPhone: t.Optional(t.Nullable(t.String({ maxLength: 20 }))),
 });
 
-const countrySchema = t.Object({
-  id: t.String(),
-  name: t.String(),
-  code: t.String(),
-  isShippingEnabled: t.Boolean(),
-});
-
-const companySchema = t.Object({
-  id: t.String(),
-  shopName: t.String(),
-  logo: t.Nullable(t.String()),
-  publicEmail: t.String(),
-  publicPhone: t.Nullable(t.String()),
-  legalName: t.String(),
-  legalForm: t.Nullable(t.String()),
-  siren: t.Nullable(t.String()),
-  siret: t.Nullable(t.String()),
-  tvaIntra: t.Nullable(t.String()),
-  rcsCity: t.Nullable(t.String()),
-  shareCapital: t.Nullable(t.String()),
-  street: t.String(),
-  street2: t.Nullable(t.String()),
-  postalCode: t.String(),
-  city: t.String(),
-  country: t.String(),
-  documentPrefix: t.String(),
-  invoicePrefix: t.String(),
-  taxExempt: t.Boolean(),
-  publisherName: t.Nullable(t.String()),
-  hostingProvider: t.Nullable(t.String()),
-  hostingAddress: t.Nullable(t.String()),
-  hostingPhone: t.Nullable(t.String()),
-});
+// Schémas d'entité (Company, Country, CountryList) → src/models/company.ts
 
 export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['Company'] } })
+  // Registre central des modèles nommés → components.schemas.
+  .use(models)
 
-  // GET /company - Public: get company info
+  // GET /company - Public: get company info (mentions légales)
   .get(
     '/',
     async () => {
       const [info] = await db.select().from(company).limit(1);
       return info ?? null;
     },
-    { response: { 200: t.Union([companySchema, t.Null()]) } },
+    { response: withReadErrors({ 200: t.Union([companySchema, t.Null()]) }) },
   )
 
   // === ADMIN ROUTES ===
@@ -85,7 +57,7 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
     async () => {
       return db.select().from(country).orderBy(country.name);
     },
-    { permission: true, response: t.Array(countrySchema) },
+    { permission: true, response: withAuthErrors({ 200: 'CountryList' }) },
   )
 
   // === COMPANY UPDATE ===
@@ -155,5 +127,5 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
 
       return created;
     },
-    { permission: true, body: companyBody, response: withAuthErrors({ 200: companySchema }) },
+    { permission: true, body: companyBody, response: withAuthErrors({ 200: 'Company' }) },
   );

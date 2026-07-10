@@ -24,53 +24,20 @@ import {
 import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
+import { models } from '../models';
+import { optionSchema, productMediaSchema, variantPublicSchema } from '../models/catalog';
 import { permissionGuard } from '../plugins/rbac';
-import {
-  buildPaginatedResponse,
-  getPaginationParams,
-  paginatedResponse,
-} from '../utils/pagination';
+import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
 import {
   conflictResponse,
   successSchema,
   withAuthErrors,
   withCrudErrors,
   withNotFound,
+  withReadErrors,
 } from '../utils/responses';
 
-// Schema du produit pour les réponses (liste)
-const defaultVariantSchema = t.Object({
-  priceHt: t.String(),
-  compareAtPriceHt: t.Nullable(t.String()),
-  quantity: t.Number(),
-});
-
-const productListSchema = t.Object({
-  id: t.String(),
-  category: t.String(),
-  taxRate: t.String(),
-  name: t.String(),
-  slug: t.String(),
-  description: t.Nullable(t.String()),
-  status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
-  dateCreated: t.Date(),
-  dateUpdated: t.Date(),
-  featuredImage: t.Nullable(t.String()),
-  defaultVariant: t.Nullable(defaultVariantSchema),
-});
-
-// Schema du produit pour les réponses (création/modification)
-const productSchema = t.Object({
-  id: t.String(),
-  category: t.String(),
-  taxRate: t.String(),
-  name: t.String(),
-  slug: t.String(),
-  description: t.Nullable(t.String()),
-  status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
-  dateCreated: t.Date(),
-  dateUpdated: t.Date(),
-});
+// Schémas d'entité catalogue (product/variant/option…) → src/models/catalog.ts
 
 const productCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 255 }),
@@ -169,80 +136,11 @@ const productSearchQuery = t.Object({
   order: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
 });
 
-// Schema option
-const optionSchema = t.Object({
-  id: t.String(),
-  name: t.String(),
-});
-
-const optionValueSchema = t.Object({
-  id: t.String(),
-  option: t.String(),
-  value: t.String(),
-  sortOrder: t.Number(),
-});
-
-// Schema pour product media (réponse)
-const productMediaSchema = t.Object({
-  product: t.String(),
-  media: t.String(),
-  sortOrder: t.Number(),
-  isFeatured: t.Boolean(),
-  featuredForVariant: t.Nullable(t.String()),
-});
-
-// Schema pour variant (réponse)
-const variantSchema = t.Object({
-  id: t.String(),
-  product: t.String(),
-  sku: t.Nullable(t.String()),
-  barcode: t.Nullable(t.String()),
-  priceHt: t.String(),
-  compareAtPriceHt: t.Nullable(t.String()),
-  costPrice: t.Nullable(t.String()),
-  weight: t.Nullable(t.String()),
-  length: t.Nullable(t.String()),
-  width: t.Nullable(t.String()),
-  height: t.Nullable(t.String()),
-  isDefault: t.Boolean(),
-  status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
-  sortOrder: t.Number(),
-  quantity: t.Number(),
-  lowStockThreshold: t.Nullable(t.Number()),
-});
-
-// Variant enrichi de ses valeurs d'option (fiche produit).
-const variantDetailSchema = t.Composite([
-  variantSchema,
-  t.Object({ optionValues: t.Array(t.String()) }),
-]);
-
-// Option enrichie de ses valeurs (fiche produit).
-const optionDetailSchema = t.Composite([
-  optionSchema,
-  t.Object({ sortOrder: t.Number(), values: t.Array(optionValueSchema) }),
-]);
-
-// Produit + variants + options (retour de GET /products/:id).
-const productWithVariantsSchema = t.Composite([
-  productSchema,
-  t.Object({
-    variants: t.Array(variantDetailSchema),
-    options: t.Array(optionDetailSchema),
-  }),
-]);
-
-// Fiche produit détaillée storefront (GET /products/by-slug/:slug) :
-// ci-dessus + image mise en avant + galerie.
-const productDetailSchema = t.Composite([
-  productWithVariantsSchema,
-  t.Object({
-    featuredImage: t.Nullable(t.String()),
-    images: t.Array(t.String()),
-  }),
-]);
-
 export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: ['Products'] } })
+
+  // Registre central des modèles nommés (src/models) → peuplent components.schemas
+  // du contrat OpenAPI (types nommés côté @echoppe/client, sans workaround).
+  .use(models)
 
   // === PUBLIC ROUTES ===
 
@@ -396,7 +294,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return buildPaginatedResponse(enrichedProducts, total, page, limit);
     },
-    { query: productSearchQuery, response: paginatedResponse(productListSchema) },
+    { query: productSearchQuery, response: withReadErrors({ 200: 'ProductList' }) },
   )
 
   // GET /products/by-slug/:slug - Get one by slug with variants (public, for storefront)
@@ -483,7 +381,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
     },
     {
       params: t.Object({ slug: t.String() }),
-      response: withNotFound({ 200: productDetailSchema }),
+      response: withNotFound({ 200: 'ProductDetail' }),
     },
   )
 
@@ -536,7 +434,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return { ...found, variants: variantsWithOptions, options: optionsWithValues };
     },
-    { params: productParams, response: withNotFound({ 200: productWithVariantsSchema }) },
+    { params: productParams, response: withNotFound({ 200: 'ProductWithVariants' }) },
   )
 
   // GET /products/:id/variants (public)
@@ -550,7 +448,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .orderBy(variant.sortOrder);
       return variants;
     },
-    { params: productParams, response: t.Array(variantSchema) },
+    { params: productParams, response: t.Array(variantPublicSchema) },
   )
 
   // === PROTECTED ROUTES (Admin) ===
@@ -583,7 +481,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       return created;
     },
-    { permission: true, body: productCreateBody, response: withAuthErrors({ 200: productSchema }) },
+    { permission: true, body: productCreateBody, response: withAuthErrors({ 200: 'Product' }) },
   )
 
   // PUT /products/:id - Update (full, slug immutable)
@@ -620,7 +518,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: productUpdateBody,
-      response: withCrudErrors({ 200: productSchema }),
+      response: withCrudErrors({ 200: 'Product' }),
     },
   )
 
@@ -650,7 +548,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: productPatchBody,
-      response: withCrudErrors({ 200: productSchema }),
+      response: withCrudErrors({ 200: 'Product' }),
     },
   )
 
@@ -716,7 +614,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: variantBody,
-      response: withCrudErrors({ 200: variantSchema }),
+      response: withCrudErrors({ 200: 'Variant' }),
     },
   )
 
@@ -752,7 +650,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: variantParams,
       body: variantBody,
-      response: withCrudErrors({ 200: variantSchema }),
+      response: withCrudErrors({ 200: 'Variant' }),
     },
   )
 
@@ -858,7 +756,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: productMediaBody,
-      response: withCrudErrors({ 200: productMediaSchema }),
+      response: withCrudErrors({ 200: 'ProductMedia' }),
     },
   )
 
@@ -899,7 +797,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: mediaParams,
       body: productMediaUpdateBody,
-      response: withCrudErrors({ 200: productMediaSchema }),
+      response: withCrudErrors({ 200: 'ProductMedia' }),
     },
   )
 
@@ -977,7 +875,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: productParams,
       body: optionBody,
-      response: withCrudErrors({ 200: optionSchema, 409: conflictResponse }),
+      response: withCrudErrors({ 200: 'Option', 409: conflictResponse }),
     },
   )
 
@@ -1012,6 +910,6 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: optionParams,
       body: optionValueBody,
-      response: withCrudErrors({ 200: optionValueSchema }),
+      response: withCrudErrors({ 200: 'OptionValue' }),
     },
   );

@@ -12,26 +12,18 @@ import {
 import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
+import { models } from '../models';
 import { permissionGuard } from '../plugins/rbac';
+import { buildPaginatedResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
 import {
-  buildPaginatedResponse,
-  getPaginationParams,
-  paginatedResponse,
-  paginationQuery,
-} from '../utils/pagination';
-import { successSchema, withAuthErrors, withCrudErrors, withNotFound } from '../utils/responses';
+  successSchema,
+  withAuthErrors,
+  withCrudErrors,
+  withNotFound,
+  withReadErrors,
+} from '../utils/responses';
 
-// Schema de réponse pour les catégories
-const categorySchema = t.Object({
-  id: t.String(),
-  name: t.String(),
-  slug: t.String(),
-  description: t.Nullable(t.String()),
-  parent: t.Nullable(t.String()),
-  image: t.Nullable(t.String()),
-  sortOrder: t.Number(),
-  isVisible: t.Boolean(),
-});
+// Schéma d'entité catégorie → src/models/category.ts
 
 const batchOrderBody = t.Array(
   t.Object({
@@ -66,31 +58,14 @@ const categoryParams = t.Object({
 // Schemas de réponse spécifiques
 const batchSuccessSchema = t.Object({ success: t.Boolean(), count: t.Number() });
 
-// Schema pour les produits (liste)
-const defaultVariantSchema = t.Object({
-  priceHt: t.String(),
-  compareAtPriceHt: t.Nullable(t.String()),
-  quantity: t.Number(),
-});
-
-const productListSchema = t.Object({
-  id: t.String(),
-  category: t.String(),
-  taxRate: t.String(),
-  name: t.String(),
-  slug: t.String(),
-  description: t.Nullable(t.String()),
-  status: t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')]),
-  dateCreated: t.Date(),
-  dateUpdated: t.Date(),
-  featuredImage: t.Nullable(t.String()),
-  defaultVariant: t.Nullable(defaultVariantSchema),
-});
+// (produits-liste : réutilise le modèle ProductList du catalog, plus de doublon ici)
 
 export const categoriesRoutes = new Elysia({
   prefix: '/categories',
   detail: { tags: ['Categories'] },
 })
+  // Registre central des modèles nommés → components.schemas.
+  .use(models)
 
   // === PUBLIC ROUTES ===
 
@@ -100,7 +75,7 @@ export const categoriesRoutes = new Elysia({
     async () => {
       return db.select().from(category).orderBy(category.sortOrder);
     },
-    { response: t.Array(categorySchema) },
+    { response: withReadErrors({ 200: 'CategoryList' }) },
   )
 
   // GET /categories/:id - Get one (public)
@@ -113,7 +88,7 @@ export const categoriesRoutes = new Elysia({
     },
     {
       params: categoryParams,
-      response: withNotFound({ 200: categorySchema }),
+      response: withNotFound({ 200: 'Category' }),
     },
   )
 
@@ -127,7 +102,7 @@ export const categoriesRoutes = new Elysia({
     },
     {
       params: t.Object({ slug: t.String() }),
-      response: withNotFound({ 200: categorySchema }),
+      response: withNotFound({ 200: 'Category' }),
     },
   )
 
@@ -198,7 +173,7 @@ export const categoriesRoutes = new Elysia({
     {
       params: categoryParams,
       query: paginationQuery,
-      response: withNotFound({ 200: paginatedResponse(productListSchema) }),
+      response: withNotFound({ 200: 'ProductList' }),
     },
   )
 
@@ -236,7 +211,7 @@ export const categoriesRoutes = new Elysia({
     {
       permission: true,
       body: categoryCreateBody,
-      response: withAuthErrors({ 200: categorySchema }),
+      response: withAuthErrors({ 200: 'Category' }),
     },
   )
 
@@ -274,7 +249,7 @@ export const categoriesRoutes = new Elysia({
       permission: true,
       params: categoryParams,
       body: categoryUpdateBody,
-      response: withCrudErrors({ 200: categorySchema }),
+      response: withCrudErrors({ 200: 'Category' }),
     },
   )
 

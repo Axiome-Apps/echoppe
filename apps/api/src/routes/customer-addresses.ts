@@ -1,5 +1,6 @@
 import { address, and, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { models } from '../models';
 import {
   customerAuthPlugin,
   customerCookieSchema,
@@ -7,25 +8,7 @@ import {
 } from '../plugins/customerAuth';
 import { errorSchema, successSchema } from '../utils/responses';
 
-const addressSchema = t.Object({
-  id: t.String(),
-  type: t.Union([t.Literal('shipping'), t.Literal('billing')]),
-  label: t.Nullable(t.String()),
-  firstName: t.String(),
-  lastName: t.String(),
-  company: t.Nullable(t.String()),
-  street: t.String(),
-  street2: t.Nullable(t.String()),
-  postalCode: t.String(),
-  city: t.String(),
-  country: t.Object({
-    id: t.String(),
-    name: t.String(),
-    code: t.String(),
-  }),
-  phone: t.Nullable(t.String()),
-  isDefault: t.Boolean(),
-});
+// Schéma d'entité adresse (Address, AddressList) → src/models/address.ts
 
 const addressBodySchema = t.Object({
   type: t.Union([t.Literal('shipping'), t.Literal('billing')]),
@@ -47,6 +30,8 @@ export const customerAddressesRoutes = new Elysia({
   detail: { tags: ['Customer Addresses'] },
 })
   .use(customerAuthPlugin)
+  // Registre central des modèles nommés → components.schemas.
+  .use(models)
 
   // GET /customer/addresses - List all addresses
   .get(
@@ -83,7 +68,7 @@ export const customerAddressesRoutes = new Elysia({
     {
       customerAuth: true,
       cookie: customerCookieSchema,
-      response: { 200: t.Array(addressSchema) },
+      response: { 200: 'AddressList' },
     },
   )
 
@@ -127,7 +112,7 @@ export const customerAddressesRoutes = new Elysia({
       customerAuth: true,
       cookie: customerCookieSchema,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
-      response: { 200: addressSchema, 404: errorSchema },
+      response: { 200: 'Address', 404: errorSchema },
     },
   )
 
@@ -195,7 +180,7 @@ export const customerAddressesRoutes = new Elysia({
       customerAuth: true,
       cookie: customerCookieSchema,
       body: addressBodySchema,
-      response: { 200: addressSchema, 400: errorSchema },
+      response: { 200: 'Address', 400: errorSchema },
     },
   )
 
@@ -274,7 +259,7 @@ export const customerAddressesRoutes = new Elysia({
       cookie: customerCookieSchema,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       body: addressBodySchema,
-      response: { 200: addressSchema, 400: errorSchema, 404: errorSchema },
+      response: { 200: 'Address', 400: errorSchema, 404: errorSchema },
     },
   )
 
