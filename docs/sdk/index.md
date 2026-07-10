@@ -18,6 +18,7 @@ d'administration (back-office) n'y figurent pas — elles sont gérées par le d
 
 | Élément | Choix |
 |---------|-------|
+| API | **façade ressource** namespacée (`echoppe.products.list()`…), générée depuis le contrat ; client brut accessible via `echoppe.raw` |
 | Transport | [`openapi-fetch`](https://openapi-ts.dev/openapi-fetch/) — un `fetch` typé, minimal |
 | Types | générés par [`openapi-typescript`](https://openapi-ts.dev/) depuis un contrat OpenAPI **figé** (`openapi.json`) |
 | Authentification | cookies de **session** HTTP-only (`credentials: 'include'`) — pas de JWT |
@@ -33,7 +34,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/products/');
+const { data, error } = await echoppe.products.list();
 if (error) throw error;
 
 for (const product of data.data) {
@@ -41,7 +42,7 @@ for (const product of data.data) {
 }
 ```
 
-Chaque route est **entièrement typée** (paramètres, corps, réponse) à partir du contrat.
+Chaque méthode est **entièrement typée** (paramètres, corps, réponse) à partir du contrat.
 
 ## Pour aller plus loin
 

@@ -1,12 +1,18 @@
 # Utilisation
 
-Le client expose une méthode par verbe HTTP : `GET`, `POST`, `PUT`, `PATCH`, `DELETE`.
-Chaque appel prend le **chemin de la route** (typé) et un objet d'options, et renvoie
-`{ data, error }`.
+Le client expose une **façade ressource** : les routes sont regroupées par namespace
+(`products`, `cart`, `auth`, `orders`…) avec des méthodes nommées. Chaque appel renvoie
+`{ data, error }`, tous deux typés d'après le contrat.
 
-> Aujourd'hui le SDK expose l'appel « brut » `openapi-fetch`. Une façade ressource curatée
-> (`echoppe.products.bySlug(...)`, `echoppe.cart.add(...)`) est prévue — voir la feuille de
-> route. Les exemples ci-dessous reflètent l'usage actuel.
+```ts
+const { data, error } = await echoppe.products.bySlug({
+  params: { path: { slug: 'mug-en-gres' } },
+});
+```
+
+> **Client brut (échappatoire)** — la façade couvre toute la surface boutique, mais si un cas
+> n'y est pas exposé, le client `openapi-fetch` brut reste accessible via `echoppe.raw` :
+> `echoppe.raw.GET('/products/{id}', …)`. Verbe HTTP + chemin typés, même `{ data, error }`.
 
 ## Le motif `{ data, error }`
 
@@ -14,7 +20,7 @@ Chaque appel prend le **chemin de la route** (typé) et un objet d'options, et r
 `error` à la place de `data`. Les deux sont typés d'après le contrat.
 
 ```ts
-const { data, error } = await echoppe.GET('/products/by-slug/{slug}', {
+const { data, error } = await echoppe.products.bySlug({
   params: { path: { slug: 'mug-en-gres' } },
 });
 
@@ -31,7 +37,7 @@ console.log(data.name, data.variants[0]?.priceHt);
 
 ```ts
 // Query (pagination)
-const { data } = await echoppe.GET('/products/', {
+const { data } = await echoppe.products.list({
   params: { query: { page: 1, limit: 12 } },
 });
 
@@ -39,7 +45,7 @@ const { data } = await echoppe.GET('/products/', {
 // data.meta  → { total, page, limit, totalPages }
 
 // Path
-await echoppe.GET('/categories/by-slug/{slug}', {
+await echoppe.categories.bySlug({
   params: { path: { slug: 'vaisselle' } },
 });
 ```
@@ -48,13 +54,29 @@ await echoppe.GET('/categories/by-slug/{slug}', {
 
 ```ts
 // Ajouter un article au panier
-const { data, error } = await echoppe.POST('/cart/items', {
+const { data, error } = await echoppe.cart.addItem({
   body: { variantId: '…uuid…', quantity: 1 },
 });
 
 if (error) return showStockError(error);
 // data = état complet du panier (Cart)
 ```
+
+## Aperçu des namespaces
+
+| Namespace | Méthodes |
+|---|---|
+| `products` | `list, get, bySlug, variants, media` |
+| `categories` · `collections` | `list, get, bySlug, products` |
+| `cart` | `get, addItem, updateItem, removeItem, clear, merge` |
+| `checkout` | `create, paymentProviders, pay` |
+| `auth` | `register, login, logout, refresh, me, changePassword` |
+| `account` | `update` (profil) |
+| `addresses` | `list, get, create, update, remove` |
+| `orders` | `list, get` |
+| `company` · `taxRates` · `contact` | `get` / `list` / `send` |
+
+> Les URLs d'images ne sont pas un namespace : utilisez le helper `mediaUrl(id)`.
 
 ## Session et cookies
 
@@ -80,7 +102,7 @@ setCookieHeaders.forEach((cookie) => response.headers.append('set-cookie', cooki
 ## Exemple : profil client
 
 ```ts
-const { data, error } = await echoppe.GET('/customer/auth/me');
+const { data, error } = await echoppe.auth.me();
 
 if (error) {
   // 401 → visiteur non connecté

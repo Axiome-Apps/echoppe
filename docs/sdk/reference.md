@@ -19,7 +19,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/customer/addresses/{id}', {
+const { data, error } = await echoppe.addresses.get({
   params: { path: { id: '3fa85f64-…' } },
 });
 ```
@@ -51,7 +51,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/customer/addresses/');
+const { data, error } = await echoppe.addresses.list();
 ```
 
 ```js [REST]
@@ -81,7 +81,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/cart/');
+const { data, error } = await echoppe.cart.get();
 ```
 
 ```js [REST]
@@ -111,7 +111,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.POST('/cart/merge');
+const { data, error } = await echoppe.cart.merge();
 ```
 
 ```js [REST]
@@ -141,7 +141,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/categories/{id}', {
+const { data, error } = await echoppe.categories.get({
   params: { path: { id: '3fa85f64-…' } },
 });
 ```
@@ -173,7 +173,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/categories/');
+const { data, error } = await echoppe.categories.list();
 ```
 
 ```js [REST]
@@ -203,7 +203,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.POST('/checkout/', {
+const { data, error } = await echoppe.checkout.create({
   body: {
     "shippingAddress": {
       "firstName": "string",
@@ -293,7 +293,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/collections/{id}', {
+const { data, error } = await echoppe.collections.get({
   params: { path: { id: '3fa85f64-…' } },
 });
 ```
@@ -325,7 +325,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/collections/', {
+const { data, error } = await echoppe.collections.list({
   params: { query: { page: 1, limit: 20 } },
 });
 ```
@@ -357,7 +357,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/customer/auth/me');
+const { data, error } = await echoppe.auth.me();
 ```
 
 ```js [REST]
@@ -387,7 +387,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.POST('/customer/auth/login', {
+const { data, error } = await echoppe.auth.login({
   body: {
     "email": "client@exemple.fr",
     "password": "string"
@@ -427,7 +427,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/customer/orders/{id}', {
+const { data, error } = await echoppe.orders.get({
   params: { path: { id: '3fa85f64-…' } },
 });
 ```
@@ -459,7 +459,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/customer/orders/', {
+const { data, error } = await echoppe.orders.list({
   params: { query: { page: 1, limit: 20 } },
 });
 ```
@@ -491,7 +491,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/checkout/payment-providers');
+const { data, error } = await echoppe.checkout.paymentProviders();
 ```
 
 ```js [REST]
@@ -521,7 +521,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/products/by-slug/{slug}', {
+const { data, error } = await echoppe.products.bySlug({
   params: { path: { slug: 'mon-slug' } },
 });
 ```
@@ -553,7 +553,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/products/', {
+const { data, error } = await echoppe.products.list({
   params: { query: { page: 1, limit: 20, search: "string", category: "3fa85f64-5717-4562-b3fc-2c963f66afa6", minPrice: 0, maxPrice: 0, inStock: true, sort: "price", order: "asc" } },
 });
 ```
@@ -585,7 +585,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/products/{id}', {
+const { data, error } = await echoppe.products.get({
   params: { path: { id: '3fa85f64-…' } },
 });
 ```
@@ -617,7 +617,7 @@ import { createEchoppeClient } from '@echoppe/client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 
-const { data, error } = await echoppe.GET('/tax-rates/');
+const { data, error } = await echoppe.taxRates.list();
 ```
 
 ```js [REST]

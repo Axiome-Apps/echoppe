@@ -1,4 +1,5 @@
 import createOpenApiClient, { type ClientOptions } from 'openapi-fetch';
+import { createResources } from './facade.js';
 import type { paths } from './openapi.js';
 
 export interface EchoppeClientOptions {
@@ -17,14 +18,21 @@ export interface EchoppeClientOptions {
  *
  * L'authentification repose sur des cookies de session HTTP-only : le client
  * force donc `credentials: 'include'` pour que les routes protégées fonctionnent.
+ *
+ * Expose une **façade ressource** namespacée (`echoppe.products.list()`,
+ * `echoppe.cart.addItem()`, `echoppe.auth.login()`…) — voir `src/facade.ts` (généré). Le
+ * client brut openapi-fetch reste accessible via `echoppe.raw` (échappatoire pour tout cas
+ * non couvert par la façade).
  */
 export function createEchoppeClient(options: EchoppeClientOptions) {
-  return createOpenApiClient<paths>({
+  const client = createOpenApiClient<paths>({
     baseUrl: options.baseUrl.replace(/\/+$/, ''),
     credentials: 'include',
     headers: options.headers,
     fetch: options.fetch,
   });
+
+  return { ...createResources(client), raw: client };
 }
 
 export type EchoppeClient = ReturnType<typeof createEchoppeClient>;

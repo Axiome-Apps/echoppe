@@ -3,6 +3,7 @@
 // leurs types, un exemple de réponse et l'appel SDK correspondant. Tout suit le contrat.
 
 import contract from '../../../../packages/client/openapi.json';
+import { METHOD_NAMES, TAG_NAMESPACE } from '../../../../packages/client/scripts/facade-map';
 
 export type JsonSchema = {
   type?: string | string[];
@@ -21,6 +22,8 @@ export type JsonSchema = {
 
 type Parameter = { name: string; in: string; schema?: JsonSchema };
 type Operation = {
+  operationId?: string;
+  tags?: string[];
   parameters?: Parameter[];
   responses?: Record<string, { content?: Record<string, { schema?: JsonSchema }> }>;
   requestBody?: { content?: Record<string, { schema?: JsonSchema }> };
@@ -171,14 +174,23 @@ export function codeExample(model: string): string | null {
   if (bodySchema) {
     opts.push(`  body: ${indent(JSON.stringify(exampleValue(bodySchema), null, 2), '  ')},`);
   }
-  const optsArg = opts.length > 0 ? `, {\n${opts.join('\n')}\n}` : '';
+  const initArg = opts.length > 0 ? `{\n${opts.join('\n')}\n}` : '';
+
+  // Appel via la façade (`echoppe.<namespace>.<méthode>(...)`) quand la route y est exposée ;
+  // sinon repli sur le client brut (`echoppe.raw.<VERBE>('/chemin', ...)`).
+  const ns = route.op.tags?.[0] ? TAG_NAMESPACE[route.op.tags[0]] : undefined;
+  const fn = route.op.operationId ? METHOD_NAMES[route.op.operationId] : undefined;
+  const call =
+    ns && fn
+      ? `echoppe.${ns}.${fn}(${initArg})`
+      : `echoppe.raw.${route.method.toUpperCase()}('${route.path}'${initArg ? `, ${initArg}` : ''})`;
 
   return [
     "import { createEchoppeClient } from '@echoppe/client';",
     '',
     "const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });",
     '',
-    `const { data, error } = await echoppe.${route.method.toUpperCase()}('${route.path}'${optsArg});`,
+    `const { data, error } = await ${call};`,
   ].join('\n');
 }
 

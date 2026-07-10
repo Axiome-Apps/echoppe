@@ -12,8 +12,9 @@
  * ou `ECHOPPE_API_URL=https://api.exemple.fr bun run generate`.
  */
 import { $ } from 'bun';
+import { FACADE_SKIP_TAGS, METHOD_NAMES, TAG_NAMESPACE } from './facade-map';
 import { filterStorefront, type OpenApiSpec } from './filter';
-import { STOREFRONT_SURFACE } from './storefront-surface';
+import { type HttpMethod, STOREFRONT_SURFACE } from './storefront-surface';
 
 const apiUrl = (process.env.ECHOPPE_API_URL ?? 'http://localhost:7532').replace(/\/+$/, '');
 const specUrl = `${apiUrl}/docs/json`;
@@ -54,3 +55,76 @@ const models = [
 ].join('\n');
 await Bun.write('src/models.ts', models);
 console.log(`✓ src/models.ts généré (${schemaNames.length} alias plats)`);
+
+// ── Façade ressource (src/facade.ts) : namespaces à plat mappés sur le contrat ──────────
+// Chaque opération → une méthode typée qui délègue au client brut. La forme (namespace + nom)
+// vient de facade-map.ts ; toute opération non mappée (hors tags ignorés) est signalée.
+
+const HTTP_METHODS: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete'];
+
+type FacadeMethod = { fn: string; method: HttpMethod; path: string; required: boolean };
+const namespaces = new Map<string, FacadeMethod[]>();
+const facadeMissing: string[] = [];
+
+const asRecord = (v: unknown): Record<string, unknown> =>
+  v && typeof v === 'object' ? (v as Record<string, unknown>) : {};
+
+for (const [path, item] of Object.entries(spec.paths)) {
+  for (const method of HTTP_METHODS) {
+    const op = asRecord(item)[method];
+    if (!op) continue;
+    const opRec = asRecord(op);
+    const tag = (opRec.tags as string[] | undefined)?.[0];
+    if (tag && FACADE_SKIP_TAGS.includes(tag)) continue;
+
+    const ns = tag ? TAG_NAMESPACE[tag] : undefined;
+    const operationId = opRec.operationId as string | undefined;
+    const fn = operationId ? METHOD_NAMES[operationId] : undefined;
+    if (!ns || !fn) {
+      facadeMissing.push(`${method.toUpperCase()} ${path} (op=${operationId ?? '?'}, tag=${tag ?? '?'})`);
+      continue;
+    }
+
+    const params = (opRec.parameters as Array<Record<string, unknown>> | undefined) ?? [];
+    const requiredQuery = params.some((p) => p.in === 'query' && p.required);
+    const required = path.includes('{') || Boolean(opRec.requestBody) || requiredQuery;
+
+    (namespaces.get(ns) ?? namespaces.set(ns, []).get(ns)!).push({ fn, method, path, required });
+  }
+}
+
+if (facadeMissing.length > 0) {
+  console.warn(`⚠ ${facadeMissing.length} opération(s) non mappée(s) dans la façade (facade-map.ts) :`);
+  for (const m of facadeMissing) console.warn(`   - ${m}`);
+}
+for (const [ns, methods] of namespaces) {
+  const seen = new Set<string>();
+  for (const m of methods) {
+    if (seen.has(m.fn)) console.warn(`⚠ collision de méthode dans la façade : ${ns}.${m.fn}`);
+    seen.add(m.fn);
+  }
+}
+
+const facadeLines: string[] = [
+  '// Généré par scripts/generate.ts — NE PAS ÉDITER À LA MAIN.',
+  '// Façade ressource : namespaces à plat au-dessus du contrat storefront. Chaque méthode',
+  '// délègue au client brut openapi-fetch (accessible séparément via `echoppe.raw`).',
+  '',
+  "import type { Client, MaybeOptionalInit } from 'openapi-fetch';",
+  "import type { paths } from './openapi.js';",
+  '',
+  'export function createResources(client: Client<paths>) {',
+  '  return {',
+];
+for (const [ns, methods] of [...namespaces].sort((a, b) => a[0].localeCompare(b[0]))) {
+  facadeLines.push(`    ${ns}: {`);
+  for (const m of methods.sort((a, b) => a.fn.localeCompare(b.fn))) {
+    const initType = `MaybeOptionalInit<paths['${m.path}'], '${m.method}'>`;
+    const param = m.required ? `init: ${initType}` : `init?: ${initType}`;
+    facadeLines.push(`      ${m.fn}: (${param}) => client.${m.method.toUpperCase()}('${m.path}', init),`);
+  }
+  facadeLines.push('    },');
+}
+facadeLines.push('  };', '}', '');
+await Bun.write('src/facade.ts', `${facadeLines.join('\n')}`);
+console.log(`✓ src/facade.ts généré (${namespaces.size} namespaces)`);
