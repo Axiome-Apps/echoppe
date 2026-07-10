@@ -192,6 +192,12 @@
 - [x] Tranché : contrat externe = **B** (SDK publié) ; exemple interne (`apps/store`) plutôt que starter sorti
 - [ ] Créer/tester une **vraie boutique** (repo Astro hors monorepo) via la CLI — flux validé localement sur arm64, reste le test grandeur nature sur VM x86
 - [ ] (émergé) Migration Bun → pnpm/Node en cours d'exploration (`pnpm-lock.yaml`, `pnpm-workspace.yaml`)
+- [ ] **Roadmap publique** — exposer la roadmap du framework (GitHub Projects/issues ou page dédiée sur le site/doc) ; support à trancher au moment d'attaquer
+
+### Admin — brancher les features storefront (plus tard)
+> Au fil de l'ajout de features API côté boutique, exposer leur pendant **admin** quand ce n'est pas du *front-only* (UI de gestion + éventuelles routes admin). À traiter par vagues, après le socle features storefront.
+
+- [ ] Passer en revue les features storefront récentes et brancher celles qui appellent une contrepartie admin
 
 ### Tests
 - [ ] Tests unitaires services critiques (checkout, payments, stock) - `bun:test`
