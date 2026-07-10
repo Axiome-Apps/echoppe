@@ -4,15 +4,14 @@
  */
 
 export interface paths {
-    "/": {
+    "/assets/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Informations API */
-        get: operations["getIndex"];
+        get: operations["getAssetsById"];
         put?: never;
         post?: never;
         delete?: never;
@@ -21,15 +20,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/health": {
+    "/products/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Health check */
-        get: operations["getHealth"];
+        get: operations["getProducts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -38,14 +36,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/me": {
+    "/products/by-slug/{slug}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getAuthMe"];
+        get: operations["getProductsBy-slugBySlug"];
         put?: never;
         post?: never;
         delete?: never;
@@ -54,94 +52,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/logout": {
+    "/products/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post: operations["postAuthLogout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postAuthLogin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/customer/auth/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postCustomerAuthRegister"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/customer/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postCustomerAuthLogin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/customer/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postCustomerAuthLogout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/customer/auth/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCustomerAuthMe"];
+        get: operations["getProductsById"];
         put?: never;
         post?: never;
         delete?: never;
@@ -150,16 +68,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/customer/auth/refresh": {
+    "/products/{id}/variants": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getProductsByIdVariants"];
         put?: never;
-        post: operations["postCustomerAuthRefresh"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/products/{id}/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getProductsByIdMedia"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -175,7 +109,7 @@ export interface paths {
         };
         get: operations["getCategories"];
         put?: never;
-        post: operations["postCategories"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -190,9 +124,9 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getCategoriesById"];
-        put: operations["putCategoriesById"];
+        put?: never;
         post?: never;
-        delete: operations["deleteCategoriesById"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -230,310 +164,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/categories/batch/order": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["patchCategoriesBatchOrder"];
-        trace?: never;
-    };
-    "/products/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProducts"];
-        put?: never;
-        post: operations["postProducts"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/by-slug/{slug}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductsBy-slugBySlug"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductsById"];
-        put: operations["putProductsById"];
-        post?: never;
-        delete: operations["deleteProductsById"];
-        options?: never;
-        head?: never;
-        patch: operations["patchProductsById"];
-        trace?: never;
-    };
-    "/products/{id}/variants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductsByIdVariants"];
-        put?: never;
-        post: operations["postProductsByIdVariants"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/{id}/variants/{variantId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putProductsByIdVariantsByVariantId"];
-        post?: never;
-        delete: operations["deleteProductsByIdVariantsByVariantId"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/{id}/variants/{variantId}/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putProductsByIdVariantsByVariantIdOptions"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/{id}/media": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductsByIdMedia"];
-        put?: never;
-        post: operations["postProductsByIdMedia"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/{id}/media/{mediaId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putProductsByIdMediaByMediaId"];
-        post?: never;
-        delete: operations["deleteProductsByIdMediaByMediaId"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductsOptions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/{id}/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postProductsByIdOptions"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/products/{id}/options/{optionId}/values": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postProductsByIdOptionsByOptionIdValues"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/media/folders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getMediaFolders"];
-        put?: never;
-        post: operations["postMediaFolders"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/media/folders/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putMediaFoldersById"];
-        post?: never;
-        delete: operations["deleteMediaFoldersById"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/media/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getMedia"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/media/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getMediaById"];
-        put: operations["putMediaById"];
-        post?: never;
-        delete: operations["deleteMediaById"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/media/upload": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postMediaUpload"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/media/batch/move": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putMediaBatchMove"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/media/batch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["deleteMediaBatch"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/collections/": {
         parameters: {
             query?: never;
@@ -543,7 +173,7 @@ export interface paths {
         };
         get: operations["getCollections"];
         put?: never;
-        post: operations["postCollections"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -558,9 +188,9 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getCollectionsById"];
-        put: operations["putCollectionsById"];
+        put?: never;
         post?: never;
-        delete: operations["deleteCollectionsById"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -591,550 +221,6 @@ export interface paths {
         };
         get: operations["getCollectionsByIdProducts"];
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/tax-rates/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getTax-rates"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/assets/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getAssetsById"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/company/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCompany"];
-        put: operations["putCompany"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/company/countries": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCompanyCountries"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/stock/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getStock"];
-        put?: never;
-        post: operations["postStock"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/stock/alerts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getStockAlerts"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/stock/variants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getStockVariants"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getPaymentsProviders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/providers/stripe": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putPaymentsProvidersStripe"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/providers/paypal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putPaymentsProvidersPaypal"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/checkout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postPaymentsCheckout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/webhook/stripe": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postPaymentsWebhookStripe"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/webhook/paypal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postPaymentsWebhookPaypal"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/{orderId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getPaymentsByOrderId"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/{orderId}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postPaymentsByOrderIdRefund"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shipping/providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getShippingProviders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shipping/rates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postShippingRates"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shipping/tracking/{trackingNumber}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getShippingTrackingByTrackingNumber"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shipping/providers/colissimo": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putShippingProvidersColissimo"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shipping/providers/mondialrelay": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putShippingProvidersMondialrelay"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shipping/providers/sendcloud": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putShippingProvidersSendcloud"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shipping/labels": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postShippingLabels"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/orders/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getOrders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/orders/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getOrdersById"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/orders/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["patchOrdersByIdStatus"];
-        trace?: never;
-    };
-    "/orders/{id}/notes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["patchOrdersByIdNotes"];
-        trace?: never;
-    };
-    "/orders/stats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getOrdersStats"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/orders/{id}/invoices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getOrdersByIdInvoices"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/orders/{id}/invoice": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postOrdersByIdInvoice"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/orders/{id}/invoices/{invoiceId}/pdf": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getOrdersByIdInvoicesByInvoiceIdPdf"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/roles/resources": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getRolesResources"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/roles/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getRoles"];
-        put?: never;
-        post: operations["postRoles"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/roles/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getRolesById"];
-        put: operations["putRolesById"];
-        post?: never;
-        delete: operations["deleteRolesById"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/roles/{id}/permissions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putRolesByIdPermissions"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1206,6 +292,154 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/checkout/payment-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckoutPayment-providers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/company/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCompany"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tax-rates/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTax-rates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/contact/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Envoyer un message via le formulaire de contact
+         * @description Envoie un email à l'adresse de contact de la boutique.
+         */
+        post: operations["postContact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customer/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postCustomerAuthRegister"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customer/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postCustomerAuthLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customer/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postCustomerAuthLogout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customer/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postCustomerAuthRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customer/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCustomerAuthMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/customer/addresses/": {
         parameters: {
             query?: never;
@@ -1238,22 +472,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/checkout/payment-providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCheckoutPayment-providers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/checkout/": {
         parameters: {
             query?: never;
@@ -1270,71 +488,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/communications/providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCommunicationsProviders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/communications/providers/resend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putCommunicationsProvidersResend"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/communications/providers/brevo": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putCommunicationsProvidersBrevo"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/communications/providers/smtp": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["putCommunicationsProvidersSmtp"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/communications/test": {
+    "/payments/checkout": {
         parameters: {
             query?: never;
             header?: never;
@@ -1343,171 +497,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postCommunicationsTest"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/customers/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCustomers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/customers/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCustomersById"];
-        put?: never;
-        post?: never;
-        delete: operations["deleteCustomersById"];
-        options?: never;
-        head?: never;
-        patch: operations["patchCustomersById"];
-        trace?: never;
-    };
-    "/customers/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["patchCustomersByIdStatus"];
-        trace?: never;
-    };
-    "/users/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getUsers"];
-        put?: never;
-        post: operations["postUsers"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getUsersById"];
-        put?: never;
-        post?: never;
-        delete: operations["deleteUsersById"];
-        options?: never;
-        head?: never;
-        patch: operations["patchUsersById"];
-        trace?: never;
-    };
-    "/users/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["patchUsersByIdStatus"];
-        trace?: never;
-    };
-    "/contact/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Envoyer un message via le formulaire de contact
-         * @description Envoie un email à l'adresse de contact de la boutique.
-         */
-        post: operations["postContact"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/audit-logs/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getAudit-logs"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/audit-logs/actions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getAudit-logsActions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/audit-logs/entity-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getAudit-logsEntity-types"];
-        put?: never;
-        post?: never;
+        post: operations["postPaymentsCheckout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1517,7 +507,499 @@ export interface paths {
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        Address: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique de l'adresse.
+             */
+            id: string;
+            /** @enum {string} */
+            type: "shipping" | "billing";
+            label: (string | null) | null;
+            /** @description Prénom du destinataire. */
+            firstName: string;
+            /** @description Nom du destinataire. */
+            lastName: string;
+            company: (string | null) | null;
+            /** @description Rue et numéro. */
+            street: string;
+            street2: (string | null) | null;
+            /** @description Code postal. */
+            postalCode: string;
+            /** @description Ville. */
+            city: string;
+            /** @description Pays de l’adresse. */
+            country: {
+                /**
+                 * Format: uuid
+                 * @description UUID du pays.
+                 */
+                id: string;
+                /** @description Nom du pays. */
+                name: string;
+                /** @description Code ISO du pays (ex. « FR »). */
+                code: string;
+            };
+            phone: (string | null) | null;
+            /** @description Adresse par défaut pour ce type. */
+            isDefault: boolean;
+        };
+        AddressList: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique de l'adresse.
+             */
+            id: string;
+            /** @enum {string} */
+            type: "shipping" | "billing";
+            label: (string | null) | null;
+            /** @description Prénom du destinataire. */
+            firstName: string;
+            /** @description Nom du destinataire. */
+            lastName: string;
+            company: (string | null) | null;
+            /** @description Rue et numéro. */
+            street: string;
+            street2: (string | null) | null;
+            /** @description Code postal. */
+            postalCode: string;
+            /** @description Ville. */
+            city: string;
+            /** @description Pays de l’adresse. */
+            country: {
+                /**
+                 * Format: uuid
+                 * @description UUID du pays.
+                 */
+                id: string;
+                /** @description Nom du pays. */
+                name: string;
+                /** @description Code ISO du pays (ex. « FR »). */
+                code: string;
+            };
+            phone: (string | null) | null;
+            /** @description Adresse par défaut pour ce type. */
+            isDefault: boolean;
+        }[];
+        Cart: {
+            /** @description UUID du panier, ou null si aucun panier actif. */
+            id: string | null;
+            /** @enum {string} */
+            status: "active" | "converted" | "abandoned" | "empty";
+            /** @description Lignes du panier. */
+            items: {
+                /**
+                 * Format: uuid
+                 * @description UUID de la ligne de panier.
+                 */
+                id: string;
+                variant: {
+                    /**
+                     * Format: uuid
+                     * @description UUID de la variante.
+                     */
+                    id: string;
+                    sku: (string | null) | null;
+                    /** @description Prix HT unitaire, décimal en chaîne (ex. « 12.90 »). */
+                    priceHt: string;
+                    /** @description Produit rattaché à la variante. */
+                    product: {
+                        /**
+                         * Format: uuid
+                         * @description UUID du produit.
+                         */
+                        id: string;
+                        /** @description Nom du produit. */
+                        name: string;
+                        /** @description Identifiant lisible pour l'URL. */
+                        slug: string;
+                        featuredImage: (string | null) | null;
+                    };
+                };
+                /** @description Quantité commandée. */
+                quantity: number;
+                /** @description Date d’ajout au panier. */
+                dateAdded: Record<string, never> | string | number;
+            }[];
+            /** @description Nombre total d’articles (somme des quantités). */
+            itemCount: number;
+            /** @description Total HT, décimal en chaîne. */
+            totalHt: string;
+            /** @description Date de création, ou null. */
+            dateCreated: (Record<string, never> | string | number) | null;
+            /** @description Date de dernière modification, ou null. */
+            dateUpdated: (Record<string, never> | string | number) | null;
+        };
+        CartMerge: {
+            /** @description Opération réussie. */
+            success: boolean;
+            /** @description Nombre de lignes fusionnées. */
+            merged?: number;
+            /** @description Le panier anonyme a été converti en panier client. */
+            converted?: boolean;
+        };
+        Category: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique de la catégorie.
+             */
+            id: string;
+            /** @description Nom de la catégorie. */
+            name: string;
+            /** @description Identifiant lisible pour l'URL (ex. « vaisselle »). */
+            slug: string;
+            description: (string | null) | null;
+            parent: (string | null) | null;
+            image: (string | null) | null;
+            /** @description Ordre d'affichage parmi les catégories de même niveau. */
+            sortOrder: number;
+            /** @description Visible dans la boutique. */
+            isVisible: boolean;
+        };
+        CategoryList: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique de la catégorie.
+             */
+            id: string;
+            /** @description Nom de la catégorie. */
+            name: string;
+            /** @description Identifiant lisible pour l'URL (ex. « vaisselle »). */
+            slug: string;
+            description: (string | null) | null;
+            parent: (string | null) | null;
+            image: (string | null) | null;
+            /** @description Ordre d'affichage parmi les catégories de même niveau. */
+            sortOrder: number;
+            /** @description Visible dans la boutique. */
+            isVisible: boolean;
+        }[];
+        CheckoutResult: {
+            /**
+             * Format: uuid
+             * @description UUID de la commande créée.
+             */
+            orderId: string;
+            /** @description Numéro de commande lisible (ex. « CMD-2024-0001 »). */
+            orderNumber: string;
+            /** @description URL de redirection vers le paiement. */
+            paymentUrl: string;
+            /** @description Moyen de paiement retenu. */
+            provider: string;
+        };
+        Collection: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique de la collection.
+             */
+            id: string;
+            /** @description Nom de la collection. */
+            name: string;
+            /** @description Identifiant lisible pour l'URL (ex. « nouveautes »). */
+            slug: string;
+            description: (string | null) | null;
+            image: (string | null) | null;
+            /** @description Visible dans la boutique. */
+            isVisible: boolean;
+            /** @description Date de création. */
+            dateCreated: Record<string, never> | string | number;
+        };
+        CollectionList: {
+            data: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de la collection.
+                 */
+                id: string;
+                /** @description Nom de la collection. */
+                name: string;
+                /** @description Identifiant lisible pour l'URL (ex. « nouveautes »). */
+                slug: string;
+                description: (string | null) | null;
+                image: (string | null) | null;
+                /** @description Visible dans la boutique. */
+                isVisible: boolean;
+                /** @description Date de création. */
+                dateCreated: Record<string, never> | string | number;
+            }[];
+            meta: {
+                total: number;
+                page: number;
+                limit: number;
+                totalPages: number;
+            };
+        };
+        CustomerAuth: {
+            customer: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique du client.
+                 */
+                id: string;
+                /**
+                 * Format: email
+                 * @description Adresse e-mail du client.
+                 */
+                email: string;
+                /** @description Prénom. */
+                firstName: string;
+                /** @description Nom. */
+                lastName: string;
+                phone: (string | null) | null;
+                /** @description L'adresse e-mail a été vérifiée. */
+                emailVerified: boolean;
+                /** @description Consentement aux communications marketing. */
+                marketingOptin: boolean;
+            };
+        };
+        PaymentProviderList: {
+            /** @description Identifiant du moyen de paiement (ex. « stripe », « paypal »). */
+            id: string;
+            /** @description Nom affiché (ex. « Carte bancaire »). */
+            name: string;
+            /** @description Courte description présentée au client. */
+            description: string;
+        }[];
+        ProductDetail: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique du produit.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description UUID de la catégorie du produit.
+             */
+            category: string;
+            /**
+             * Format: uuid
+             * @description UUID du taux de TVA appliqué.
+             */
+            taxRate: string;
+            /** @description Nom du produit. */
+            name: string;
+            /** @description Identifiant lisible pour l'URL. */
+            slug: string;
+            description: (string | null) | null;
+            /** @enum {string} */
+            status: "draft" | "published" | "archived";
+            /** @description Date de création. */
+            dateCreated: Record<string, never> | string | number;
+            /** @description Date de dernière modification. */
+            dateUpdated: Record<string, never> | string | number;
+            /** @description Variantes du produit. */
+            variants: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de la variante.
+                 */
+                id: string;
+                /**
+                 * Format: uuid
+                 * @description UUID du produit parent.
+                 */
+                product: string;
+                sku: (string | null) | null;
+                barcode: (string | null) | null;
+                /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
+                priceHt: string;
+                compareAtPriceHt: (string | null) | null;
+                weight: (string | null) | null;
+                length: (string | null) | null;
+                width: (string | null) | null;
+                height: (string | null) | null;
+                /** @description Variante affichée par défaut sur la fiche produit. */
+                isDefault: boolean;
+                /** @enum {string} */
+                status: "draft" | "published" | "archived";
+                /** @description Ordre d'affichage. */
+                sortOrder: number;
+                /** @description Stock disponible. */
+                quantity: number;
+                /** @description Valeurs d’option qui définissent cette variante. */
+                optionValues: string[];
+            }[];
+            /** @description Options du produit. */
+            options: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de l'option.
+                 */
+                id: string;
+                /** @description Nom de l'option (ex. « Taille », « Couleur »). */
+                name: string;
+                /** @description Ordre d'affichage de l'option. */
+                sortOrder: number;
+                /** @description Valeurs possibles de l'option. */
+                values: {
+                    /**
+                     * Format: uuid
+                     * @description Identifiant unique de la valeur d'option.
+                     */
+                    id: string;
+                    /**
+                     * Format: uuid
+                     * @description UUID de l'option parente.
+                     */
+                    option: string;
+                    /** @description Valeur (ex. « M », « Rouge »). */
+                    value: string;
+                    /** @description Ordre d'affichage. */
+                    sortOrder: number;
+                }[];
+            }[];
+            featuredImage: (string | null) | null;
+            /** @description Galerie de médias du produit. */
+            images: string[];
+        };
+        ProductList: {
+            data: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique du produit.
+                 */
+                id: string;
+                /**
+                 * Format: uuid
+                 * @description UUID de la catégorie du produit.
+                 */
+                category: string;
+                /**
+                 * Format: uuid
+                 * @description UUID du taux de TVA appliqué.
+                 */
+                taxRate: string;
+                /** @description Nom du produit. */
+                name: string;
+                /** @description Identifiant lisible pour l'URL. */
+                slug: string;
+                description: (string | null) | null;
+                /** @enum {string} */
+                status: "draft" | "published" | "archived";
+                /** @description Date de création. */
+                dateCreated: Record<string, never> | string | number;
+                /** @description Date de dernière modification. */
+                dateUpdated: Record<string, never> | string | number;
+                featuredImage: (string | null) | null;
+                defaultVariant: ({
+                    /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
+                    priceHt: string;
+                    compareAtPriceHt: (string | null) | null;
+                    /** @description Stock disponible. */
+                    quantity: number;
+                } | null) | null;
+            }[];
+            meta: {
+                total: number;
+                page: number;
+                limit: number;
+                totalPages: number;
+            };
+        };
+        ProductWithVariants: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique du produit.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description UUID de la catégorie du produit.
+             */
+            category: string;
+            /**
+             * Format: uuid
+             * @description UUID du taux de TVA appliqué.
+             */
+            taxRate: string;
+            /** @description Nom du produit. */
+            name: string;
+            /** @description Identifiant lisible pour l'URL. */
+            slug: string;
+            description: (string | null) | null;
+            /** @enum {string} */
+            status: "draft" | "published" | "archived";
+            /** @description Date de création. */
+            dateCreated: Record<string, never> | string | number;
+            /** @description Date de dernière modification. */
+            dateUpdated: Record<string, never> | string | number;
+            /** @description Variantes du produit. */
+            variants: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de la variante.
+                 */
+                id: string;
+                /**
+                 * Format: uuid
+                 * @description UUID du produit parent.
+                 */
+                product: string;
+                sku: (string | null) | null;
+                barcode: (string | null) | null;
+                /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
+                priceHt: string;
+                compareAtPriceHt: (string | null) | null;
+                weight: (string | null) | null;
+                length: (string | null) | null;
+                width: (string | null) | null;
+                height: (string | null) | null;
+                /** @description Variante affichée par défaut sur la fiche produit. */
+                isDefault: boolean;
+                /** @enum {string} */
+                status: "draft" | "published" | "archived";
+                /** @description Ordre d'affichage. */
+                sortOrder: number;
+                /** @description Stock disponible. */
+                quantity: number;
+                /** @description Valeurs d’option qui définissent cette variante. */
+                optionValues: string[];
+            }[];
+            /** @description Options du produit. */
+            options: {
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de l'option.
+                 */
+                id: string;
+                /** @description Nom de l'option (ex. « Taille », « Couleur »). */
+                name: string;
+                /** @description Ordre d'affichage de l'option. */
+                sortOrder: number;
+                /** @description Valeurs possibles de l'option. */
+                values: {
+                    /**
+                     * Format: uuid
+                     * @description Identifiant unique de la valeur d'option.
+                     */
+                    id: string;
+                    /**
+                     * Format: uuid
+                     * @description UUID de l'option parente.
+                     */
+                    option: string;
+                    /** @description Valeur (ex. « M », « Rouge »). */
+                    value: string;
+                    /** @description Ordre d'affichage. */
+                    sortOrder: number;
+                }[];
+            }[];
+        };
+        TaxRateList: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique du taux de TVA.
+             */
+            id: string;
+            /** @description Nom du taux (ex. « TVA 20 % »). */
+            name: string;
+            /** @description Taux en pourcentage, décimal en chaîne (ex. « 20.00 »). */
+            rate: string;
+            /** @description Taux appliqué par défaut aux nouveaux produits. */
+            isDefault: boolean;
+        }[];
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -1526,34 +1008,209 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getIndex: {
+    getAssetsById: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: never;
-    };
-    getHealth: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: never;
-    };
-    getAuthMe: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                echoppe_admin_session?: string;
+            path: {
+                id: string;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Description de l'erreur */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getProducts: {
+        parameters: {
+            query?: {
+                page?: string | number;
+                limit?: string | number;
+                search?: string;
+                category?: string;
+                minPrice?: string | number;
+                maxPrice?: string | number;
+                inStock?: boolean | string;
+                sort?: "price" | "name" | "date";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductList"];
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "getProductsBy-slugBySlug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetail"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getProductsById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductWithVariants"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getProductsByIdVariants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
         requestBody?: never;
         responses: {
@@ -1564,55 +1221,552 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        user: {
-                            id: string;
-                            email: string;
-                            firstName: string;
-                            lastName: string;
-                            isOwner: boolean;
-                            isActive: boolean;
-                        };
-                        role: {
-                            id: string;
-                            name: string;
-                            scope: string;
-                        };
-                    };
+                        /**
+                         * Format: uuid
+                         * @description Identifiant unique de la variante.
+                         */
+                        id: string;
+                        /**
+                         * Format: uuid
+                         * @description UUID du produit parent.
+                         */
+                        product: string;
+                        sku: (string | null) | null;
+                        barcode: (string | null) | null;
+                        /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
+                        priceHt: string;
+                        compareAtPriceHt: (string | null) | null;
+                        weight: (string | null) | null;
+                        length: (string | null) | null;
+                        width: (string | null) | null;
+                        height: (string | null) | null;
+                        /** @description Variante affichée par défaut sur la fiche produit. */
+                        isDefault: boolean;
+                        /** @enum {string} */
+                        status: "draft" | "published" | "archived";
+                        /** @description Ordre d'affichage. */
+                        sortOrder: number;
+                        /** @description Stock disponible. */
+                        quantity: number;
+                    }[];
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
+        };
+    };
+    getProductsByIdMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @description Raison du refus d'authentification */
+                        /**
+                         * Format: uuid
+                         * @description UUID du produit.
+                         */
+                        product: string;
+                        /**
+                         * Format: uuid
+                         * @description UUID du média.
+                         */
+                        media: string;
+                        /** @description Ordre d'affichage dans la galerie. */
+                        sortOrder: number;
+                        /** @description Média mis en avant (image principale). */
+                        isFeatured: boolean;
+                        featuredForVariant: (string | null) | null;
+                    }[];
+                };
+            };
+        };
+    };
+    getCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryList"];
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
                         message: string;
                     };
                 };
             };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
+            /** @description Erreur serveur interne */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @description Permission manquante */
+                        /** @description Erreur interne */
                         message: string;
                     };
                 };
             };
         };
     };
-    postAuthLogout: {
+    getCategoriesById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Category"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "getCategoriesBy-slugBySlug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Category"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCategoriesByIdProducts: {
+        parameters: {
+            query?: {
+                page?: string | number;
+                limit?: string | number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductList"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCollections: {
+        parameters: {
+            query?: {
+                page?: string | number;
+                limit?: string | number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionList"];
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCollectionsById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Collection"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "getCollectionsBy-slugBySlug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Collection"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCollectionsByIdProducts: {
+        parameters: {
+            query?: {
+                page?: string | number;
+                limit?: string | number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductList"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCart: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: {
-                echoppe_admin_session?: string;
+                echoppe_cart_session?: string;
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cart"];
+                };
+            };
+        };
+    };
+    deleteCart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                echoppe_cart_session?: string;
+                echoppe_customer_session?: string;
             };
         };
         requestBody?: never;
@@ -1634,31 +1788,32 @@ export interface operations {
             };
         };
     };
-    postAuthLogin: {
+    postCartItems: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: {
-                echoppe_admin_session?: string;
+                echoppe_cart_session?: string;
+                echoppe_customer_session?: string;
             };
         };
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
+                    /** Format: uuid */
+                    variantId: string;
+                    quantity: number;
                 };
                 "application/x-www-form-urlencoded": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
+                    /** Format: uuid */
+                    variantId: string;
+                    quantity: number;
                 };
                 "multipart/form-data": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
+                    /** Format: uuid */
+                    variantId: string;
+                    quantity: number;
                 };
             };
         };
@@ -1669,24 +1824,127 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        user: {
-                            id: string;
-                            email: string;
-                            firstName: string;
-                            lastName: string;
-                        };
-                    };
+                    "application/json": components["schemas"]["Cart"];
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
+            /** @description Requête invalide - Données manquantes ou incorrectes */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @description Raison du refus d'authentification */
+                        /** @description Détail de l'erreur de validation */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    deleteCartItemsById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: {
+                echoppe_cart_session?: string;
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cart"];
+                };
+            };
+            /** @description Permission refusée - Droits insuffisants */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Permission manquante */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    patchCartItemsById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: {
+                echoppe_cart_session?: string;
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    quantity: number;
+                };
+                "application/x-www-form-urlencoded": {
+                    quantity: number;
+                };
+                "multipart/form-data": {
+                    quantity: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cart"];
+                };
+            };
+            /** @description Requête invalide - Données manquantes ou incorrectes */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur de validation */
                         message: string;
                     };
                 };
@@ -1703,6 +1961,289 @@ export interface operations {
                     };
                 };
             };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    postCartMerge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                echoppe_cart_session?: string;
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartMerge"];
+                };
+            };
+            /** @description Non authentifié - Session invalide ou expirée */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Raison du refus d'authentification */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "getCheckoutPayment-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentProviderList"];
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description Identifiant unique de la fiche entreprise.
+                         */
+                        id: string;
+                        /** @description Nom commercial de la boutique. */
+                        shopName: string;
+                        logo: (string | null) | null;
+                        /**
+                         * Format: email
+                         * @description E-mail de contact public.
+                         */
+                        publicEmail: string;
+                        publicPhone: (string | null) | null;
+                        /** @description Raison sociale (dénomination légale). */
+                        legalName: string;
+                        legalForm: (string | null) | null;
+                        siren: (string | null) | null;
+                        siret: (string | null) | null;
+                        tvaIntra: (string | null) | null;
+                        rcsCity: (string | null) | null;
+                        shareCapital: (string | null) | null;
+                        /** @description Rue et numéro du siège. */
+                        street: string;
+                        street2: (string | null) | null;
+                        /** @description Code postal. */
+                        postalCode: string;
+                        /** @description Ville. */
+                        city: string;
+                        /**
+                         * Format: uuid
+                         * @description UUID du pays du siège.
+                         */
+                        country: string;
+                        /** @description Préfixe des numéros de documents (ex. « REC »). */
+                        documentPrefix: string;
+                        /** @description Préfixe des numéros de factures (ex. « FA »). */
+                        invoicePrefix: string;
+                        /** @description Franchise de TVA (art. 293 B). */
+                        taxExempt: boolean;
+                        publisherName: (string | null) | null;
+                        hostingProvider: (string | null) | null;
+                        hostingAddress: (string | null) | null;
+                        hostingPhone: (string | null) | null;
+                    } | null;
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "getTax-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxRateList"];
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    postContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    subject: string;
+                    message: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    subject: string;
+                    message: string;
+                };
+                "multipart/form-data": {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    subject: string;
+                    message: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Message de confirmation */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
             /** @description Trop de requêtes - Limite de débit dépassée */
             429: {
                 headers: {
@@ -1711,6 +2252,30 @@ export interface operations {
                 content: {
                     "application/json": {
                         /** @description Temps d'attente avant nouvelle tentative */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Service indisponible - Réessayez plus tard */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Service temporairement indisponible */
                         message: string;
                     };
                 };
@@ -1766,12 +2331,24 @@ export interface operations {
                 content: {
                     "application/json": {
                         customer: {
+                            /**
+                             * Format: uuid
+                             * @description Identifiant unique du client.
+                             */
                             id: string;
+                            /**
+                             * Format: email
+                             * @description Adresse e-mail du client.
+                             */
                             email: string;
+                            /** @description Prénom. */
                             firstName: string;
+                            /** @description Nom. */
                             lastName: string;
                             phone: (string | null) | null;
+                            /** @description L'adresse e-mail a été vérifiée. */
                             emailVerified: boolean;
+                            /** @description Consentement aux communications marketing. */
                             marketingOptin: boolean;
                         };
                     };
@@ -1902,50 +2479,6 @@ export interface operations {
             };
         };
     };
-    getCustomerAuthMe: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                echoppe_customer_session?: string;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        customer: {
-                            id: string;
-                            email: string;
-                            firstName: string;
-                            lastName: string;
-                            phone: (string | null) | null;
-                            emailVerified: boolean;
-                            marketingOptin: boolean;
-                        };
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
     postCustomerAuthRefresh: {
         parameters: {
             query?: never;
@@ -1986,3651 +2519,7 @@ export interface operations {
             };
         };
     };
-    getCategories: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        parent: (string | null) | null;
-                        image: (string | null) | null;
-                        sortOrder: number;
-                        isVisible: boolean;
-                    }[];
-                };
-            };
-        };
-    };
-    postCategories: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    parent?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    parent?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-                "multipart/form-data": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    parent?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        parent: (string | null) | null;
-                        image: (string | null) | null;
-                        sortOrder: number;
-                        isVisible: boolean;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getCategoriesById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        parent: (string | null) | null;
-                        image: (string | null) | null;
-                        sortOrder: number;
-                        isVisible: boolean;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putCategoriesById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    parent?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    parent?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-                "multipart/form-data": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    parent?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        parent: (string | null) | null;
-                        image: (string | null) | null;
-                        sortOrder: number;
-                        isVisible: boolean;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteCategoriesById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    "getCategoriesBy-slugBySlug": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        parent: (string | null) | null;
-                        image: (string | null) | null;
-                        sortOrder: number;
-                        isVisible: boolean;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getCategoriesByIdProducts: {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-            };
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            category: string;
-                            taxRate: string;
-                            name: string;
-                            slug: string;
-                            description: (string | null) | null;
-                            /** @enum {string} */
-                            status: "draft" | "published" | "archived";
-                            dateCreated: Record<string, never> | string | number;
-                            dateUpdated: Record<string, never> | string | number;
-                            featuredImage: (string | null) | null;
-                            defaultVariant: ({
-                                priceHt: string;
-                                compareAtPriceHt: (string | null) | null;
-                                quantity: number;
-                            } | null) | null;
-                        }[];
-                        meta: {
-                            total: number;
-                            page: number;
-                            limit: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchCategoriesBatchOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    id: string;
-                    parent: (string | null) | null;
-                    sortOrder: number;
-                }[];
-                "application/x-www-form-urlencoded": {
-                    /** Format: uuid */
-                    id: string;
-                    parent: (string | null) | null;
-                    sortOrder: number;
-                }[];
-                "multipart/form-data": {
-                    /** Format: uuid */
-                    id: string;
-                    parent: (string | null) | null;
-                    sortOrder: number;
-                }[];
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        success: boolean;
-                        count: number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getProducts: {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-                search?: string;
-                category?: string;
-                minPrice?: string | number;
-                maxPrice?: string | number;
-                inStock?: boolean | string;
-                sort?: "price" | "name" | "date";
-                order?: "asc" | "desc";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            category: string;
-                            taxRate: string;
-                            name: string;
-                            slug: string;
-                            description: (string | null) | null;
-                            /** @enum {string} */
-                            status: "draft" | "published" | "archived";
-                            dateCreated: Record<string, never> | string | number;
-                            dateUpdated: Record<string, never> | string | number;
-                            featuredImage: (string | null) | null;
-                            defaultVariant: ({
-                                priceHt: string;
-                                compareAtPriceHt: (string | null) | null;
-                                quantity: number;
-                            } | null) | null;
-                        }[];
-                        meta: {
-                            total: number;
-                            page: number;
-                            limit: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    postProducts: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category: string;
-                    /** Format: uuid */
-                    taxRate: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category: string;
-                    /** Format: uuid */
-                    taxRate: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-                "multipart/form-data": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category: string;
-                    /** Format: uuid */
-                    taxRate: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        category: string;
-                        taxRate: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        status: "draft" | "published" | "archived";
-                        dateCreated: Record<string, never> | string | number;
-                        dateUpdated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    "getProductsBy-slugBySlug": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        category: string;
-                        taxRate: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        status: "draft" | "published" | "archived";
-                        dateCreated: Record<string, never> | string | number;
-                        dateUpdated: Record<string, never> | string | number;
-                        variants: {
-                            id: string;
-                            product: string;
-                            sku: (string | null) | null;
-                            barcode: (string | null) | null;
-                            priceHt: string;
-                            compareAtPriceHt: (string | null) | null;
-                            costPrice: (string | null) | null;
-                            weight: (string | null) | null;
-                            length: (string | null) | null;
-                            width: (string | null) | null;
-                            height: (string | null) | null;
-                            isDefault: boolean;
-                            /** @enum {string} */
-                            status: "draft" | "published" | "archived";
-                            sortOrder: number;
-                            quantity: number;
-                            lowStockThreshold: (number | null) | null;
-                            optionValues: string[];
-                        }[];
-                        options: {
-                            id: string;
-                            name: string;
-                            sortOrder: number;
-                            values: {
-                                id: string;
-                                option: string;
-                                value: string;
-                                sortOrder: number;
-                            }[];
-                        }[];
-                        featuredImage: (string | null) | null;
-                        images: string[];
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getProductsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        category: string;
-                        taxRate: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        status: "draft" | "published" | "archived";
-                        dateCreated: Record<string, never> | string | number;
-                        dateUpdated: Record<string, never> | string | number;
-                        variants: {
-                            id: string;
-                            product: string;
-                            sku: (string | null) | null;
-                            barcode: (string | null) | null;
-                            priceHt: string;
-                            compareAtPriceHt: (string | null) | null;
-                            costPrice: (string | null) | null;
-                            weight: (string | null) | null;
-                            length: (string | null) | null;
-                            width: (string | null) | null;
-                            height: (string | null) | null;
-                            isDefault: boolean;
-                            /** @enum {string} */
-                            status: "draft" | "published" | "archived";
-                            sortOrder: number;
-                            quantity: number;
-                            lowStockThreshold: (number | null) | null;
-                            optionValues: string[];
-                        }[];
-                        options: {
-                            id: string;
-                            name: string;
-                            sortOrder: number;
-                            values: {
-                                id: string;
-                                option: string;
-                                value: string;
-                                sortOrder: number;
-                            }[];
-                        }[];
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putProductsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category: string;
-                    /** Format: uuid */
-                    taxRate: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category: string;
-                    /** Format: uuid */
-                    taxRate: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-                "multipart/form-data": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category: string;
-                    /** Format: uuid */
-                    taxRate: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        category: string;
-                        taxRate: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        status: "draft" | "published" | "archived";
-                        dateCreated: Record<string, never> | string | number;
-                        dateUpdated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteProductsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchProductsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name?: string;
-                    slug?: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category?: string;
-                    /** Format: uuid */
-                    taxRate?: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-                "application/x-www-form-urlencoded": {
-                    name?: string;
-                    slug?: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category?: string;
-                    /** Format: uuid */
-                    taxRate?: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-                "multipart/form-data": {
-                    name?: string;
-                    slug?: string;
-                    description?: string;
-                    /** Format: uuid */
-                    category?: string;
-                    /** Format: uuid */
-                    taxRate?: string;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        category: string;
-                        taxRate: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        status: "draft" | "published" | "archived";
-                        dateCreated: Record<string, never> | string | number;
-                        dateUpdated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getProductsByIdVariants: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        product: string;
-                        sku: (string | null) | null;
-                        barcode: (string | null) | null;
-                        priceHt: string;
-                        compareAtPriceHt: (string | null) | null;
-                        costPrice: (string | null) | null;
-                        weight: (string | null) | null;
-                        length: (string | null) | null;
-                        width: (string | null) | null;
-                        height: (string | null) | null;
-                        isDefault: boolean;
-                        /** @enum {string} */
-                        status: "draft" | "published" | "archived";
-                        sortOrder: number;
-                        quantity: number;
-                        lowStockThreshold: (number | null) | null;
-                    }[];
-                };
-            };
-        };
-    };
-    postProductsByIdVariants: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    sku?: string;
-                    barcode?: string;
-                    priceHt: number;
-                    compareAtPriceHt?: number;
-                    costPrice?: number;
-                    weight?: number;
-                    length?: number;
-                    width?: number;
-                    height?: number;
-                    /** @default false */
-                    isDefault?: boolean;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default 0 */
-                    quantity?: number;
-                    /** @default 5 */
-                    lowStockThreshold?: number;
-                };
-                "application/x-www-form-urlencoded": {
-                    sku?: string;
-                    barcode?: string;
-                    priceHt: number;
-                    compareAtPriceHt?: number;
-                    costPrice?: number;
-                    weight?: number;
-                    length?: number;
-                    width?: number;
-                    height?: number;
-                    /** @default false */
-                    isDefault?: boolean;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default 0 */
-                    quantity?: number;
-                    /** @default 5 */
-                    lowStockThreshold?: number;
-                };
-                "multipart/form-data": {
-                    sku?: string;
-                    barcode?: string;
-                    priceHt: number;
-                    compareAtPriceHt?: number;
-                    costPrice?: number;
-                    weight?: number;
-                    length?: number;
-                    width?: number;
-                    height?: number;
-                    /** @default false */
-                    isDefault?: boolean;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default 0 */
-                    quantity?: number;
-                    /** @default 5 */
-                    lowStockThreshold?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        product: string;
-                        sku: (string | null) | null;
-                        barcode: (string | null) | null;
-                        priceHt: string;
-                        compareAtPriceHt: (string | null) | null;
-                        costPrice: (string | null) | null;
-                        weight: (string | null) | null;
-                        length: (string | null) | null;
-                        width: (string | null) | null;
-                        height: (string | null) | null;
-                        isDefault: boolean;
-                        /** @enum {string} */
-                        status: "draft" | "published" | "archived";
-                        sortOrder: number;
-                        quantity: number;
-                        lowStockThreshold: (number | null) | null;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putProductsByIdVariantsByVariantId: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                variantId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    sku?: string;
-                    barcode?: string;
-                    priceHt: number;
-                    compareAtPriceHt?: number;
-                    costPrice?: number;
-                    weight?: number;
-                    length?: number;
-                    width?: number;
-                    height?: number;
-                    /** @default false */
-                    isDefault?: boolean;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default 0 */
-                    quantity?: number;
-                    /** @default 5 */
-                    lowStockThreshold?: number;
-                };
-                "application/x-www-form-urlencoded": {
-                    sku?: string;
-                    barcode?: string;
-                    priceHt: number;
-                    compareAtPriceHt?: number;
-                    costPrice?: number;
-                    weight?: number;
-                    length?: number;
-                    width?: number;
-                    height?: number;
-                    /** @default false */
-                    isDefault?: boolean;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default 0 */
-                    quantity?: number;
-                    /** @default 5 */
-                    lowStockThreshold?: number;
-                };
-                "multipart/form-data": {
-                    sku?: string;
-                    barcode?: string;
-                    priceHt: number;
-                    compareAtPriceHt?: number;
-                    costPrice?: number;
-                    weight?: number;
-                    length?: number;
-                    width?: number;
-                    height?: number;
-                    /** @default false */
-                    isDefault?: boolean;
-                    /** @enum {string} */
-                    status?: "draft" | "published" | "archived";
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default 0 */
-                    quantity?: number;
-                    /** @default 5 */
-                    lowStockThreshold?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        product: string;
-                        sku: (string | null) | null;
-                        barcode: (string | null) | null;
-                        priceHt: string;
-                        compareAtPriceHt: (string | null) | null;
-                        costPrice: (string | null) | null;
-                        weight: (string | null) | null;
-                        length: (string | null) | null;
-                        width: (string | null) | null;
-                        height: (string | null) | null;
-                        isDefault: boolean;
-                        /** @enum {string} */
-                        status: "draft" | "published" | "archived";
-                        sortOrder: number;
-                        quantity: number;
-                        lowStockThreshold: (number | null) | null;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteProductsByIdVariantsByVariantId: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                variantId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putProductsByIdVariantsByVariantIdOptions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                variantId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    optionValueIds: string[];
-                };
-                "application/x-www-form-urlencoded": {
-                    optionValueIds: string[];
-                };
-                "multipart/form-data": {
-                    optionValueIds: string[];
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getProductsByIdMedia: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        product: string;
-                        media: string;
-                        sortOrder: number;
-                        isFeatured: boolean;
-                        featuredForVariant: (string | null) | null;
-                    }[];
-                };
-            };
-        };
-    };
-    postProductsByIdMedia: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    mediaId: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default false */
-                    isFeatured?: boolean;
-                    /** Format: uuid */
-                    featuredForVariant?: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    /** Format: uuid */
-                    mediaId: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default false */
-                    isFeatured?: boolean;
-                    /** Format: uuid */
-                    featuredForVariant?: string;
-                };
-                "multipart/form-data": {
-                    /** Format: uuid */
-                    mediaId: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                    /** @default false */
-                    isFeatured?: boolean;
-                    /** Format: uuid */
-                    featuredForVariant?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        product: string;
-                        media: string;
-                        sortOrder: number;
-                        isFeatured: boolean;
-                        featuredForVariant: (string | null) | null;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putProductsByIdMediaByMediaId: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                mediaId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    sortOrder?: number;
-                    isFeatured?: boolean;
-                    featuredForVariant?: string | null;
-                };
-                "application/x-www-form-urlencoded": {
-                    sortOrder?: number;
-                    isFeatured?: boolean;
-                    featuredForVariant?: string | null;
-                };
-                "multipart/form-data": {
-                    sortOrder?: number;
-                    isFeatured?: boolean;
-                    featuredForVariant?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        product: string;
-                        media: string;
-                        sortOrder: number;
-                        isFeatured: boolean;
-                        featuredForVariant: (string | null) | null;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteProductsByIdMediaByMediaId: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                mediaId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getProductsOptions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                    }[];
-                };
-            };
-        };
-    };
-    postProductsByIdOptions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                };
-                "multipart/form-data": {
-                    name: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Conflit - La ressource existe déjà ou est en conflit */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Détail du conflit */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postProductsByIdOptionsByOptionIdValues: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                optionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    value: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                };
-                "application/x-www-form-urlencoded": {
-                    value: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                };
-                "multipart/form-data": {
-                    value: string;
-                    /** @default 0 */
-                    sortOrder?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        option: string;
-                        value: string;
-                        sortOrder: number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getMediaFolders: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        parent: (string | null) | null;
-                        name: string;
-                        sortOrder: number;
-                    }[];
-                };
-            };
-        };
-    };
-    postMediaFolders: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    parent?: string | null;
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    parent?: string | null;
-                };
-                "multipart/form-data": {
-                    name: string;
-                    parent?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        parent: (string | null) | null;
-                        name: string;
-                        sortOrder: number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putMediaFoldersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    parent?: string | null;
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    parent?: string | null;
-                };
-                "multipart/form-data": {
-                    name: string;
-                    parent?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        parent: (string | null) | null;
-                        name: string;
-                        sortOrder: number;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteMediaFoldersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getMedia: {
-        parameters: {
-            query?: {
-                folder?: string;
-                search?: string;
-                sort?: string;
-                order?: string;
-                all?: string;
-                type?: "images" | "pdf" | "documents" | "all";
-                page?: string | number;
-                limit?: string | number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            folder: (string | null) | null;
-                            filenameDisk: string;
-                            filenameOriginal: string;
-                            title: (string | null) | null;
-                            description: (string | null) | null;
-                            alt: (string | null) | null;
-                            mimeType: string;
-                            size: number;
-                            width: (number | null) | null;
-                            height: (number | null) | null;
-                            dateCreated: Record<string, never> | string | number;
-                        }[];
-                        meta: {
-                            total: number;
-                            page: number;
-                            limit: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    getMediaById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        folder: (string | null) | null;
-                        filenameDisk: string;
-                        filenameOriginal: string;
-                        title: (string | null) | null;
-                        description: (string | null) | null;
-                        alt: (string | null) | null;
-                        mimeType: string;
-                        size: number;
-                        width: (number | null) | null;
-                        height: (number | null) | null;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putMediaById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    title?: string;
-                    description?: string;
-                    alt?: string;
-                    folder?: string | null;
-                };
-                "application/x-www-form-urlencoded": {
-                    title?: string;
-                    description?: string;
-                    alt?: string;
-                    folder?: string | null;
-                };
-                "multipart/form-data": {
-                    title?: string;
-                    description?: string;
-                    alt?: string;
-                    folder?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        folder: (string | null) | null;
-                        filenameDisk: string;
-                        filenameOriginal: string;
-                        title: (string | null) | null;
-                        description: (string | null) | null;
-                        alt: (string | null) | null;
-                        mimeType: string;
-                        size: number;
-                        width: (number | null) | null;
-                        height: (number | null) | null;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteMediaById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postMediaUpload: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    file: string | string[];
-                    /** Format: uuid */
-                    folder?: string;
-                    folderName?: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    file: string | string[];
-                    /** Format: uuid */
-                    folder?: string;
-                    folderName?: string;
-                };
-                "multipart/form-data": {
-                    file: string | string[];
-                    /** Format: uuid */
-                    folder?: string;
-                    folderName?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        folder: (string | null) | null;
-                        filenameDisk: string;
-                        filenameOriginal: string;
-                        title: (string | null) | null;
-                        description: (string | null) | null;
-                        alt: (string | null) | null;
-                        mimeType: string;
-                        size: number;
-                        width: (number | null) | null;
-                        height: (number | null) | null;
-                        dateCreated: Record<string, never> | string | number;
-                    } | {
-                        id: string;
-                        folder: (string | null) | null;
-                        filenameDisk: string;
-                        filenameOriginal: string;
-                        title: (string | null) | null;
-                        description: (string | null) | null;
-                        alt: (string | null) | null;
-                        mimeType: string;
-                        size: number;
-                        width: (number | null) | null;
-                        height: (number | null) | null;
-                        dateCreated: Record<string, never> | string | number;
-                    }[];
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putMediaBatchMove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    ids: string[];
-                    folder: string | null;
-                };
-                "application/x-www-form-urlencoded": {
-                    ids: string[];
-                    folder: string | null;
-                };
-                "multipart/form-data": {
-                    ids: string[];
-                    folder: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        moved: string[];
-                        count: number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteMediaBatch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    ids: string[];
-                };
-                "application/x-www-form-urlencoded": {
-                    ids: string[];
-                };
-                "multipart/form-data": {
-                    ids: string[];
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        deleted: string[];
-                        count: number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getCollections: {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            name: string;
-                            slug: string;
-                            description: (string | null) | null;
-                            image: (string | null) | null;
-                            isVisible: boolean;
-                            dateCreated: Record<string, never> | string | number;
-                        }[];
-                        meta: {
-                            total: number;
-                            page: number;
-                            limit: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    postCollections: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-                "multipart/form-data": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        image: (string | null) | null;
-                        isVisible: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getCollectionsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        image: (string | null) | null;
-                        isVisible: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putCollectionsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-                "multipart/form-data": {
-                    name: string;
-                    description?: string;
-                    /** Format: uuid */
-                    image?: string;
-                    /** @default true */
-                    isVisible?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        image: (string | null) | null;
-                        isVisible: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteCollectionsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    "getCollectionsBy-slugBySlug": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        slug: string;
-                        description: (string | null) | null;
-                        image: (string | null) | null;
-                        isVisible: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getCollectionsByIdProducts: {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-            };
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            category: string;
-                            taxRate: string;
-                            name: string;
-                            slug: string;
-                            description: (string | null) | null;
-                            /** @enum {string} */
-                            status: "draft" | "published" | "archived";
-                            dateCreated: Record<string, never> | string | number;
-                            dateUpdated: Record<string, never> | string | number;
-                            featuredImage: (string | null) | null;
-                            defaultVariant: ({
-                                priceHt: string;
-                                compareAtPriceHt: (string | null) | null;
-                                quantity: number;
-                            } | null) | null;
-                        }[];
-                        meta: {
-                            total: number;
-                            page: number;
-                            limit: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    "getTax-rates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        rate: string;
-                        isDefault: boolean;
-                    }[];
-                };
-            };
-        };
-    };
-    getAssetsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getCompany: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        shopName: string;
-                        logo: (string | null) | null;
-                        publicEmail: string;
-                        publicPhone: (string | null) | null;
-                        legalName: string;
-                        legalForm: (string | null) | null;
-                        siren: (string | null) | null;
-                        siret: (string | null) | null;
-                        tvaIntra: (string | null) | null;
-                        rcsCity: (string | null) | null;
-                        shareCapital: (string | null) | null;
-                        street: string;
-                        street2: (string | null) | null;
-                        postalCode: string;
-                        city: string;
-                        country: string;
-                        documentPrefix: string;
-                        invoicePrefix: string;
-                        taxExempt: boolean;
-                        publisherName: (string | null) | null;
-                        hostingProvider: (string | null) | null;
-                        hostingAddress: (string | null) | null;
-                        hostingPhone: (string | null) | null;
-                    } | null;
-                };
-            };
-        };
-    };
-    putCompany: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    shopName: string;
-                    logo?: (string | null) | null;
-                    /** Format: email */
-                    publicEmail: string;
-                    publicPhone?: (string | null) | null;
-                    legalName: string;
-                    legalForm?: (string | null) | null;
-                    siren?: (string | null) | null;
-                    siret?: (string | null) | null;
-                    tvaIntra?: (string | null) | null;
-                    rcsCity?: (string | null) | null;
-                    shareCapital?: (string | null) | null;
-                    street: string;
-                    street2?: (string | null) | null;
-                    postalCode: string;
-                    city: string;
-                    /** Format: uuid */
-                    country: string;
-                    documentPrefix?: string;
-                    invoicePrefix?: string;
-                    taxExempt?: boolean;
-                    publisherName?: (string | null) | null;
-                    hostingProvider?: (string | null) | null;
-                    hostingAddress?: (string | null) | null;
-                    hostingPhone?: (string | null) | null;
-                };
-                "application/x-www-form-urlencoded": {
-                    shopName: string;
-                    logo?: (string | null) | null;
-                    /** Format: email */
-                    publicEmail: string;
-                    publicPhone?: (string | null) | null;
-                    legalName: string;
-                    legalForm?: (string | null) | null;
-                    siren?: (string | null) | null;
-                    siret?: (string | null) | null;
-                    tvaIntra?: (string | null) | null;
-                    rcsCity?: (string | null) | null;
-                    shareCapital?: (string | null) | null;
-                    street: string;
-                    street2?: (string | null) | null;
-                    postalCode: string;
-                    city: string;
-                    /** Format: uuid */
-                    country: string;
-                    documentPrefix?: string;
-                    invoicePrefix?: string;
-                    taxExempt?: boolean;
-                    publisherName?: (string | null) | null;
-                    hostingProvider?: (string | null) | null;
-                    hostingAddress?: (string | null) | null;
-                    hostingPhone?: (string | null) | null;
-                };
-                "multipart/form-data": {
-                    shopName: string;
-                    logo?: (string | null) | null;
-                    /** Format: email */
-                    publicEmail: string;
-                    publicPhone?: (string | null) | null;
-                    legalName: string;
-                    legalForm?: (string | null) | null;
-                    siren?: (string | null) | null;
-                    siret?: (string | null) | null;
-                    tvaIntra?: (string | null) | null;
-                    rcsCity?: (string | null) | null;
-                    shareCapital?: (string | null) | null;
-                    street: string;
-                    street2?: (string | null) | null;
-                    postalCode: string;
-                    city: string;
-                    /** Format: uuid */
-                    country: string;
-                    documentPrefix?: string;
-                    invoicePrefix?: string;
-                    taxExempt?: boolean;
-                    publisherName?: (string | null) | null;
-                    hostingProvider?: (string | null) | null;
-                    hostingAddress?: (string | null) | null;
-                    hostingPhone?: (string | null) | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        shopName: string;
-                        logo: (string | null) | null;
-                        publicEmail: string;
-                        publicPhone: (string | null) | null;
-                        legalName: string;
-                        legalForm: (string | null) | null;
-                        siren: (string | null) | null;
-                        siret: (string | null) | null;
-                        tvaIntra: (string | null) | null;
-                        rcsCity: (string | null) | null;
-                        shareCapital: (string | null) | null;
-                        street: string;
-                        street2: (string | null) | null;
-                        postalCode: string;
-                        city: string;
-                        country: string;
-                        documentPrefix: string;
-                        invoicePrefix: string;
-                        taxExempt: boolean;
-                        publisherName: (string | null) | null;
-                        hostingProvider: (string | null) | null;
-                        hostingAddress: (string | null) | null;
-                        hostingPhone: (string | null) | null;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getCompanyCountries: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        code: string;
-                        isShippingEnabled: boolean;
-                    }[];
-                };
-            };
-        };
-    };
-    getStock: {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            variant: (string | null) | null;
-                            label: string;
-                            quantity: number;
-                            /** @enum {string} */
-                            type: "sale" | "return" | "restock" | "adjustment" | "reservation";
-                            reference: (string | null) | null;
-                            note: (string | null) | null;
-                            dateCreated: Record<string, never> | string | number;
-                        }[];
-                        meta: {
-                            page: number;
-                            limit: number;
-                            total: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    postStock: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    variant: string;
-                    quantity: number;
-                    /** @enum {string} */
-                    type: "restock" | "adjustment";
-                    note?: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    /** Format: uuid */
-                    variant: string;
-                    quantity: number;
-                    /** @enum {string} */
-                    type: "restock" | "adjustment";
-                    note?: string;
-                };
-                "multipart/form-data": {
-                    /** Format: uuid */
-                    variant: string;
-                    quantity: number;
-                    /** @enum {string} */
-                    type: "restock" | "adjustment";
-                    note?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        variant: (string | null) | null;
-                        label: string;
-                        quantity: number;
-                        /** @enum {string} */
-                        type: "sale" | "return" | "restock" | "adjustment" | "reservation";
-                        reference: (string | null) | null;
-                        note: (string | null) | null;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getStockAlerts: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        variantId: string;
-                        productId: string;
-                        productName: string;
-                        sku: (string | null) | null;
-                        quantity: number;
-                        lowStockThreshold: (number | null) | null;
-                    }[];
-                };
-            };
-        };
-    };
-    getStockVariants: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        sku: (string | null) | null;
-                        productName: string;
-                        quantity: number;
-                    }[];
-                };
-            };
-        };
-    };
-    getPaymentsProviders: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        description: string;
-                        fields: {
-                            key: string;
-                            label: string;
-                            type: string;
-                            placeholder?: string;
-                        }[];
-                        isConfigured: boolean;
-                        isEnabled: boolean;
-                        encryptionReady: boolean;
-                    }[];
-                };
-            };
-        };
-    };
-    putPaymentsProvidersStripe: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    secretKey: string;
-                    webhookSecret: string;
-                    isEnabled?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    secretKey: string;
-                    webhookSecret: string;
-                    isEnabled?: boolean;
-                };
-                "multipart/form-data": {
-                    secretKey: string;
-                    webhookSecret: string;
-                    isEnabled?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putPaymentsProvidersPaypal: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    clientId: string;
-                    clientSecret: string;
-                    /** @enum {string} */
-                    mode: "sandbox" | "live";
-                    webhookId: string;
-                    isEnabled?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    clientId: string;
-                    clientSecret: string;
-                    /** @enum {string} */
-                    mode: "sandbox" | "live";
-                    webhookId: string;
-                    isEnabled?: boolean;
-                };
-                "multipart/form-data": {
-                    clientId: string;
-                    clientSecret: string;
-                    /** @enum {string} */
-                    mode: "sandbox" | "live";
-                    webhookId: string;
-                    isEnabled?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postPaymentsCheckout: {
+    getCustomerAuthMe: {
         parameters: {
             query?: never;
             header?: never;
@@ -5639,99 +2528,6 @@ export interface operations {
                 echoppe_customer_session?: string;
             };
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    orderId: string;
-                    /** @enum {string} */
-                    provider: "stripe" | "paypal";
-                    /** Format: uri */
-                    successUrl: string;
-                    /** Format: uri */
-                    cancelUrl: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    /** Format: uuid */
-                    orderId: string;
-                    /** @enum {string} */
-                    provider: "stripe" | "paypal";
-                    /** Format: uri */
-                    successUrl: string;
-                    /** Format: uri */
-                    cancelUrl: string;
-                };
-                "multipart/form-data": {
-                    /** Format: uuid */
-                    orderId: string;
-                    /** @enum {string} */
-                    provider: "stripe" | "paypal";
-                    /** Format: uri */
-                    successUrl: string;
-                    /** Format: uri */
-                    cancelUrl: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        sessionId: string;
-                        url: string;
-                        provider: string;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Response for status 403 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postPaymentsWebhookStripe: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
         requestBody?: never;
         responses: {
             /** @description Response for status 200 */
@@ -5740,1897 +2536,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        received: boolean;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postPaymentsWebhookPaypal: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        received: boolean;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getPaymentsByOrderId: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                orderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        order: string;
-                        provider: string;
-                        status: string;
-                        amount: string;
-                        providerTransactionId: (string | null) | null;
-                        dateCreated: Record<string, never> | string | number;
-                        dateUpdated: ((Record<string, never> | string | number) | null) | null;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postPaymentsByOrderIdRefund: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                orderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    amount?: number;
-                };
-                "application/x-www-form-urlencoded": {
-                    amount?: number;
-                };
-                "multipart/form-data": {
-                    amount?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        success: boolean;
-                        refundId?: string;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getShippingProviders: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        description: string;
-                        fields: {
-                            key: string;
-                            label: string;
-                            type: string;
-                            placeholder?: string;
-                        }[];
-                        isConfigured: boolean;
-                        isEnabled: boolean;
-                        encryptionReady: boolean;
-                    }[];
-                };
-            };
-        };
-    };
-    postShippingRates: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    weight: number;
-                    fromPostalCode: string;
-                    fromCountry: string;
-                    toPostalCode: string;
-                    toCountry: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    weight: number;
-                    fromPostalCode: string;
-                    fromCountry: string;
-                    toPostalCode: string;
-                    toCountry: string;
-                };
-                "multipart/form-data": {
-                    weight: number;
-                    fromPostalCode: string;
-                    fromCountry: string;
-                    toPostalCode: string;
-                    toCountry: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        carrier: string;
-                        service: string;
-                        price: number;
-                        currency: string;
-                        deliveryDays: {
-                            min: number;
-                            max: number;
-                        };
-                    }[];
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getShippingTrackingByTrackingNumber: {
-        parameters: {
-            query?: {
-                provider?: string;
-            };
-            header?: never;
-            path: {
-                trackingNumber: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        date: Record<string, never> | string | number;
-                        status: string;
-                        description: string;
-                        location?: string;
-                    }[];
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putShippingProvidersColissimo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    contractNumber: string;
-                    password: string;
-                    isEnabled?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    contractNumber: string;
-                    password: string;
-                    isEnabled?: boolean;
-                };
-                "multipart/form-data": {
-                    contractNumber: string;
-                    password: string;
-                    isEnabled?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putShippingProvidersMondialrelay: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    brandId: string;
-                    login: string;
-                    password: string;
-                    isEnabled?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    brandId: string;
-                    login: string;
-                    password: string;
-                    isEnabled?: boolean;
-                };
-                "multipart/form-data": {
-                    brandId: string;
-                    login: string;
-                    password: string;
-                    isEnabled?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putShippingProvidersSendcloud: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    apiKey: string;
-                    apiSecret: string;
-                    isEnabled?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    apiKey: string;
-                    apiSecret: string;
-                    isEnabled?: boolean;
-                };
-                "multipart/form-data": {
-                    apiKey: string;
-                    apiSecret: string;
-                    isEnabled?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postShippingLabels: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    orderId: string;
-                    weight: number;
-                    /** @enum {string} */
-                    provider: "colissimo" | "mondialrelay" | "sendcloud";
-                    service?: string;
-                    sender: {
-                        name: string;
-                        company?: string;
-                        street1: string;
-                        street2?: string;
-                        city: string;
-                        postalCode: string;
-                        country: string;
-                        phone?: string;
-                        email?: string;
-                    };
-                    recipient: {
-                        name: string;
-                        company?: string;
-                        street1: string;
-                        street2?: string;
-                        city: string;
-                        postalCode: string;
-                        country: string;
-                        phone?: string;
-                        email?: string;
-                    };
-                };
-                "application/x-www-form-urlencoded": {
-                    /** Format: uuid */
-                    orderId: string;
-                    weight: number;
-                    /** @enum {string} */
-                    provider: "colissimo" | "mondialrelay" | "sendcloud";
-                    service?: string;
-                    sender: {
-                        name: string;
-                        company?: string;
-                        street1: string;
-                        street2?: string;
-                        city: string;
-                        postalCode: string;
-                        country: string;
-                        phone?: string;
-                        email?: string;
-                    };
-                    recipient: {
-                        name: string;
-                        company?: string;
-                        street1: string;
-                        street2?: string;
-                        city: string;
-                        postalCode: string;
-                        country: string;
-                        phone?: string;
-                        email?: string;
-                    };
-                };
-                "multipart/form-data": {
-                    /** Format: uuid */
-                    orderId: string;
-                    weight: number;
-                    /** @enum {string} */
-                    provider: "colissimo" | "mondialrelay" | "sendcloud";
-                    service?: string;
-                    sender: {
-                        name: string;
-                        company?: string;
-                        street1: string;
-                        street2?: string;
-                        city: string;
-                        postalCode: string;
-                        country: string;
-                        phone?: string;
-                        email?: string;
-                    };
-                    recipient: {
-                        name: string;
-                        company?: string;
-                        street1: string;
-                        street2?: string;
-                        city: string;
-                        postalCode: string;
-                        country: string;
-                        phone?: string;
-                        email?: string;
-                    };
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        trackingNumber: string;
-                        trackingUrl?: string;
-                        labelUrl?: string;
-                        labelData?: string;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getOrders: {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-                status?: string;
-                dateFrom?: string;
-                dateTo?: string;
-                search?: string;
-                amountMin?: string | number;
-                amountMax?: string | number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            orderNumber: string;
-                            /** @enum {string} */
-                            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
-                            totalTtc: string;
-                            dateCreated: Record<string, never> | string | number;
-                            customer: {
-                                id: string;
-                                email: string;
-                                firstName: string;
-                                lastName: string;
-                            };
-                        }[];
-                        meta: {
-                            page: number;
-                            limit: number;
-                            total: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    getOrdersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        orderNumber: string;
-                        /** @enum {string} */
-                        status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
-                        shippingAddress: unknown;
-                        billingAddress: unknown;
-                        subtotalHt: string;
-                        shippingHt: string;
-                        discountHt: string;
-                        totalHt: string;
-                        totalTax: string;
-                        totalTtc: string;
-                        customerNote: (string | null) | null;
-                        internalNote: (string | null) | null;
-                        dateCreated: Record<string, never> | string | number;
-                        dateUpdated: ((Record<string, never> | string | number) | null) | null;
-                        customer: {
-                            id: string;
-                            email: string;
-                            firstName: string;
-                            lastName: string;
-                            phone: (string | null) | null;
-                        };
-                        items: {
-                            id: string;
-                            order: string;
-                            variant: (string | null) | null;
-                            label: string;
-                            quantity: number;
-                            unitPriceHt: string;
-                            taxRate: string;
-                            totalHt: string;
-                            totalTtc: string;
-                        }[];
-                        payment: ({
-                            id: string;
-                            order: string;
-                            provider: string;
-                            status: string;
-                            amount: string;
-                            providerTransactionId: (string | null) | null;
-                            dateCreated: Record<string, never> | string | number;
-                            dateUpdated: ((Record<string, never> | string | number) | null) | null;
-                        } | null) | null;
-                        shipment: ({
-                            id: string;
-                            status: string;
-                            trackingNumber: (string | null) | null;
-                            trackingUrl: (string | null) | null;
-                            weight: (string | null) | null;
-                            shippedAt: ((Record<string, never> | string | number) | null) | null;
-                            deliveredAt: ((Record<string, never> | string | number) | null) | null;
-                            dateCreated: Record<string, never> | string | number;
-                            provider: ({
-                                id: string;
-                                name: string;
-                                type: string;
-                            } | null) | null;
-                        } | null) | null;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchOrdersByIdStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @enum {string} */
-                    status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
-                };
-                "application/x-www-form-urlencoded": {
-                    /** @enum {string} */
-                    status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
-                };
-                "multipart/form-data": {
-                    /** @enum {string} */
-                    status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        success: boolean;
-                        /** @enum {string} */
-                        previousStatus: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
-                        /** @enum {string} */
-                        newStatus: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchOrdersByIdNotes: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    internalNote?: string;
-                    customerNote?: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    internalNote?: string;
-                    customerNote?: string;
-                };
-                "multipart/form-data": {
-                    internalNote?: string;
-                    customerNote?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getOrdersStats: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        byStatus: {
-                            [key: string]: {
-                                count: number;
-                                total: number;
-                            };
-                        };
-                        totalOrders: number;
-                        totalRevenue: number;
-                    };
-                };
-            };
-        };
-    };
-    getOrdersByIdInvoices: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        type: string;
-                        number: string;
-                        status: string;
-                        totalHt: string;
-                        totalTax: string;
-                        totalTtc: string;
-                        dateIssued: Record<string, never> | string | number;
-                        dateDue: ((Record<string, never> | string | number) | null) | null;
-                        hasPdf: boolean;
-                    }[];
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postOrdersByIdInvoice: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @enum {string} */
-                    type?: "invoice" | "credit_note";
-                    dateDue?: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    /** @enum {string} */
-                    type?: "invoice" | "credit_note";
-                    dateDue?: string;
-                };
-                "multipart/form-data": {
-                    /** @enum {string} */
-                    type?: "invoice" | "credit_note";
-                    dateDue?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        number: string;
-                        pdfUrl: string;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getOrdersByIdInvoicesByInvoiceIdPdf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                invoiceId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: never;
-    };
-    getRolesResources: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        resources: string[];
-                    };
-                };
-            };
-        };
-    };
-    getRoles: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        scope: "admin" | "store";
-                        isSystem: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                    }[];
-                };
-            };
-        };
-    };
-    postRoles: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    description?: (string | null) | null;
-                    /** @enum {string} */
-                    scope: "admin" | "store";
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    description?: (string | null) | null;
-                    /** @enum {string} */
-                    scope: "admin" | "store";
-                };
-                "multipart/form-data": {
-                    name: string;
-                    description?: (string | null) | null;
-                    /** @enum {string} */
-                    scope: "admin" | "store";
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        scope: "admin" | "store";
-                        isSystem: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getRolesById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        scope: "admin" | "store";
-                        isSystem: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                        permissions: {
-                            id: string;
-                            role: string;
-                            resource: string;
-                            canCreate: boolean;
-                            canRead: boolean;
-                            canUpdate: boolean;
-                            canDelete: boolean;
-                            selfOnly: boolean;
-                            locked: boolean;
-                        }[];
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putRolesById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    description?: (string | null) | null;
-                    /** @enum {string} */
-                    scope: "admin" | "store";
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    description?: (string | null) | null;
-                    /** @enum {string} */
-                    scope: "admin" | "store";
-                };
-                "multipart/form-data": {
-                    name: string;
-                    description?: (string | null) | null;
-                    /** @enum {string} */
-                    scope: "admin" | "store";
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        description: (string | null) | null;
-                        /** @enum {string} */
-                        scope: "admin" | "store";
-                        isSystem: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                    };
-                };
-            };
-            /** @description Response for status 403 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteRolesById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Response for status 403 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putRolesByIdPermissions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    permissions: {
-                        resource: string;
-                        canCreate: boolean;
-                        canRead: boolean;
-                        canUpdate: boolean;
-                        canDelete: boolean;
-                        selfOnly?: boolean;
-                    }[];
-                };
-                "application/x-www-form-urlencoded": {
-                    permissions: {
-                        resource: string;
-                        canCreate: boolean;
-                        canRead: boolean;
-                        canUpdate: boolean;
-                        canDelete: boolean;
-                        selfOnly?: boolean;
-                    }[];
-                };
-                "multipart/form-data": {
-                    permissions: {
-                        resource: string;
-                        canCreate: boolean;
-                        canRead: boolean;
-                        canUpdate: boolean;
-                        canDelete: boolean;
-                        selfOnly?: boolean;
-                    }[];
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        permissions: {
-                            id: string;
-                            role: string;
-                            resource: string;
-                            canCreate: boolean;
-                            canRead: boolean;
-                            canUpdate: boolean;
-                            canDelete: boolean;
-                            selfOnly: boolean;
-                            locked: boolean;
-                        }[];
-                    };
-                };
-            };
-            /** @description Response for status 404 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getCart: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                echoppe_cart_session?: string;
-                echoppe_customer_session?: string;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string | null;
-                        /** @enum {string} */
-                        status: "active" | "converted" | "abandoned" | "empty";
-                        items: {
-                            id: string;
-                            variant: {
-                                id: string;
-                                sku: (string | null) | null;
-                                priceHt: string;
-                                product: {
-                                    id: string;
-                                    name: string;
-                                    slug: string;
-                                    featuredImage: (string | null) | null;
-                                };
-                            };
-                            quantity: number;
-                            dateAdded: Record<string, never> | string | number;
-                        }[];
-                        itemCount: number;
-                        totalHt: string;
-                        dateCreated: (Record<string, never> | string | number) | null;
-                        dateUpdated: (Record<string, never> | string | number) | null;
-                    };
-                };
-            };
-        };
-    };
-    deleteCart: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                echoppe_cart_session?: string;
-                echoppe_customer_session?: string;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-        };
-    };
-    postCartItems: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                echoppe_cart_session?: string;
-                echoppe_customer_session?: string;
-            };
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    variantId: string;
-                    quantity: number;
-                };
-                "application/x-www-form-urlencoded": {
-                    /** Format: uuid */
-                    variantId: string;
-                    quantity: number;
-                };
-                "multipart/form-data": {
-                    /** Format: uuid */
-                    variantId: string;
-                    quantity: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string | null;
-                        /** @enum {string} */
-                        status: "active" | "converted" | "abandoned" | "empty";
-                        items: {
-                            id: string;
-                            variant: {
-                                id: string;
-                                sku: (string | null) | null;
-                                priceHt: string;
-                                product: {
-                                    id: string;
-                                    name: string;
-                                    slug: string;
-                                    featuredImage: (string | null) | null;
-                                };
-                            };
-                            quantity: number;
-                            dateAdded: Record<string, never> | string | number;
-                        }[];
-                        itemCount: number;
-                        totalHt: string;
-                        dateCreated: (Record<string, never> | string | number) | null;
-                        dateUpdated: (Record<string, never> | string | number) | null;
-                    };
-                };
-            };
-            /** @description Requête invalide - Données manquantes ou incorrectes */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur de validation */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteCartItemsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: {
-                echoppe_cart_session?: string;
-                echoppe_customer_session?: string;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string | null;
-                        /** @enum {string} */
-                        status: "active" | "converted" | "abandoned" | "empty";
-                        items: {
-                            id: string;
-                            variant: {
-                                id: string;
-                                sku: (string | null) | null;
-                                priceHt: string;
-                                product: {
-                                    id: string;
-                                    name: string;
-                                    slug: string;
-                                    featuredImage: (string | null) | null;
-                                };
-                            };
-                            quantity: number;
-                            dateAdded: Record<string, never> | string | number;
-                        }[];
-                        itemCount: number;
-                        totalHt: string;
-                        dateCreated: (Record<string, never> | string | number) | null;
-                        dateUpdated: (Record<string, never> | string | number) | null;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchCartItemsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: {
-                echoppe_cart_session?: string;
-                echoppe_customer_session?: string;
-            };
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    quantity: number;
-                };
-                "application/x-www-form-urlencoded": {
-                    quantity: number;
-                };
-                "multipart/form-data": {
-                    quantity: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string | null;
-                        /** @enum {string} */
-                        status: "active" | "converted" | "abandoned" | "empty";
-                        items: {
-                            id: string;
-                            variant: {
-                                id: string;
-                                sku: (string | null) | null;
-                                priceHt: string;
-                                product: {
-                                    id: string;
-                                    name: string;
-                                    slug: string;
-                                    featuredImage: (string | null) | null;
-                                };
-                            };
-                            quantity: number;
-                            dateAdded: Record<string, never> | string | number;
-                        }[];
-                        itemCount: number;
-                        totalHt: string;
-                        dateCreated: (Record<string, never> | string | number) | null;
-                        dateUpdated: (Record<string, never> | string | number) | null;
-                    };
-                };
-            };
-            /** @description Requête invalide - Données manquantes ou incorrectes */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur de validation */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postCartMerge: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                echoppe_cart_session?: string;
-                echoppe_customer_session?: string;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        success: boolean;
-                        merged?: number;
-                        converted?: boolean;
-                    };
+                    "application/json": components["schemas"]["CustomerAuth"];
                 };
             };
             /** @description Non authentifié - Session invalide ou expirée */
@@ -7664,26 +2570,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: string;
-                        /** @enum {string} */
-                        type: "shipping" | "billing";
-                        label: (string | null) | null;
-                        firstName: string;
-                        lastName: string;
-                        company: (string | null) | null;
-                        street: string;
-                        street2: (string | null) | null;
-                        postalCode: string;
-                        city: string;
-                        country: {
-                            id: string;
-                            name: string;
-                            code: string;
-                        };
-                        phone: (string | null) | null;
-                        isDefault: boolean;
-                    }[];
+                    "application/json": components["schemas"]["AddressList"];
                 };
             };
         };
@@ -7756,26 +2643,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: string;
-                        /** @enum {string} */
-                        type: "shipping" | "billing";
-                        label: (string | null) | null;
-                        firstName: string;
-                        lastName: string;
-                        company: (string | null) | null;
-                        street: string;
-                        street2: (string | null) | null;
-                        postalCode: string;
-                        city: string;
-                        country: {
-                            id: string;
-                            name: string;
-                            code: string;
-                        };
-                        phone: (string | null) | null;
-                        isDefault: boolean;
-                    };
+                    "application/json": components["schemas"]["Address"];
                 };
             };
             /** @description Response for status 400 */
@@ -7811,26 +2679,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: string;
-                        /** @enum {string} */
-                        type: "shipping" | "billing";
-                        label: (string | null) | null;
-                        firstName: string;
-                        lastName: string;
-                        company: (string | null) | null;
-                        street: string;
-                        street2: (string | null) | null;
-                        postalCode: string;
-                        city: string;
-                        country: {
-                            id: string;
-                            name: string;
-                            code: string;
-                        };
-                        phone: (string | null) | null;
-                        isDefault: boolean;
-                    };
+                    "application/json": components["schemas"]["Address"];
                 };
             };
             /** @description Response for status 404 */
@@ -7917,26 +2766,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: string;
-                        /** @enum {string} */
-                        type: "shipping" | "billing";
-                        label: (string | null) | null;
-                        firstName: string;
-                        lastName: string;
-                        company: (string | null) | null;
-                        street: string;
-                        street2: (string | null) | null;
-                        postalCode: string;
-                        city: string;
-                        country: {
-                            id: string;
-                            name: string;
-                            code: string;
-                        };
-                        phone: (string | null) | null;
-                        isDefault: boolean;
-                    };
+                    "application/json": components["schemas"]["Address"];
                 };
             };
             /** @description Response for status 400 */
@@ -8003,30 +2833,6 @@ export interface operations {
                         /** @description Description de l'erreur */
                         message: string;
                     };
-                };
-            };
-        };
-    };
-    "getCheckoutPayment-providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        description: string;
-                    }[];
                 };
             };
         };
@@ -8147,12 +2953,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        orderId: string;
-                        orderNumber: string;
-                        paymentUrl: string;
-                        provider: string;
-                    };
+                    "application/json": components["schemas"]["CheckoutResult"];
                 };
             };
             /** @description Response for status 400 */
@@ -8181,286 +2982,46 @@ export interface operations {
             };
         };
     };
-    getCommunicationsProviders: {
+    postPaymentsCheckout: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        description: string;
-                        recommended?: boolean;
-                        fields: {
-                            key: string;
-                            label: string;
-                            type: string;
-                            placeholder?: string;
-                            options?: {
-                                value: string;
-                                label: string;
-                            }[];
-                        }[];
-                        isConfigured: boolean;
-                        isEnabled: boolean;
-                        encryptionReady: boolean;
-                    }[];
-                };
+            cookie?: {
+                echoppe_customer_session?: string;
             };
-        };
-    };
-    putCommunicationsProvidersResend: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
         };
         requestBody: {
             content: {
                 "application/json": {
-                    apiKey: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    apiKey: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-                "multipart/form-data": {
-                    apiKey: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putCommunicationsProvidersBrevo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    apiKey: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    apiKey: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-                "multipart/form-data": {
-                    apiKey: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    putCommunicationsProvidersSmtp: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    host: string;
-                    port: number;
-                    secure: boolean;
-                    user: string;
-                    pass: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    host: string;
-                    port: number;
-                    secure: boolean;
-                    user: string;
-                    pass: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-                "multipart/form-data": {
-                    host: string;
-                    port: number;
-                    secure: boolean;
-                    user: string;
-                    pass: string;
-                    /** Format: email */
-                    fromEmail: string;
-                    fromName: string;
-                    /** Format: email */
-                    replyTo?: string;
-                    isEnabled?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Response for status 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postCommunicationsTest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
+                    /** Format: uuid */
+                    orderId: string;
                     /** @enum {string} */
-                    provider: "resend" | "brevo" | "smtp";
-                    /** Format: email */
-                    to: string;
+                    provider: "stripe" | "paypal";
+                    /** Format: uri */
+                    successUrl: string;
+                    /** Format: uri */
+                    cancelUrl: string;
                 };
                 "application/x-www-form-urlencoded": {
+                    /** Format: uuid */
+                    orderId: string;
                     /** @enum {string} */
-                    provider: "resend" | "brevo" | "smtp";
-                    /** Format: email */
-                    to: string;
+                    provider: "stripe" | "paypal";
+                    /** Format: uri */
+                    successUrl: string;
+                    /** Format: uri */
+                    cancelUrl: string;
                 };
                 "multipart/form-data": {
+                    /** Format: uuid */
+                    orderId: string;
                     /** @enum {string} */
-                    provider: "resend" | "brevo" | "smtp";
-                    /** Format: email */
-                    to: string;
+                    provider: "stripe" | "paypal";
+                    /** Format: uri */
+                    successUrl: string;
+                    /** Format: uri */
+                    cancelUrl: string;
                 };
             };
         };
@@ -8472,9 +3033,9 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        success: boolean;
-                        messageId?: string;
-                        error?: string;
+                        sessionId: string;
+                        url: string;
+                        provider: string;
                     };
                 };
             };
@@ -8490,1009 +3051,28 @@ export interface operations {
                     };
                 };
             };
-        };
-    };
-    getCustomers: {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-                search?: string;
-                status?: string;
-                dateFrom?: string;
-                dateTo?: string;
-                hasOrders?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            email: string;
-                            firstName: string;
-                            lastName: string;
-                            phone: (string | null) | null;
-                            emailVerified: boolean;
-                            dateCreated: Record<string, never> | string | number;
-                            lastLogin: ((Record<string, never> | string | number) | null) | null;
-                            orderCount: number;
-                        }[];
-                        meta: {
-                            page: number;
-                            limit: number;
-                            total: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    getCustomersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        email: string;
-                        firstName: string;
-                        lastName: string;
-                        phone: (string | null) | null;
-                        avatar: (string | null) | null;
-                        emailVerified: boolean;
-                        marketingOptin: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                        dateUpdated: Record<string, never> | string | number;
-                        lastLogin: ((Record<string, never> | string | number) | null) | null;
-                        addresses: {
-                            id: string;
-                            type: string;
-                            label: (string | null) | null;
-                            firstName: string;
-                            lastName: string;
-                            company: (string | null) | null;
-                            street: string;
-                            street2: (string | null) | null;
-                            postalCode: string;
-                            city: string;
-                            country: string;
-                            phone: (string | null) | null;
-                            isDefault: boolean;
-                        }[];
-                        recentOrders: {
-                            id: string;
-                            orderNumber: string;
-                            status: string;
-                            totalTtc: string;
-                            dateCreated: Record<string, never> | string | number;
-                        }[];
-                        stats: {
-                            totalOrders: number;
-                            totalSpent: number;
-                        };
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
+            /** @description Response for status 403 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @description Permission manquante */
+                        /** @description Description de l'erreur */
                         message: string;
                     };
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Response for status 404 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @description Ressource non trouvée */
+                        /** @description Description de l'erreur */
                         message: string;
                     };
-                };
-            };
-        };
-    };
-    deleteCustomersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchCustomersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    firstName?: string;
-                    lastName?: string;
-                    phone?: (string | null) | null;
-                    marketingOptin?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    firstName?: string;
-                    lastName?: string;
-                    phone?: (string | null) | null;
-                    marketingOptin?: boolean;
-                };
-                "multipart/form-data": {
-                    firstName?: string;
-                    lastName?: string;
-                    phone?: (string | null) | null;
-                    marketingOptin?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchCustomersByIdStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    isActive: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    isActive: boolean;
-                };
-                "multipart/form-data": {
-                    isActive: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getUsers: {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-                search?: string;
-                role?: string;
-                status?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            email: string;
-                            firstName: string;
-                            lastName: string;
-                            role: {
-                                id: string;
-                                name: string;
-                            };
-                            isOwner: boolean;
-                            isActive: boolean;
-                            dateCreated: Record<string, never> | string | number;
-                            lastLogin: ((Record<string, never> | string | number) | null) | null;
-                        }[];
-                        meta: {
-                            page: number;
-                            limit: number;
-                            total: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    postUsers: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
-                    firstName: string;
-                    lastName: string;
-                    /** Format: uuid */
-                    role: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
-                    firstName: string;
-                    lastName: string;
-                    /** Format: uuid */
-                    role: string;
-                };
-                "multipart/form-data": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
-                    firstName: string;
-                    lastName: string;
-                    /** Format: uuid */
-                    role: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        email: string;
-                    };
-                };
-            };
-            /** @description Requête invalide - Données manquantes ou incorrectes */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur de validation */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    getUsersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        email: string;
-                        firstName: string;
-                        lastName: string;
-                        role: {
-                            id: string;
-                            name: string;
-                        };
-                        isOwner: boolean;
-                        isActive: boolean;
-                        dateCreated: Record<string, never> | string | number;
-                        lastLogin: ((Record<string, never> | string | number) | null) | null;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deleteUsersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchUsersById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: email */
-                    email?: string;
-                    password?: string;
-                    firstName?: string;
-                    lastName?: string;
-                    /** Format: uuid */
-                    role?: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    /** Format: email */
-                    email?: string;
-                    password?: string;
-                    firstName?: string;
-                    lastName?: string;
-                    /** Format: uuid */
-                    role?: string;
-                };
-                "multipart/form-data": {
-                    /** Format: email */
-                    email?: string;
-                    password?: string;
-                    firstName?: string;
-                    lastName?: string;
-                    /** Format: uuid */
-                    role?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Requête invalide - Données manquantes ou incorrectes */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur de validation */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    patchUsersByIdStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    isActive: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    isActive: boolean;
-                };
-                "multipart/form-data": {
-                    isActive: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Opération réussie
-                         * @constant
-                         */
-                        success: true;
-                    };
-                };
-            };
-            /** @description Non authentifié - Session invalide ou expirée */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Permission refusée - Droits insuffisants */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Ressource non trouvée */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    postContact: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    /** Format: email */
-                    email: string;
-                    subject: string;
-                    message: string;
-                };
-                "application/x-www-form-urlencoded": {
-                    name: string;
-                    /** Format: email */
-                    email: string;
-                    subject: string;
-                    message: string;
-                };
-                "multipart/form-data": {
-                    name: string;
-                    /** Format: email */
-                    email: string;
-                    subject: string;
-                    message: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Message de confirmation */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Trop de requêtes - Limite de débit dépassée */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Temps d'attente avant nouvelle tentative */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Erreur serveur interne */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Erreur interne */
-                        message: string;
-                    };
-                };
-            };
-            /** @description Service indisponible - Réessayez plus tard */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Service temporairement indisponible */
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    "getAudit-logs": {
-        parameters: {
-            query?: {
-                page?: string | number;
-                limit?: string | number;
-                action?: string;
-                entityType?: string;
-                userId?: string;
-                dateFrom?: string;
-                dateTo?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            user: ({
-                                id: string;
-                                email: string;
-                                firstName: string;
-                                lastName: string;
-                            } | null) | null;
-                            action: string;
-                            entityType: (string | null) | null;
-                            entityId: (string | null) | null;
-                            data: (unknown | null) | null;
-                            ipAddress: (string | null) | null;
-                            dateCreated: Record<string, never> | string | number;
-                        }[];
-                        meta: {
-                            page: number;
-                            limit: number;
-                            total: number;
-                            totalPages: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "getAudit-logsActions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string[];
-                };
-            };
-        };
-    };
-    "getAudit-logsEntity-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string[];
                 };
             };
         };

@@ -3,8 +3,10 @@
  * Régénère le contrat figé (`openapi.json`) puis les types TypeScript.
  *
  * 1. Récupère le spec OpenAPI de l'API en cours d'exécution.
- * 2. Le fige dans `openapi.json` (snapshot versionné, reproductible).
+ * 2. Filtre sur la surface storefront + tree-shake, puis le fige dans `openapi.json`.
  * 3. Génère `src/openapi.ts` depuis ce snapshot (pas l'URL → déterministe).
+ * 4. Génère `src/models.ts` : des alias plats des schémas, importables directement
+ *    (`import type { ProductDetail } from '@echoppe/client'`).
  *
  * Usage : `bun run generate` (API par défaut sur http://localhost:7532),
  * ou `ECHOPPE_API_URL=https://api.exemple.fr bun run generate`.
@@ -36,3 +38,19 @@ console.log(`✓ openapi.json figé (boutique : ${keptPaths} routes, ${keptSchem
 
 await $`bunx openapi-typescript openapi.json -o src/openapi.ts`;
 console.log('✓ src/openapi.ts généré');
+
+// Barrel d'alias plats : chaque schéma nommé devient un type importable directement,
+// sans passer par l'indexation `components['schemas']['X']`.
+const schemaNames = Object.keys(spec.components?.schemas ?? {}).sort();
+const models = [
+  '// Généré par scripts/generate.ts — NE PAS ÉDITER À LA MAIN.',
+  '// Alias plats des schémas du contrat (surface boutique), importables directement :',
+  "//   import type { ProductDetail } from '@echoppe/client';",
+  '',
+  "import type { components } from './openapi.js';",
+  '',
+  ...schemaNames.map((name) => `export type ${name} = components['schemas']['${name}'];`),
+  '',
+].join('\n');
+await Bun.write('src/models.ts', models);
+console.log(`✓ src/models.ts généré (${schemaNames.length} alias plats)`);

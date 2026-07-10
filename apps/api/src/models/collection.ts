@@ -6,13 +6,15 @@ import { paginatedResponse } from '../utils/pagination';
 // `components.schemas` du contrat OpenAPI.
 
 export const collectionSchema = t.Object({
-  id: t.String(),
-  name: t.String(),
-  slug: t.String(),
-  description: t.Nullable(t.String()),
-  image: t.Nullable(t.String()),
-  isVisible: t.Boolean(),
-  dateCreated: t.Date(),
+  id: t.String({ format: 'uuid', description: 'Identifiant unique de la collection.' }),
+  name: t.String({ description: 'Nom de la collection.' }),
+  slug: t.String({ description: "Identifiant lisible pour l'URL (ex. « nouveautes »)." }),
+  description: t.Nullable(t.String({ description: 'Description de la collection.' })),
+  image: t.Nullable(
+    t.String({ format: 'uuid', description: 'UUID du média illustrant la collection.' }),
+  ),
+  isVisible: t.Boolean({ description: 'Visible dans la boutique.' }),
+  dateCreated: t.Date({ description: 'Date de création.' }),
 });
 
 // Modèles nommés exposés dans le contrat (components.schemas).

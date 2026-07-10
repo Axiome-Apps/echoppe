@@ -5,45 +5,54 @@ import { t } from 'elysia';
 // `components.schemas` du contrat OpenAPI.
 
 const variantInCartSchema = t.Object({
-  id: t.String(),
-  sku: t.Nullable(t.String()),
-  priceHt: t.String(),
-  product: t.Object({
-    id: t.String(),
-    name: t.String(),
-    slug: t.String(),
-    featuredImage: t.Nullable(t.String()),
-  }),
+  id: t.String({ format: 'uuid', description: 'UUID de la variante.' }),
+  sku: t.Nullable(t.String({ description: 'Référence interne (SKU).' })),
+  priceHt: t.String({ description: 'Prix HT unitaire, décimal en chaîne (ex. « 12.90 »).' }),
+  product: t.Object(
+    {
+      id: t.String({ format: 'uuid', description: 'UUID du produit.' }),
+      name: t.String({ description: 'Nom du produit.' }),
+      slug: t.String({ description: "Identifiant lisible pour l'URL." }),
+      featuredImage: t.Nullable(
+        t.String({ format: 'uuid', description: 'UUID du média mis en avant.' }),
+      ),
+    },
+    { description: 'Produit rattaché à la variante.' },
+  ),
 });
 
 const cartItemSchema = t.Object({
-  id: t.String(),
+  id: t.String({ format: 'uuid', description: 'UUID de la ligne de panier.' }),
   variant: variantInCartSchema,
-  quantity: t.Number(),
-  dateAdded: t.Date(),
+  quantity: t.Number({ description: 'Quantité commandée.' }),
+  dateAdded: t.Date({ description: 'Date d’ajout au panier.' }),
 });
 
-const cartStatusEnum = t.Union([
-  t.Literal('active'),
-  t.Literal('converted'),
-  t.Literal('abandoned'),
-  t.Literal('empty'),
-]);
+const cartStatusEnum = t.Union(
+  [t.Literal('active'), t.Literal('converted'), t.Literal('abandoned'), t.Literal('empty')],
+  { description: 'État du panier.' },
+);
 
 export const cartResponseSchema = t.Object({
-  id: t.Union([t.String(), t.Null()]),
+  id: t.Union([t.String({ format: 'uuid' }), t.Null()], {
+    description: 'UUID du panier, ou null si aucun panier actif.',
+  }),
   status: cartStatusEnum,
-  items: t.Array(cartItemSchema),
-  itemCount: t.Number(),
-  totalHt: t.String(),
-  dateCreated: t.Union([t.Date(), t.Null()]),
-  dateUpdated: t.Union([t.Date(), t.Null()]),
+  items: t.Array(cartItemSchema, { description: 'Lignes du panier.' }),
+  itemCount: t.Number({ description: 'Nombre total d’articles (somme des quantités).' }),
+  totalHt: t.String({ description: 'Total HT, décimal en chaîne.' }),
+  dateCreated: t.Union([t.Date(), t.Null()], { description: 'Date de création, ou null.' }),
+  dateUpdated: t.Union([t.Date(), t.Null()], {
+    description: 'Date de dernière modification, ou null.',
+  }),
 });
 
 export const mergeResponseSchema = t.Object({
-  success: t.Boolean(),
-  merged: t.Optional(t.Number()),
-  converted: t.Optional(t.Boolean()),
+  success: t.Boolean({ description: 'Opération réussie.' }),
+  merged: t.Optional(t.Number({ description: 'Nombre de lignes fusionnées.' })),
+  converted: t.Optional(
+    t.Boolean({ description: 'Le panier anonyme a été converti en panier client.' }),
+  ),
 });
 
 // Modèles nommés exposés dans le contrat (components.schemas).

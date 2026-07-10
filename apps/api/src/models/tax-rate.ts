@@ -4,10 +4,10 @@ import { t } from 'elysia';
 // l'array) ET agrégé dans `taxRateModels` → peuple `components.schemas` du contrat OpenAPI.
 
 export const taxRateSchema = t.Object({
-  id: t.String(),
-  name: t.String(),
-  rate: t.String(),
-  isDefault: t.Boolean(),
+  id: t.String({ format: 'uuid', description: 'Identifiant unique du taux de TVA.' }),
+  name: t.String({ description: 'Nom du taux (ex. « TVA 20 % »).' }),
+  rate: t.String({ description: 'Taux en pourcentage, décimal en chaîne (ex. « 20.00 »).' }),
+  isDefault: t.Boolean({ description: 'Taux appliqué par défaut aux nouveaux produits.' }),
 });
 
 // Modèles nommés exposés dans le contrat (components.schemas).
