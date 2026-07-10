@@ -82,4 +82,6 @@ export const METHOD_NAMES: Record<string, string> = {
   postCustomerAuthRefresh: 'refresh',
   getCustomerAuthMe: 'me',
   postCustomerAuthPassword: 'changePassword',
+  postCustomerAuthPasswordForgot: 'forgotPassword',
+  postCustomerAuthPasswordReset: 'resetPassword',
 };

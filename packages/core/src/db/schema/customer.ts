@@ -28,6 +28,19 @@ export const customer = pgTable('customer', {
   lastLogin: timestamp('last_login', { withTimezone: true }),
 });
 
+// Jeton de réinitialisation de mot de passe (usage unique, TTL court). On stocke le HASH
+// SHA-256 du jeton, pas le jeton brut (envoyé seulement dans l'email au client).
+export const passwordResetToken = pgTable('password_reset_token', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  customer: uuid('customer')
+    .notNull()
+    .references(() => customer.id, { onDelete: 'cascade' }),
+  tokenHash: varchar('token_hash', { length: 64 }).notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true }),
+  dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const address = pgTable('address', {
   id: uuid('id').primaryKey().defaultRandom(),
   customer: uuid('customer')

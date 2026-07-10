@@ -1,16 +1,32 @@
-import { randomBytes } from 'node:crypto';
-import { and, customer, customerSession, db, eq, gt, ne, sendWelcomeEmail } from '@echoppe/core';
+import { createHash, randomBytes } from 'node:crypto';
+import {
+  and,
+  customer,
+  customerSession,
+  db,
+  eq,
+  gt,
+  ne,
+  passwordResetToken,
+  sendResetPasswordEmail,
+  sendWelcomeEmail,
+} from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
+import { PASSWORD_RESET_PATH, STOREFRONT_URL } from '../lib/config';
 import { models } from '../models';
 import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
 import { authRateLimitOptions, strictRateLimitOptions } from '../utils/rate-limit';
 import {
   conflictResponse,
+  errorSchema,
   rateLimitResponse,
   successSchema,
   unauthorizedResponse,
 } from '../utils/responses';
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 heure
+const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');
 
 const COOKIE_NAME = 'echoppe_customer_session';
 const SESSION_DURATION_DAYS = 7;
@@ -206,6 +222,86 @@ const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).use(models)
   },
 );
 
+// Réinitialisation de mot de passe oublié (public, rate-limited). Deux étapes :
+// - forgot : crée un jeton (hash stocké, brut envoyé par email). Réponse TOUJOURS 200
+//   (anti-énumération : ne révèle pas si l'email existe).
+// - reset : consomme le jeton (usage unique, non expiré) → change le mdp, révoque toutes
+//   les sessions du client.
+const passwordResetRoutes = new Elysia()
+  .use(rateLimit(strictRateLimitOptions))
+  .post(
+    '/password/forgot',
+    async ({ body }) => {
+      const [found] = await db
+        .select({ id: customer.id, email: customer.email })
+        .from(customer)
+        .where(eq(customer.email, body.email.toLowerCase()));
+
+      if (found) {
+        const rawToken = generateToken();
+        await db.insert(passwordResetToken).values({
+          customer: found.id,
+          tokenHash: sha256(rawToken),
+          expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
+        });
+
+        const resetUrl = `${STOREFRONT_URL}${PASSWORD_RESET_PATH}?token=${rawToken}`;
+        await sendResetPasswordEmail({ email: found.email, resetUrl, expiresIn: '1 heure' });
+      }
+
+      // Réponse identique que l'email existe ou non.
+      return { success: true };
+    },
+    {
+      body: t.Object({ email: t.String({ format: 'email' }) }),
+      response: { 200: successSchema, 429: rateLimitResponse },
+    },
+  )
+  .post(
+    '/password/reset',
+    async ({ body, status }) => {
+      const [tokenRow] = await db
+        .select({
+          id: passwordResetToken.id,
+          customer: passwordResetToken.customer,
+          expiresAt: passwordResetToken.expiresAt,
+          usedAt: passwordResetToken.usedAt,
+        })
+        .from(passwordResetToken)
+        .where(eq(passwordResetToken.tokenHash, sha256(body.token)));
+
+      if (!tokenRow || tokenRow.usedAt || tokenRow.expiresAt < new Date()) {
+        return status(400, { message: 'Lien de réinitialisation invalide ou expiré' });
+      }
+
+      const passwordHash = await Bun.password.hash(body.newPassword, {
+        algorithm: 'bcrypt',
+        cost: 10,
+      });
+
+      await db
+        .update(customer)
+        .set({ passwordHash, dateUpdated: new Date() })
+        .where(eq(customer.id, tokenRow.customer));
+
+      // Jeton consommé + révocation de toutes les sessions (sécurité).
+      await db
+        .update(passwordResetToken)
+        .set({ usedAt: new Date() })
+        .where(eq(passwordResetToken.id, tokenRow.id));
+      await db.delete(customerSession).where(eq(customerSession.customer, tokenRow.customer));
+
+      return { success: true };
+    },
+    {
+      body: t.Object({
+        token: t.String({ minLength: 1 }),
+        newPassword: t.String({ minLength: 8 }),
+      }),
+      response: { 200: successSchema, 400: errorSchema, 429: rateLimitResponse },
+    },
+  );
+
 export const customerAuthRoutes = new Elysia({
   prefix: '/customer/auth',
   detail: { tags: ['Customer Auth'] },
@@ -218,6 +314,7 @@ export const customerAuthRoutes = new Elysia({
   // Rate-limited routes
   .use(registerRoute)
   .use(loginRoute)
+  .use(passwordResetRoutes)
 
   // POST /customer/auth/logout (no rate limit)
   .post(

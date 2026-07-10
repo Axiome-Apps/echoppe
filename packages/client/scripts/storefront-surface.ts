@@ -51,6 +51,8 @@ export const STOREFRONT_SURFACE: ReadonlyArray<readonly [HttpMethod, string]> = 
   ['post', '/customer/auth/refresh'],
   ['get', '/customer/auth/me'],
   ['post', '/customer/auth/password'],
+  ['post', '/customer/auth/password/forgot'],
+  ['post', '/customer/auth/password/reset'],
   ['patch', '/customer/profile'],
   ['get', '/customer/addresses/'],
   ['get', '/customer/addresses/{id}'],

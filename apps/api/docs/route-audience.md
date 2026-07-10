@@ -73,6 +73,8 @@ PSP (signature). Aucune route de mutation orpheline détectée.
 | POST | `/customer/auth/refresh` | customer-auth | ✅ |
 | GET | `/customer/auth/me` | customer-auth | ✅ |
 | POST | `/customer/auth/password` | customer-auth | ✅ |
+| POST | `/customer/auth/password/forgot` | customer-auth (rate-limit, public) | ✅ |
+| POST | `/customer/auth/password/reset` | customer-auth (rate-limit, public) | ✅ |
 | PATCH | `/customer/profile` | customer-account | ✅ |
 | GET | `/customer/addresses/` | customer-addresses | ✅ |
 | GET | `/customer/addresses/:id` | customer-addresses | ✅ |
@@ -127,10 +129,12 @@ Routes admin **au sein de groupes mixtes** :
   `order.customer = currentCustomer.id`). Projection storefront `Order`/`OrderList`
   (`src/models/order.ts`) : sans `internalNote`, paiement et expédition allégés (pas de
   référence transaction ni de poids colis). La vue admin `orders/*` reste inchangée.
-- **Self-update du profil client absent** : `customer-auth` = register/login/logout/me/
-  refresh. Aucune route pour que le client édite son propre profil (nom, email) ou change
-  son mot de passe (le `PATCH /customers/:id` est admin). Manque des routes `customerAuth`
-  filtrées sur `customer.id`.
+- ~~**Self-update du profil client absent**~~ ✅ **fait (2026-07)** : `PATCH /customer/profile`
+  (nom/téléphone/optin, groupe `customer-account`), `POST /customer/auth/password`
+  (changement connecté, révoque les autres sessions), `POST /customer/auth/password/forgot`
+  + `/reset` (mot de passe oublié : jeton hashé usage unique TTL 1h, email via
+  `sendResetPasswordEmail`, lien `STORE_URL/reset-password`). **Reste** : changement d'email
+  (flux vérifié dédié) + suppression de compte RGPD (feature à part, cf. `TODO.md`).
 - **Frais de port / suivi côté client** : `POST /shipping/rates` et
   `GET /shipping/tracking/:n` sont admin. À exposer au storefront via des routes dédiées
   (frais = public pour estimer ; suivi = `customerAuth`), ou garder le calcul interne au

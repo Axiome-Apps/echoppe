@@ -19,11 +19,13 @@ export function createResources(client: Client<paths>) {
     },
     auth: {
       changePassword: (init: MaybeOptionalInit<paths['/customer/auth/password'], 'post'>) => client.POST('/customer/auth/password', init),
+      forgotPassword: (init: MaybeOptionalInit<paths['/customer/auth/password/forgot'], 'post'>) => client.POST('/customer/auth/password/forgot', init),
       login: (init: MaybeOptionalInit<paths['/customer/auth/login'], 'post'>) => client.POST('/customer/auth/login', init),
       logout: (init?: MaybeOptionalInit<paths['/customer/auth/logout'], 'post'>) => client.POST('/customer/auth/logout', init),
       me: (init?: MaybeOptionalInit<paths['/customer/auth/me'], 'get'>) => client.GET('/customer/auth/me', init),
       refresh: (init?: MaybeOptionalInit<paths['/customer/auth/refresh'], 'post'>) => client.POST('/customer/auth/refresh', init),
       register: (init: MaybeOptionalInit<paths['/customer/auth/register'], 'post'>) => client.POST('/customer/auth/register', init),
+      resetPassword: (init: MaybeOptionalInit<paths['/customer/auth/password/reset'], 'post'>) => client.POST('/customer/auth/password/reset', init),
     },
     cart: {
       addItem: (init: MaybeOptionalInit<paths['/cart/items'], 'post'>) => client.POST('/cart/items', init),

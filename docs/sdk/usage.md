@@ -70,7 +70,7 @@ if (error) return showStockError(error);
 | `categories` · `collections` | `list, get, bySlug, products` |
 | `cart` | `get, addItem, updateItem, removeItem, clear, merge` |
 | `checkout` | `create, paymentProviders, pay` |
-| `auth` | `register, login, logout, refresh, me, changePassword` |
+| `auth` | `register, login, logout, refresh, me, changePassword, forgotPassword, resetPassword` |
 | `account` | `update` (profil) |
 | `addresses` | `list, get, create, update, remove` |
 | `orders` | `list, get` |

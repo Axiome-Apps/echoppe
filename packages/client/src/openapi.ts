@@ -456,6 +456,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/customer/auth/password/forgot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postCustomerAuthPasswordForgot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customer/auth/password/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postCustomerAuthPasswordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/customer/profile": {
         parameters: {
             query?: never;
@@ -2756,6 +2788,124 @@ export interface operations {
                 content: {
                     "application/json": {
                         /** @description Raison du refus d'authentification */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    postCustomerAuthPasswordForgot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    email: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    /** Format: email */
+                    email: string;
+                };
+                "multipart/form-data": {
+                    /** Format: email */
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Opération réussie
+                         * @constant
+                         */
+                        success: true;
+                    };
+                };
+            };
+            /** @description Trop de requêtes - Limite de débit dépassée */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Temps d'attente avant nouvelle tentative */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    postCustomerAuthPasswordReset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token: string;
+                    newPassword: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    token: string;
+                    newPassword: string;
+                };
+                "multipart/form-data": {
+                    token: string;
+                    newPassword: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Opération réussie
+                         * @constant
+                         */
+                        success: true;
+                    };
+                };
+            };
+            /** @description Response for status 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Description de l'erreur */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Trop de requêtes - Limite de débit dépassée */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Temps d'attente avant nouvelle tentative */
                         message: string;
                     };
                 };
