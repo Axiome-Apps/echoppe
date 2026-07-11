@@ -34,12 +34,17 @@ jobs:
         with:
           bun-version: latest
 
+      # Node 24 : runtime requis pour le handshake OIDC de npm. Sur Node 22, le
+      # CLI rate le handshake trusted-publishing → le registre traite la session
+      # comme anonyme et renvoie un 404 trompeur sur la résolution de version, ce
+      # qui fait croire à changesets qu'aucun paquet n'est publié (il retente
+      # alors de republier les versions déjà en ligne → échec). Cf. npm/cli #8678.
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
-      # OIDC/trusted publishing exige npm >= 11.5.1 (Node 22 embarque npm 10.x).
+      # Filet de sécurité : garantit npm >= 11.5.1 quel que soit le minor de Node 24.
       - name: Ensure npm supports OIDC
         run: npm install -g npm@latest
 
