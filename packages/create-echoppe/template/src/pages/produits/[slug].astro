@@ -4,7 +4,7 @@ import { api, formatPrice, mediaUrl } from '../../lib/api';
 
 const { slug } = Astro.params;
 
-const { data: product } = await api.GET('/products/by-slug/{slug}', {
+const { data: product } = await api.products.bySlug({
   params: { path: { slug: slug ?? '' } },
 });
 
