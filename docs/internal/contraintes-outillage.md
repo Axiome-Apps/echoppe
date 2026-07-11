@@ -57,11 +57,17 @@ section « Résolu ») pour l'historique.
 
 - **Symptôme** : `Node 20 is being deprecated. This workflow is running with Node 24
   by default…` sur les runs.
-- **Cause** : `actions/checkout@v4` et `actions/setup-node@v4` embarquent encore le
-  runtime **node20** (les tags flottants `oven-sh/setup-bun@v2` et
-  `changesets/action@v1` résolvent déjà en node24).
-- **Résolution** (2026-07-11) : bump `checkout@v7` + `setup-node@v6` (node24) dans
-  les trois workflows. Rien à revisiter.
+- **Cause** : plusieurs actions épinglées sur des majeures encore **node20** (les
+  tags flottants `oven-sh/setup-bun@v2` et `changesets/action@v1` résolvaient déjà
+  en node24).
+- **Résolution** (2026-07-11) : bump vers les majeures node24 sur les **trois**
+  workflows —
+  - `release.yml` : `checkout@v7`, `setup-node@v6` ;
+  - `docker-build.yml` : `setup-qemu-action@v4`, `setup-buildx-action@v4`,
+    `login-action@v4`, `build-push-action@v7` ;
+  - `docs-deploy.yml` : `checkout@v7`, `upload-pages-artifact@v5`,
+    `deploy-pages@v5`.
+  Inventaire vérifié : plus aucune action node20. Rien à revisiter.
 
 ---
 
