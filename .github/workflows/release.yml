@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -40,7 +40,7 @@ jobs:
       # qui fait croire à changesets qu'aucun paquet n'est publié (il retente
       # alors de republier les versions déjà en ligne → échec). Cf. npm/cli #8678.
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
