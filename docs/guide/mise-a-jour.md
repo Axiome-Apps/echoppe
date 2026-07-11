@@ -31,7 +31,7 @@ Par défaut, `create-echoppe` écrit `ECHOPPE_VERSION=latest` dans `.env`. Prati
 un `pull` vous fait alors sauter sur la dernière version **sans que vous choisissiez le
 moment**. En production, épinglez une version précise :
 
-```env
+```dotenv
 # .env
 ECHOPPE_VERSION=0.1.0
 ```

@@ -1,3 +1,8 @@
+---
+aside: false
+pageClass: api-reference
+---
+
 <!-- Généré par docs/scripts/gen-sdk-reference.ts — NE PAS ÉDITER À LA MAIN. -->
 
 # Référence des modèles
@@ -11,7 +16,15 @@ objets imbriqués dépliables) avec un exemple d’appel et un exemple de répon
 
 ### ProductDetail
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="ProductDetail" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -41,9 +54,21 @@ const data = await res.json();
 
 <ResponseSample name="ProductDetail" />
 
+</template>
+
+</ApiBlock>
+
 ### ProductList
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="ProductList" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -73,9 +98,21 @@ const data = await res.json();
 
 <ResponseSample name="ProductList" />
 
+</template>
+
+</ApiBlock>
+
 ### ProductWithVariants
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="ProductWithVariants" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -105,11 +142,23 @@ const data = await res.json();
 
 <ResponseSample name="ProductWithVariants" />
 
+</template>
+
+</ApiBlock>
+
 ## `categories`
 
 ### Category
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="Category" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -139,9 +188,21 @@ const data = await res.json();
 
 <ResponseSample name="Category" />
 
+</template>
+
+</ApiBlock>
+
 ### CategoryList
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="CategoryList" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -169,11 +230,23 @@ const data = await res.json();
 
 <ResponseSample name="CategoryList" />
 
+</template>
+
+</ApiBlock>
+
 ## `collections`
 
 ### Collection
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="Collection" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -203,9 +276,21 @@ const data = await res.json();
 
 <ResponseSample name="Collection" />
 
+</template>
+
+</ApiBlock>
+
 ### CollectionList
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="CollectionList" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -235,11 +320,23 @@ const data = await res.json();
 
 <ResponseSample name="CollectionList" />
 
+</template>
+
+</ApiBlock>
+
 ## `cart`
 
 ### Cart
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="Cart" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -267,9 +364,21 @@ const data = await res.json();
 
 <ResponseSample name="Cart" />
 
+</template>
+
+</ApiBlock>
+
 ### CartMerge
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="CartMerge" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -297,11 +406,23 @@ const data = await res.json();
 
 <ResponseSample name="CartMerge" />
 
+</template>
+
+</ApiBlock>
+
 ## `checkout`
 
 ### CheckoutResult
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="CheckoutResult" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -389,9 +510,21 @@ const data = await res.json();
 
 <ResponseSample name="CheckoutResult" />
 
+</template>
+
+</ApiBlock>
+
 ### PaymentProviderList
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="PaymentProviderList" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -419,11 +552,23 @@ const data = await res.json();
 
 <ResponseSample name="PaymentProviderList" />
 
+</template>
+
+</ApiBlock>
+
 ## `taxRates`
 
 ### TaxRateList
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="TaxRateList" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -451,11 +596,23 @@ const data = await res.json();
 
 <ResponseSample name="TaxRateList" />
 
+</template>
+
+</ApiBlock>
+
 ## `auth`
 
 ### CustomerAuth
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="CustomerAuth" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -483,9 +640,21 @@ const data = await res.json();
 
 <ResponseSample name="CustomerAuth" />
 
+</template>
+
+</ApiBlock>
+
 ### LoginResult
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="LoginResult" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -523,11 +692,23 @@ const data = await res.json();
 
 <ResponseSample name="LoginResult" />
 
+</template>
+
+</ApiBlock>
+
 ## `addresses`
 
 ### Address
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="Address" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -557,9 +738,21 @@ const data = await res.json();
 
 <ResponseSample name="Address" />
 
+</template>
+
+</ApiBlock>
+
 ### AddressList
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="AddressList" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -587,11 +780,23 @@ const data = await res.json();
 
 <ResponseSample name="AddressList" />
 
+</template>
+
+</ApiBlock>
+
 ## `orders`
 
 ### Order
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="Order" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -621,9 +826,21 @@ const data = await res.json();
 
 <ResponseSample name="Order" />
 
+</template>
+
+</ApiBlock>
+
 ### OrderList
 
+<ApiBlock>
+
+<template #doc>
+
 <ModelDoc name="OrderList" />
+
+</template>
+
+<template #code>
 
 **Exemple d’appel**
 
@@ -652,3 +869,95 @@ const data = await res.json();
 **Exemple de réponse**
 
 <ResponseSample name="OrderList" />
+
+</template>
+
+</ApiBlock>
+
+## `pages`
+
+### Page
+
+<ApiBlock>
+
+<template #doc>
+
+<ModelDoc name="Page" />
+
+</template>
+
+<template #code>
+
+**Exemple d’appel**
+
+::: code-group
+
+```ts [SDK]
+import { createEchoppeClient } from '@echoppe/client';
+
+const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
+
+const { data, error } = await echoppe.pages.bySlug({
+  params: { path: { slug: 'mon-slug' } },
+});
+```
+
+```js [REST]
+const res = await fetch('https://api.maboutique.fr/pages/by-slug/mon-slug', {
+  method: 'GET',
+  credentials: 'include',
+});
+const data = await res.json();
+```
+
+:::
+
+**Exemple de réponse**
+
+<ResponseSample name="Page" />
+
+</template>
+
+</ApiBlock>
+
+### PageList
+
+<ApiBlock>
+
+<template #doc>
+
+<ModelDoc name="PageList" />
+
+</template>
+
+<template #code>
+
+**Exemple d’appel**
+
+::: code-group
+
+```ts [SDK]
+import { createEchoppeClient } from '@echoppe/client';
+
+const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
+
+const { data, error } = await echoppe.pages.list();
+```
+
+```js [REST]
+const res = await fetch('https://api.maboutique.fr/pages/', {
+  method: 'GET',
+  credentials: 'include',
+});
+const data = await res.json();
+```
+
+:::
+
+**Exemple de réponse**
+
+<ResponseSample name="PageList" />
+
+</template>
+
+</ApiBlock>

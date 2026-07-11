@@ -81,7 +81,9 @@ function highlight(json: string): string {
   margin: 0;
   padding: 0.85rem 1rem;
   background: var(--vp-code-block-bg);
-  overflow-x: auto;
+  /* Colonne étroite (mode API) : on enroule le JSON plutôt que de scroller. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   font-family: var(--vp-font-family-mono);
   font-size: 0.82rem;
   line-height: 1.55;

@@ -1,0 +1,31 @@
+/**
+ * Mode « référence API » — activé par `pageClass: api-reference` (frontmatter de
+ * `sdk/reference.md`, généré). La classe est posée sur `.Layout` par VitePress.
+ *
+ * La page passe en `aside: false` (pas de TOC droite — la nav namespace→modèle vit dans
+ * la sidebar gauche), ce qui lève déjà le cap de 688px du contenu. On élargit la scène
+ * pour laisser respirer la grille 2 colonnes de `<ApiBlock>`.
+ */
+.Layout.api-reference {
+  --vp-layout-max-width: 1536px;
+}
+
+/* Ceinture-bretelles : garantir que le contenu occupe toute la largeur dispo. */
+.api-reference .VPDoc:not(.has-aside) .content,
+.api-reference .VPDoc:not(.has-aside) .content-container {
+  max-width: none;
+}
+
+/* Colonnes étroites : code + JSON s'enroulent au lieu de scroller horizontalement.
+   Scopé au mode API — les pages de guide (pleine largeur) gardent le scroll natif. */
+.api-reference [class*='language-'] pre,
+.api-reference [class*='language-'] code,
+.api-reference .resp-code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Code inline (identifiants longs, chemins de route) : coupe plutôt que déborder. */
+.api-reference :not(pre) > code {
+  overflow-wrap: anywhere;
+}

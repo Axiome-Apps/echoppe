@@ -1,0 +1,147 @@
+{
+  "text": "Référence des modèles",
+  "link": "/sdk/reference",
+  "collapsed": false,
+  "items": [
+    {
+      "text": "products",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "ProductDetail",
+          "link": "/sdk/reference#productdetail"
+        },
+        {
+          "text": "ProductList",
+          "link": "/sdk/reference#productlist"
+        },
+        {
+          "text": "ProductWithVariants",
+          "link": "/sdk/reference#productwithvariants"
+        }
+      ]
+    },
+    {
+      "text": "categories",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "Category",
+          "link": "/sdk/reference#category"
+        },
+        {
+          "text": "CategoryList",
+          "link": "/sdk/reference#categorylist"
+        }
+      ]
+    },
+    {
+      "text": "collections",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "Collection",
+          "link": "/sdk/reference#collection"
+        },
+        {
+          "text": "CollectionList",
+          "link": "/sdk/reference#collectionlist"
+        }
+      ]
+    },
+    {
+      "text": "cart",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "Cart",
+          "link": "/sdk/reference#cart"
+        },
+        {
+          "text": "CartMerge",
+          "link": "/sdk/reference#cartmerge"
+        }
+      ]
+    },
+    {
+      "text": "checkout",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "CheckoutResult",
+          "link": "/sdk/reference#checkoutresult"
+        },
+        {
+          "text": "PaymentProviderList",
+          "link": "/sdk/reference#paymentproviderlist"
+        }
+      ]
+    },
+    {
+      "text": "taxRates",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "TaxRateList",
+          "link": "/sdk/reference#taxratelist"
+        }
+      ]
+    },
+    {
+      "text": "auth",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "CustomerAuth",
+          "link": "/sdk/reference#customerauth"
+        },
+        {
+          "text": "LoginResult",
+          "link": "/sdk/reference#loginresult"
+        }
+      ]
+    },
+    {
+      "text": "addresses",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "Address",
+          "link": "/sdk/reference#address"
+        },
+        {
+          "text": "AddressList",
+          "link": "/sdk/reference#addresslist"
+        }
+      ]
+    },
+    {
+      "text": "orders",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "Order",
+          "link": "/sdk/reference#order"
+        },
+        {
+          "text": "OrderList",
+          "link": "/sdk/reference#orderlist"
+        }
+      ]
+    },
+    {
+      "text": "pages",
+      "collapsed": true,
+      "items": [
+        {
+          "text": "Page",
+          "link": "/sdk/reference#page"
+        },
+        {
+          "text": "PageList",
+          "link": "/sdk/reference#pagelist"
+        }
+      ]
+    }
+  ]
+}

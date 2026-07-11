@@ -33,7 +33,7 @@ Deux des trois ports sont des inversions. C'est intentionnel : un axiome est une
 
 Ces ports sont des *defaults*, pas des contraintes. Chaque port est configurable via variables d'environnement :
 
-```env
+```dotenv
 # .env
 STORE_PORT=3141
 ADMIN_PORT=3211
@@ -42,7 +42,7 @@ API_PORT=7532
 
 Vous préférez une configuration classique ? Aucun problème :
 
-```env
+```dotenv
 STORE_PORT=3000
 ADMIN_PORT=3001
 API_PORT=8000

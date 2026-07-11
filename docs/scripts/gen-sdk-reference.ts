@@ -7,9 +7,11 @@
  * Alimenté par le contrat `packages/client/openapi.json` : la page suit le contrat.
  * Usage : `bun run gen:reference` (depuis le paquet docs).
  */
-import { codeExample, modelNames, namespaceFor, restExample } from '../.vitepress/theme/lib/openapi';
+import { anchor, codeExample, modelNames, namespaceFor, restExample } from '../.vitepress/theme/lib/openapi';
 
 const OUTPUT = new URL('../sdk/reference.md', import.meta.url);
+// Arbre de nav namespace→modèle, importé par config.ts pour la sidebar de la page (mode API).
+const NAV_OUTPUT = new URL('../.vitepress/generated/sdk-reference-nav.json', import.meta.url);
 
 // Ordre d'affichage des namespaces (aligné sur la façade). Tout namespace absent d'ici est
 // ajouté à la fin ; les modèles sans namespace tombent dans « Autres ».
@@ -40,6 +42,13 @@ const orderedNamespaces = [
 ];
 
 const lines: string[] = [
+  // Mode API : pas de TOC droite (aside:false) — la nav namespace→modèle vit dans la
+  // sidebar gauche ; `pageClass` active la mise en page 2 colonnes (cf. api-reference.css).
+  '---',
+  'aside: false',
+  'pageClass: api-reference',
+  '---',
+  '',
   '<!-- Généré par docs/scripts/gen-sdk-reference.ts — NE PAS ÉDITER À LA MAIN. -->',
   '',
   '# Référence des modèles',
@@ -55,7 +64,9 @@ for (const ns of orderedNamespaces) {
   lines.push(`## ${ns === OTHER ? OTHER : `\`${ns}\``}`, '');
 
   for (const name of byNamespace.get(ns)!) {
-    lines.push(`### ${name}`, '', `<ModelDoc name="${name}" />`, '');
+    // Titre hors du bloc → il porte l'ancre (cible de la sidebar) et s'étend pleine largeur.
+    // Colonne gauche = schéma ; colonne droite (sticky) = exemples d'appel + de réponse.
+    lines.push(`### ${name}`, '', '<ApiBlock>', '', '<template #doc>', '', `<ModelDoc name="${name}" />`, '', '</template>', '', '<template #code>', '');
 
     const sdk = codeExample(name);
     const rest = restExample(name);
@@ -78,9 +89,26 @@ for (const ns of orderedNamespaces) {
       );
     }
 
-    lines.push('**Exemple de réponse**', '', `<ResponseSample name="${name}" />`, '');
+    lines.push('**Exemple de réponse**', '', `<ResponseSample name="${name}" />`, '', '</template>', '', '</ApiBlock>', '');
   }
 }
 
 await Bun.write(OUTPUT, `${lines.join('\n').trimEnd()}\n`);
-console.log(`✓ docs/sdk/reference.md généré (${modelNames.length} modèles)`);
+
+// Sidebar imbriquée namespace→modèle (remplace la TOC droite sur cette page).
+const referenceNav = {
+  text: 'Référence des modèles',
+  link: '/sdk/reference',
+  collapsed: false,
+  items: orderedNamespaces.map((ns) => ({
+    text: ns === OTHER ? OTHER : ns,
+    collapsed: true,
+    items: byNamespace.get(ns)!.map((name) => ({
+      text: name,
+      link: `/sdk/reference#${anchor(name)}`,
+    })),
+  })),
+};
+await Bun.write(NAV_OUTPUT, `${JSON.stringify(referenceNav, null, 2)}\n`);
+
+console.log(`✓ docs/sdk/reference.md + nav généré (${modelNames.length} modèles)`);

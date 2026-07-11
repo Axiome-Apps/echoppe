@@ -1,4 +1,6 @@
 import { defineConfig } from 'vitepress';
+// Généré par `bun run gen:reference` — arbre namespace→modèle de la référence SDK.
+import referenceNav from './generated/sdk-reference-nav.json';
 
 export default defineConfig({
   title: 'Échoppe',
@@ -9,6 +11,12 @@ export default defineConfig({
   ignoreDeadLinks: true,
 
   head: [['link', { rel: 'icon', href: '/favicon.ico' }]],
+
+  // Coloration de syntaxe des blocs de code alignée sur le skin (Latte/Mocha), sinon Shiki
+  // reste sur son thème par défaut (rouge/bleu) qui jure avec Catppuccin. Thèmes embarqués.
+  markdown: {
+    theme: { light: 'catppuccin-latte', dark: 'catppuccin-mocha' },
+  },
 
   themeConfig: {
     logo: '/logo.svg',
@@ -55,7 +63,7 @@ export default defineConfig({
             { text: 'Installation', link: '/sdk/installation' },
             { text: 'Utilisation', link: '/sdk/usage' },
             { text: 'Types & surface', link: '/sdk/types' },
-            { text: 'Référence des modèles', link: '/sdk/reference' },
+            referenceNav,
           ],
         },
       ],
