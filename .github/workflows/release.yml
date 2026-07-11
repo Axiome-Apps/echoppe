@@ -44,9 +44,12 @@ jobs:
         with:
           node-version: 24
 
-      # Filet de sécurité : garantit npm >= 11.5.1 quel que soit le minor de Node 24.
+      # npm 11.x : compatible OIDC (>= 11.5.1) ET avec la détection de changesets.
+      # PAS npm@latest → tire npm 12, dont la sortie `npm info` casse le
+      # `getUnpublishedPackages` de changesets (il croit tout non-publié et
+      # retente de republier les versions déjà en ligne). Cf. diagnostic interne.
       - name: Ensure npm supports OIDC
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
