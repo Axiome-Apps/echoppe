@@ -26,6 +26,7 @@ export default defineConfig({
       { text: 'Admin', link: '/admin/' },
       { text: 'SDK', link: '/sdk/' },
       { text: 'Développeur', link: '/dev/' },
+      { text: 'Roadmap', link: '/roadmap' },
     ],
 
     sidebar: {
