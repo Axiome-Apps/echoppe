@@ -51,9 +51,12 @@ COPY . .
 # API (compiled binary - no node_modules needed)
 # ==============================================================================
 FROM source AS api-builder
+# PAS de --minify : Elysia analyse le SOURCE des handlers/macros (Sucrose) pour n'injecter
+# dans le contexte que les propriétés réellement utilisées (headers, cookie…). La minification
+# renomme les paramètres déstructurés → l'analyse échoue → `headers` non injecté (undefined) →
+# 500 sur toute route protégée par RBAC. Bug invisible en dev (TS interprété), fatal en binaire.
 RUN bun build src/index.ts \
     --compile \
-    --minify \
     --sourcemap=none \
     --outfile api \
     --target bun \
@@ -86,12 +89,11 @@ CMD ["./api"]
 # ==============================================================================
 # Admin Dashboard
 # ==============================================================================
-# L'admin est un site STATIQUE (l'image finale est caddy servant dist/) : les assets
-# compilés sont indépendants de l'architecture. On épingle donc le build vite sur la
-# plateforme de build native ($BUILDPLATFORM) au lieu de le ré-exécuter sous émulation
-# QEMU arm64 (~70× plus lent) pour un résultat identique. Seul le stage caddy final est
-# cross-buildé par arch (copie d'assets arch-indépendants).
-FROM --platform=$BUILDPLATFORM source AS admin-builder
+# L'admin est un site STATIQUE (l'image finale est caddy servant dist/). Le build vite sous
+# émulation QEMU arm64 est ~70× plus lent (~4 min) pour un résultat arch-indépendant : l'image
+# admin est donc construite en amd64 uniquement (cf. docker-build.yml). Elle tourne en émulation
+# négligeable sur un hôte arm64 (service de fichiers statiques).
+FROM source AS admin-builder
 ARG VITE_API_URL=http://localhost:7532
 ENV VITE_API_URL=$VITE_API_URL
 RUN bun run --cwd apps/admin build

@@ -15,7 +15,15 @@ jobs:
 
     strategy:
       matrix:
-        target: [api, admin]
+        include:
+          # API : binaire natif compilé → multi-arch réel (amd64 + arm64).
+          - target: api
+            platforms: linux/amd64,linux/arm64
+          # Admin : site statique (caddy) → amd64 seul. Le build vite sous émulation arm64
+          # coûte ~4 min pour un résultat arch-indépendant ; l'image tourne en émulation
+          # négligeable sur un hôte arm64.
+          - target: admin
+            platforms: linux/amd64
 
     steps:
       - name: Checkout
@@ -44,7 +52,7 @@ jobs:
         with:
           context: .
           target: ${{ matrix.target }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platforms }}
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}-${{ matrix.target }}:${{ steps.version.outputs.VERSION }}
