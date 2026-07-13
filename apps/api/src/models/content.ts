@@ -1,76 +1,124 @@
-import { type TSchema, t } from 'elysia';
+import { type Static, t } from 'elysia';
 
-// Modèles du module content (page builder). SOURCE UNIQUE des schémas de blocs : une union
-// discriminée sur `type`. Chaque bloc porte ses champs dans `data`. Ajouter un type de bloc =
-// une variante ici (+ form admin + composant storefront), SANS migration.
+// Modèles du module content (page builder).
+//
+// La forme des blocs n'est PLUS codée en dur ici : elle vit dans le REGISTRE (config-as-code
+// déclarée par le dev via `@echoppe/content`, synchronisée en DB via `PUT /content/registry`).
+// Ce fichier garde deux rôles :
+//   1. le CONTRAT de lecture storefront (page / section générique) — inchangé ;
+//   2. le schéma du REGISTRE entrant (frontière de validation du `PUT /content/registry`), d'où
+//      l'on dérive les types (`Static`) exploités par le validateur générique (services/content).
+// La validation fine de `data` par bloc est faite à l'exécution par ce validateur (schéma compilé
+// depuis le registre), pas par une union statique.
 
 const uuidStr = (description: string) => t.String({ format: 'uuid', description });
 
-// ── Champs (`data`) par type de bloc ────────────────────────────────────────
-const heroData = t.Object({
-  image: t.Nullable(uuidStr('UUID du média de fond, ou null.')),
-  title: t.String({ description: 'Titre principal.' }),
-  subtitle: t.Nullable(t.String({ description: 'Sous-titre, ou null.' })),
-  ctaLabel: t.Nullable(t.String({ description: 'Libellé du bouton d’action, ou null.' })),
-  ctaHref: t.Nullable(t.String({ description: 'Lien du bouton d’action, ou null.' })),
+// ── Registre : grammaire des champs sérialisés (miroir de @echoppe/content) ───────────────────
+// Méta commune à tout champ.
+const fieldMeta = {
+  label: t.Optional(t.String()),
+  hint: t.Optional(t.String()),
+  required: t.Optional(t.Boolean()),
+};
+
+const refTarget = t.Union([t.Literal('product'), t.Literal('collection'), t.Literal('category')]);
+
+// Un champ du registre. Récursif : `repeater` contient lui-même un dictionnaire de champs.
+const serializedFieldSchema = t.Recursive((self) =>
+  t.Union([
+    t.Object({
+      ...fieldMeta,
+      kind: t.Literal('text'),
+      placeholder: t.Optional(t.String()),
+      default: t.Optional(t.String()),
+      minLength: t.Optional(t.Number()),
+      maxLength: t.Optional(t.Number()),
+      format: t.Optional(t.String()),
+    }),
+    t.Object({
+      ...fieldMeta,
+      kind: t.Literal('richText'),
+      placeholder: t.Optional(t.String()),
+      default: t.Optional(t.String()),
+    }),
+    t.Object({
+      ...fieldMeta,
+      kind: t.Literal('number'),
+      placeholder: t.Optional(t.String()),
+      default: t.Optional(t.Number()),
+      integer: t.Optional(t.Boolean()),
+      min: t.Optional(t.Number()),
+      max: t.Optional(t.Number()),
+    }),
+    t.Object({ ...fieldMeta, kind: t.Literal('boolean'), default: t.Optional(t.Boolean()) }),
+    t.Object({
+      ...fieldMeta,
+      kind: t.Literal('date'),
+      default: t.Optional(t.String()),
+      time: t.Optional(t.Boolean()),
+    }),
+    t.Object({
+      ...fieldMeta,
+      kind: t.Literal('enum'),
+      options: t.Array(t.Object({ value: t.String(), label: t.String() })),
+      multiple: t.Optional(t.Boolean()),
+      default: t.Optional(t.Union([t.String(), t.Array(t.String())])),
+    }),
+    t.Object({ ...fieldMeta, kind: t.Literal('image') }),
+    t.Object({ ...fieldMeta, kind: t.Literal('ref'), to: refTarget }),
+    t.Object({ ...fieldMeta, kind: t.Literal('component'), of: t.String() }),
+    t.Object({
+      ...fieldMeta,
+      kind: t.Literal('list'),
+      of: t.String(),
+      min: t.Optional(t.Number()),
+      max: t.Optional(t.Number()),
+    }),
+    t.Object({
+      ...fieldMeta,
+      kind: t.Literal('repeater'),
+      fields: t.Record(t.String(), self),
+      min: t.Optional(t.Number()),
+      max: t.Optional(t.Number()),
+    }),
+  ]),
+);
+
+const serializedDefinitionSchema = t.Object({
+  name: t.String(),
+  label: t.Optional(t.String()),
+  icon: t.Optional(t.String()),
+  fields: t.Record(t.String(), serializedFieldSchema),
 });
 
-const richTextData = t.Object({
-  html: t.String({ description: 'Contenu HTML riche (édité au WYSIWYG admin).' }),
+// Corps du `PUT /content/registry` : le registre complet sérialisé par la CLI @echoppe/content.
+export const registrySchema = t.Object({
+  version: t.Literal(1),
+  sections: t.Record(t.String(), serializedDefinitionSchema),
+  components: t.Record(t.String(), serializedDefinitionSchema),
 });
 
-const productGridData = t.Object({
-  collectionId: uuidStr('UUID de la collection à afficher (résolue côté storefront).'),
-  title: t.Nullable(t.String({ description: 'Titre de la grille, ou null.' })),
-  limit: t.Optional(t.Number({ description: 'Nombre max de produits affichés.' })),
+export type SerializedField = Static<typeof serializedFieldSchema>;
+export type SerializedDefinition = Static<typeof serializedDefinitionSchema>;
+export type Registry = Static<typeof registrySchema>;
+
+// ── Écriture d'une section (admin) ────────────────────────────────────────────────────────────
+// Corps GÉNÉRIQUE : `{ name?, type, data }`. `data` n'est pas typé au niveau du contrat (la forme
+// dépend du bloc) — il est validé à l'exécution contre le registre (services/content).
+export const sectionInputSchema = t.Object({
+  name: t.Optional(t.String()),
+  type: t.String({ description: 'Type de bloc (doit exister dans le registre).' }),
+  data: t.Unknown({ description: 'Champs du bloc — validés contre la définition du registre.' }),
 });
 
-const imageData = t.Object({
-  mediaId: uuidStr('UUID du média.'),
-  alt: t.Nullable(t.String({ description: 'Texte alternatif, ou null.' })),
-});
-
-const ctaData = t.Object({
-  label: t.String({ description: 'Libellé du bouton.' }),
-  href: t.String({ description: 'Lien du bouton.' }),
-});
-
-// Table type → schéma de `data`. SSOT réutilisée pour valider l'écriture ET construire les
-// unions de lecture/écriture.
-export const BLOCK_DATA = {
-  hero: heroData,
-  richText: richTextData,
-  productGrid: productGridData,
-  image: imageData,
-  cta: ctaData,
-} as const;
-
-export type BlockType = keyof typeof BLOCK_DATA;
-export const BLOCK_TYPES = Object.keys(BLOCK_DATA) as BlockType[];
-
-// Section résolue (LECTURE storefront) : forme générique `{ id, type, data }`. `data` est
-// volontairement non typé ici — la donnée en base est du jsonb, et le typage précis par type
-// de bloc est fourni au front du dev par le type-gen des définitions (P2). Le storefront
-// discrimine sur `type`. Le `name` (métadonnée admin) n'est pas exposé.
+// ── Contrat de LECTURE storefront (inchangé) ──────────────────────────────────────────────────
+// Section résolue : forme générique `{ id, type, data }`. `data` non typé ici (le typage fin par
+// bloc vient du type-gen des définitions, côté front du dev).
 const sectionSchema = t.Object({
   id: uuidStr('UUID de la section.'),
-  type: t.String({ description: 'Type de bloc (hero, richText, productGrid, image, cta…).' }),
+  type: t.String({ description: 'Type de bloc (défini dans le registre).' }),
   data: t.Unknown({ description: 'Champs du bloc — forme selon `type`.' }),
 });
-
-// Corps d'ÉCRITURE d'une section (admin) : union discriminée sur `type` → `data` validé selon
-// le type de bloc (données propres garanties en base). Construit en tableau LITTÉRAL (pas
-// `.map()`, qui casse l'inférence Static de TypeBox).
-const sectionInputVariant = (type: BlockType, data: TSchema) =>
-  t.Object({ name: t.Optional(t.String()), type: t.Literal(type), data });
-
-export const sectionInputSchema = t.Union([
-  sectionInputVariant('hero', BLOCK_DATA.hero),
-  sectionInputVariant('richText', BLOCK_DATA.richText),
-  sectionInputVariant('productGrid', BLOCK_DATA.productGrid),
-  sectionInputVariant('image', BLOCK_DATA.image),
-  sectionInputVariant('cta', BLOCK_DATA.cta),
-]);
 
 const pageStatus = t.Union([t.Literal('draft'), t.Literal('published')], {
   description: 'Statut de publication.',

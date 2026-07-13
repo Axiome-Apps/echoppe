@@ -41,6 +41,26 @@ const router = createRouter({
           component: () => import('../views/MediaView.vue'),
         },
         {
+          path: 'contenu',
+          name: 'content-pages',
+          component: () => import('../views/PagesView.vue'),
+        },
+        {
+          path: 'contenu/:id',
+          name: 'content-page-edit',
+          component: () => import('../views/PageEditView.vue'),
+        },
+        {
+          path: 'menus',
+          name: 'content-menus',
+          component: () => import('../views/MenusView.vue'),
+        },
+        {
+          path: 'menus/:id',
+          name: 'content-menu-edit',
+          component: () => import('../views/MenuEditView.vue'),
+        },
+        {
           path: 'stock',
           name: 'stock',
           component: () => import('../views/StockView.vue'),

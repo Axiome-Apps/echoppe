@@ -8,6 +8,7 @@ import { collectionModels } from './collection';
 import { companyModels } from './company';
 import { contentModels } from './content';
 import { customerModels } from './customer';
+import { menuModels } from './menu';
 import { orderModels } from './order';
 import { taxRateModels } from './tax-rate';
 
@@ -32,6 +33,7 @@ export const allModels = {
   ...checkoutModels,
   ...orderModels,
   ...contentModels,
+  ...menuModels,
 };
 
 /** Union des noms de modèles enregistrés — remplace un `string` permissif. */

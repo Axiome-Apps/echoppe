@@ -24,6 +24,7 @@ import { customerAuthRoutes } from './routes/customer-auth';
 import { customerOrdersRoutes } from './routes/customer-orders';
 import { customersRoutes } from './routes/customers';
 import { mediaRoutes } from './routes/media';
+import { menusRoutes } from './routes/menus';
 import { ordersRoutes } from './routes/orders';
 import { pagesRoutes } from './routes/pages';
 import { paymentsRoutes } from './routes/payments';
@@ -110,6 +111,7 @@ const app = new Elysia()
   .use(categoriesRoutes)
   .use(productsRoutes)
   .use(pagesRoutes)
+  .use(menusRoutes)
   .use(contentRoutes)
   .use(apiKeyRoutes)
   .use(mediaRoutes)
