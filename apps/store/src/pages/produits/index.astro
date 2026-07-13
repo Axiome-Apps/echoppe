@@ -3,7 +3,7 @@ import ProductCard from '../../components/ProductCard.astro';
 import Layout from '../../layouts/Layout.astro';
 import { api } from '../../lib/api';
 
-const { data } = await api.GET('/products/');
+const { data } = await api.products.list();
 const products = (data?.data ?? []).filter((p) => p.status === 'published');
 ---
 
