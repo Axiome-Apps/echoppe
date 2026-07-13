@@ -55,7 +55,8 @@ export function filterStorefront(
       missing.push(`${method.toUpperCase()} ${path}`);
       continue;
     }
-    (paths[path] ??= {})[method] = operation;
+    paths[path] ??= {};
+    paths[path][method] = operation;
   }
 
   // Tree-shake transitif des schémas référencés depuis les opérations retenues.

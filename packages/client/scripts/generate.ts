@@ -16,6 +16,72 @@ import { FACADE_SKIP_TAGS, METHOD_NAMES, TAG_NAMESPACE } from './facade-map';
 import { filterStorefront, type OpenApiSpec } from './filter';
 import { type HttpMethod, STOREFRONT_SURFACE } from './storefront-surface';
 
+const REF_PREFIX = '#/components/schemas/';
+
+// Normalise les schémas RÉCURSIFS (TypeBox `t.Recursive` → nœud `{$id}` + self-`$ref: "<id>"`).
+// Tel quel, openapi-typescript prend le `$ref` brut pour un fichier (ENOENT). On hisse chaque nœud
+// `$id` en `components.schemas[<id>]` et on réécrit les `$ref` bruts en pointeurs `#/…` résolvables.
+function normalizeRecursiveSchemas(spec: OpenApiSpec): number {
+  const schemas = spec.components?.schemas;
+  if (!schemas) return 0;
+
+  // 1. Cibles des `$ref` BRUTS (ni pointeur `#/…`, ni URL) = schémas auto-référencés à hisser.
+  //    (TypeBox pose des `$id` un peu partout ; on ne touche QUE ceux réellement référencés.)
+  const refTargets = new Set<string>();
+  const collectRefs = (node: unknown): void => {
+    if (Array.isArray(node)) return void node.forEach(collectRefs);
+    if (!node || typeof node !== 'object') return;
+    const rec = node as Record<string, unknown>;
+    for (const [key, value] of Object.entries(rec)) {
+      if (
+        key === '$ref' &&
+        typeof value === 'string' &&
+        !value.startsWith('#/') &&
+        !value.includes('://')
+      ) {
+        refTargets.add(value);
+      } else {
+        collectRefs(value);
+      }
+    }
+  };
+  collectRefs(spec.paths);
+  collectRefs(schemas);
+  if (refTargets.size === 0) return 0;
+
+  // 2. Hisse en composant nommé chaque nœud `$id` ciblé (première occurrence).
+  const registered = new Set<string>();
+  const hoist = (node: unknown): void => {
+    if (Array.isArray(node)) return void node.forEach(hoist);
+    if (!node || typeof node !== 'object') return;
+    const rec = node as Record<string, unknown>;
+    if (typeof rec.$id === 'string' && refTargets.has(rec.$id) && !registered.has(rec.$id)) {
+      registered.add(rec.$id);
+      schemas[rec.$id] = structuredClone(rec);
+    }
+    for (const value of Object.values(rec)) hoist(value);
+  };
+  hoist(spec.paths);
+  hoist({ ...schemas });
+
+  // 3. Réécrit les `$ref` bruts ciblés en pointeurs, et retire les `$id` résiduels correspondants.
+  const rewrite = (node: unknown): void => {
+    if (Array.isArray(node)) return void node.forEach(rewrite);
+    if (!node || typeof node !== 'object') return;
+    const rec = node as Record<string, unknown>;
+    if (typeof rec.$id === 'string' && refTargets.has(rec.$id)) delete rec.$id;
+    for (const [key, value] of Object.entries(rec)) {
+      if (key === '$ref' && typeof value === 'string' && refTargets.has(value))
+        rec[key] = REF_PREFIX + value;
+      else rewrite(value);
+    }
+  };
+  rewrite(spec.paths);
+  rewrite(schemas);
+
+  return registered.size;
+}
+
 const apiUrl = (process.env.ECHOPPE_API_URL ?? 'http://localhost:7532').replace(/\/+$/, '');
 const specUrl = `${apiUrl}/docs/json`;
 
@@ -28,6 +94,11 @@ if (!response.ok) {
 // exposer que la surface storefront → on filtre + tree-shake avant de figer.
 const fullSpec = (await response.json()) as OpenApiSpec;
 const { spec, missing, keptPaths, keptSchemas } = filterStorefront(fullSpec, STOREFRONT_SURFACE);
+
+const recursiveCount = normalizeRecursiveSchemas(spec);
+if (recursiveCount > 0) {
+  console.log(`✓ ${recursiveCount} schéma(s) récursif(s) normalisé(s) en composants`);
+}
 
 if (missing.length > 0) {
   console.warn(`⚠ ${missing.length} route(s) de la surface absente(s) du contrat (dérive ?) :`);
@@ -81,7 +152,9 @@ for (const [path, item] of Object.entries(spec.paths)) {
     const operationId = opRec.operationId as string | undefined;
     const fn = operationId ? METHOD_NAMES[operationId] : undefined;
     if (!ns || !fn) {
-      facadeMissing.push(`${method.toUpperCase()} ${path} (op=${operationId ?? '?'}, tag=${tag ?? '?'})`);
+      facadeMissing.push(
+        `${method.toUpperCase()} ${path} (op=${operationId ?? '?'}, tag=${tag ?? '?'})`,
+      );
       continue;
     }
 
@@ -89,12 +162,19 @@ for (const [path, item] of Object.entries(spec.paths)) {
     const requiredQuery = params.some((p) => p.in === 'query' && p.required);
     const required = path.includes('{') || Boolean(opRec.requestBody) || requiredQuery;
 
-    (namespaces.get(ns) ?? namespaces.set(ns, []).get(ns)!).push({ fn, method, path, required });
+    let bucket = namespaces.get(ns);
+    if (!bucket) {
+      bucket = [];
+      namespaces.set(ns, bucket);
+    }
+    bucket.push({ fn, method, path, required });
   }
 }
 
 if (facadeMissing.length > 0) {
-  console.warn(`⚠ ${facadeMissing.length} opération(s) non mappée(s) dans la façade (facade-map.ts) :`);
+  console.warn(
+    `⚠ ${facadeMissing.length} opération(s) non mappée(s) dans la façade (facade-map.ts) :`,
+  );
   for (const m of facadeMissing) console.warn(`   - ${m}`);
 }
 for (const [ns, methods] of namespaces) {
@@ -121,7 +201,9 @@ for (const [ns, methods] of [...namespaces].sort((a, b) => a[0].localeCompare(b[
   for (const m of methods.sort((a, b) => a.fn.localeCompare(b.fn))) {
     const initType = `MaybeOptionalInit<paths['${m.path}'], '${m.method}'>`;
     const param = m.required ? `init: ${initType}` : `init?: ${initType}`;
-    facadeLines.push(`      ${m.fn}: (${param}) => client.${m.method.toUpperCase()}('${m.path}', init),`);
+    facadeLines.push(
+      `      ${m.fn}: (${param}) => client.${m.method.toUpperCase()}('${m.path}', init),`,
+    );
   }
   facadeLines.push('    },');
 }

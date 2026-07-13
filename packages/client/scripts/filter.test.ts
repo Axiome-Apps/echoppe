@@ -9,9 +9,13 @@ const spec: OpenApiSpec = {
   paths: {
     '/products/': {
       // storefront
-      get: { responses: { '200': { content: { 'application/json': { schema: ref('ProductList') } } } } },
+      get: {
+        responses: { '200': { content: { 'application/json': { schema: ref('ProductList') } } } },
+      },
       // admin (ne doit PAS être retenu)
-      post: { responses: { '200': { content: { 'application/json': { schema: ref('Product') } } } } },
+      post: {
+        responses: { '200': { content: { 'application/json': { schema: ref('Product') } } } },
+      },
     },
     // admin-only (ne doit PAS être retenu)
     '/products/options': {

@@ -1717,6 +1717,96 @@
         "operationId": "getPagesBy-slugBySlug"
       }
     },
+    "/menus/by-handle/{handle}": {
+      "get": {
+        "tags": [
+          "Menus"
+        ],
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Menu"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource non trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Ressource non trouvée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Ressource non trouvée",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entité non traitable - Règle métier non respectée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Entité non traitable - Règle métier non respectée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Détail de l'erreur métier",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Erreur serveur interne",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Erreur interne",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getMenusBy-handleByHandle"
+      }
+    },
     "/cart/": {
       "get": {
         "tags": [
@@ -6563,6 +6653,127 @@
         },
         "$id": "#/components/schemas/LoginResult"
       },
+      "Menu": {
+        "type": "object",
+        "required": [
+          "handle",
+          "label",
+          "items"
+        ],
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "label",
+                "link",
+                "children"
+              ],
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "link": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "target",
+                        "url"
+                      ],
+                      "properties": {
+                        "target": {
+                          "const": "url",
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "newTab": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "target",
+                        "entity"
+                      ],
+                      "properties": {
+                        "target": {
+                          "anyOf": [
+                            {
+                              "const": "page",
+                              "type": "string"
+                            },
+                            {
+                              "const": "product",
+                              "type": "string"
+                            },
+                            {
+                              "const": "collection",
+                              "type": "string"
+                            },
+                            {
+                              "const": "category",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "entity": {
+                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "required": [
+                                "id",
+                                "slug",
+                                "name"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "slug": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "newTab": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "children": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MenuItemResolved"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "$id": "#/components/schemas/Menu"
+      },
       "Order": {
         "type": "object",
         "required": [
@@ -7094,7 +7305,7 @@
                   "type": "string"
                 },
                 "type": {
-                  "description": "Type de bloc (hero, richText, productGrid, image, cta…).",
+                  "description": "Type de bloc (défini dans le registre).",
                   "type": "string"
                 },
                 "data": {
@@ -8039,6 +8250,107 @@
           "$id": "#/components/schemas/TaxRate"
         },
         "$id": "#/components/schemas/TaxRateList"
+      },
+      "MenuItemResolved": {
+        "type": "object",
+        "required": [
+          "label",
+          "link",
+          "children"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "target",
+                  "url"
+                ],
+                "properties": {
+                  "target": {
+                    "const": "url",
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "newTab": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "target",
+                  "entity"
+                ],
+                "properties": {
+                  "target": {
+                    "anyOf": [
+                      {
+                        "const": "page",
+                        "type": "string"
+                      },
+                      {
+                        "const": "product",
+                        "type": "string"
+                      },
+                      {
+                        "const": "collection",
+                        "type": "string"
+                      },
+                      {
+                        "const": "category",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "entity": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "slug",
+                          "name"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "newTab": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            ]
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuItemResolved"
+            }
+          }
+        }
       }
     }
   }

@@ -26,6 +26,7 @@ export const TAG_NAMESPACE: Record<string, string> = {
   'Tax Rates': 'taxRates',
   Contact: 'contact',
   Pages: 'pages',
+  Menus: 'menus',
   'Customer Auth': 'auth',
   'Customer Account': 'account',
   'Customer Addresses': 'addresses',
@@ -64,6 +65,8 @@ export const METHOD_NAMES: Record<string, string> = {
   // pages (content)
   getPages: 'list',
   'getPagesBy-slugBySlug': 'bySlug',
+  // menus (navigation)
+  'getMenusBy-handleByHandle': 'byHandle',
   // company / taxRates / contact
   getCompany: 'get',
   'getTax-rates': 'list',

@@ -34,6 +34,9 @@ export const STOREFRONT_SURFACE: ReadonlyArray<readonly [HttpMethod, string]> = 
   ['get', '/pages/'],
   ['get', '/pages/by-slug/{slug}'],
 
+  // --- Public : menus de navigation ---
+  ['get', '/menus/by-handle/{handle}'],
+
   // --- Public : panier (session cookie) ---
   ['get', '/cart/'],
   ['post', '/cart/items'],

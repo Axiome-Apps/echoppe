@@ -260,6 +260,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/menus/by-handle/{handle}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMenusBy-handleByHandle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cart/": {
         parameters: {
             query?: never;
@@ -907,6 +923,28 @@ export interface components {
                 lastName: string;
             };
         };
+        Menu: {
+            handle: string;
+            label: string;
+            items: {
+                label: string;
+                link: {
+                    /** @constant */
+                    target: "url";
+                    url: string;
+                    newTab?: boolean;
+                } | {
+                    target: "page" | "product" | "collection" | "category";
+                    entity: ({
+                        id: string;
+                        slug: string;
+                        name: string;
+                    } | null) | null;
+                    newTab?: boolean;
+                };
+                children: components["schemas"]["MenuItemResolved"][];
+            }[];
+        };
         Order: {
             /**
              * Format: uuid
@@ -1029,7 +1067,7 @@ export interface components {
                  * @description UUID de la section.
                  */
                 id: string;
-                /** @description Type de bloc (hero, richText, productGrid, image, cta…). */
+                /** @description Type de bloc (défini dans le registre). */
                 type: string;
                 /** @description Champs du bloc — forme selon `type`. */
                 data: unknown;
@@ -1292,6 +1330,24 @@ export interface components {
             /** @description Taux appliqué par défaut aux nouveaux produits. */
             isDefault: boolean;
         }[];
+        MenuItemResolved: {
+            label: string;
+            link: {
+                /** @constant */
+                target: "url";
+                url: string;
+                newTab?: boolean;
+            } | {
+                target: "page" | "product" | "collection" | "category";
+                entity: ({
+                    id: string;
+                    slug: string;
+                    name: string;
+                } | null) | null;
+                newTab?: boolean;
+            };
+            children: components["schemas"]["MenuItemResolved"][];
+        };
     };
     responses: never;
     parameters: never;
@@ -2091,6 +2147,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "getMenusBy-handleByHandle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Menu"];
                 };
             };
             /** @description Ressource non trouvée */
