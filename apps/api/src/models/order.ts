@@ -28,7 +28,9 @@ const orderItemSchema = t.Object({
       description: 'UUID de la variante achetée (null si la variante a depuis été supprimée).',
     }),
   ),
-  label: t.String({ description: 'Libellé du produit tel qu’acheté (ex. « Bague Lune — Argent / 52 »).' }),
+  label: t.String({
+    description: 'Libellé du produit tel qu’acheté (ex. « Bague Lune — Argent / 52 »).',
+  }),
   quantity: t.Number({ description: 'Quantité commandée.' }),
   unitPriceHt: t.String({ description: 'Prix unitaire HT (chaîne décimale).' }),
   taxRate: t.String({ description: 'Taux de TVA appliqué, en pourcentage (chaîne décimale).' }),

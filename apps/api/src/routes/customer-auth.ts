@@ -50,177 +50,183 @@ function getExpiresAt(): Date {
 }
 
 // Rate-limited register route (strict: 5 requests / 15 min)
-const registerRoute = new Elysia().use(rateLimit(strictRateLimitOptions)).use(models).post(
-  '/register',
-  async ({ body, cookie, request, status }) => {
-    // Check if email already exists
-    const [existing] = await db
-      .select({ id: customer.id })
-      .from(customer)
-      .where(eq(customer.email, body.email.toLowerCase()));
+const registerRoute = new Elysia()
+  .use(rateLimit(strictRateLimitOptions))
+  .use(models)
+  .post(
+    '/register',
+    async ({ body, cookie, request, status }) => {
+      // Check if email already exists
+      const [existing] = await db
+        .select({ id: customer.id })
+        .from(customer)
+        .where(eq(customer.email, body.email.toLowerCase()));
 
-    if (existing) {
-      return status(409, { message: 'Un compte existe déjà avec cet email' });
-    }
+      if (existing) {
+        return status(409, { message: 'Un compte existe déjà avec cet email' });
+      }
 
-    // Hash password
-    const passwordHash = await Bun.password.hash(body.password, {
-      algorithm: 'bcrypt',
-      cost: 10,
-    });
+      // Hash password
+      const passwordHash = await Bun.password.hash(body.password, {
+        algorithm: 'bcrypt',
+        cost: 10,
+      });
 
-    // Create customer
-    const [created] = await db
-      .insert(customer)
-      .values({
-        email: body.email.toLowerCase(),
-        passwordHash,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        phone: body.phone,
-        marketingOptin: body.marketingOptin ?? false,
-      })
-      .returning();
+      // Create customer
+      const [created] = await db
+        .insert(customer)
+        .values({
+          email: body.email.toLowerCase(),
+          passwordHash,
+          firstName: body.firstName,
+          lastName: body.lastName,
+          phone: body.phone,
+          marketingOptin: body.marketingOptin ?? false,
+        })
+        .returning();
 
-    // Create session
-    const token = generateToken();
-    const expiresAt = getExpiresAt();
-    const ipAddress =
-      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
+      // Create session
+      const token = generateToken();
+      const expiresAt = getExpiresAt();
+      const ipAddress =
+        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+      const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    await db.insert(customerSession).values({
-      token,
-      customer: created.id,
-      ipAddress,
-      userAgent,
-      expiresAt,
-    });
+      await db.insert(customerSession).values({
+        token,
+        customer: created.id,
+        ipAddress,
+        userAgent,
+        expiresAt,
+      });
 
-    // Update lastLogin
-    await db.update(customer).set({ lastLogin: new Date() }).where(eq(customer.id, created.id));
+      // Update lastLogin
+      await db.update(customer).set({ lastLogin: new Date() }).where(eq(customer.id, created.id));
 
-    // Send welcome email
-    await sendWelcomeEmail({
-      customerEmail: created.email,
-      customerName: created.firstName,
-    });
+      // Send welcome email
+      await sendWelcomeEmail({
+        customerEmail: created.email,
+        customerName: created.firstName,
+      });
 
-    // Set cookie
-    cookie[COOKIE_NAME].set({
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
-    });
+      // Set cookie
+      cookie[COOKIE_NAME].set({
+        value: token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
+      });
 
-    return {
-      customer: {
-        id: created.id,
-        email: created.email,
-        firstName: created.firstName,
-        lastName: created.lastName,
-        phone: created.phone,
-        emailVerified: created.emailVerified,
-        marketingOptin: created.marketingOptin,
-      },
-    };
-  },
-  {
-    body: t.Object({
-      email: t.String({ format: 'email' }),
-      password: t.String({ minLength: 8 }),
-      firstName: t.String({ minLength: 1, maxLength: 100 }),
-      lastName: t.String({ minLength: 1, maxLength: 100 }),
-      phone: t.Optional(t.String({ maxLength: 20 })),
-      marketingOptin: t.Optional(t.Boolean()),
-    }),
-    cookie: cookieSchema,
-    response: {
-      200: 'CustomerAuth',
-      409: conflictResponse,
-      429: rateLimitResponse,
+      return {
+        customer: {
+          id: created.id,
+          email: created.email,
+          firstName: created.firstName,
+          lastName: created.lastName,
+          phone: created.phone,
+          emailVerified: created.emailVerified,
+          marketingOptin: created.marketingOptin,
+        },
+      };
     },
-  },
-);
+    {
+      body: t.Object({
+        email: t.String({ format: 'email' }),
+        password: t.String({ minLength: 8 }),
+        firstName: t.String({ minLength: 1, maxLength: 100 }),
+        lastName: t.String({ minLength: 1, maxLength: 100 }),
+        phone: t.Optional(t.String({ maxLength: 20 })),
+        marketingOptin: t.Optional(t.Boolean()),
+      }),
+      cookie: cookieSchema,
+      response: {
+        200: 'CustomerAuth',
+        409: conflictResponse,
+        429: rateLimitResponse,
+      },
+    },
+  );
 
 // Rate-limited login route (auth: 10 requests / 15 min)
-const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).use(models).post(
-  '/login',
-  async ({ body, cookie, request, status }) => {
-    const [found] = await db
-      .select({
-        id: customer.id,
-        email: customer.email,
-        passwordHash: customer.passwordHash,
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-      })
-      .from(customer)
-      .where(eq(customer.email, body.email.toLowerCase()));
+const loginRoute = new Elysia()
+  .use(rateLimit(authRateLimitOptions))
+  .use(models)
+  .post(
+    '/login',
+    async ({ body, cookie, request, status }) => {
+      const [found] = await db
+        .select({
+          id: customer.id,
+          email: customer.email,
+          passwordHash: customer.passwordHash,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+        })
+        .from(customer)
+        .where(eq(customer.email, body.email.toLowerCase()));
 
-    if (!found) {
-      return status(401, { message: 'Email ou mot de passe incorrect' });
-    }
+      if (!found) {
+        return status(401, { message: 'Email ou mot de passe incorrect' });
+      }
 
-    const validPassword = await Bun.password.verify(body.password, found.passwordHash);
+      const validPassword = await Bun.password.verify(body.password, found.passwordHash);
 
-    if (!validPassword) {
-      return status(401, { message: 'Email ou mot de passe incorrect' });
-    }
+      if (!validPassword) {
+        return status(401, { message: 'Email ou mot de passe incorrect' });
+      }
 
-    // Create session
-    const token = generateToken();
-    const expiresAt = getExpiresAt();
-    const ipAddress =
-      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
+      // Create session
+      const token = generateToken();
+      const expiresAt = getExpiresAt();
+      const ipAddress =
+        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+      const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    await db.insert(customerSession).values({
-      token,
-      customer: found.id,
-      ipAddress,
-      userAgent,
-      expiresAt,
-    });
+      await db.insert(customerSession).values({
+        token,
+        customer: found.id,
+        ipAddress,
+        userAgent,
+        expiresAt,
+      });
 
-    // Update lastLogin
-    await db.update(customer).set({ lastLogin: new Date() }).where(eq(customer.id, found.id));
+      // Update lastLogin
+      await db.update(customer).set({ lastLogin: new Date() }).where(eq(customer.id, found.id));
 
-    // Set cookie
-    cookie[COOKIE_NAME].set({
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
-    });
+      // Set cookie
+      cookie[COOKIE_NAME].set({
+        value: token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
+      });
 
-    return {
-      customer: {
-        id: found.id,
-        email: found.email,
-        firstName: found.firstName,
-        lastName: found.lastName,
-      },
-    };
-  },
-  {
-    body: t.Object({
-      email: t.String({ format: 'email' }),
-      password: t.String({ minLength: 1 }),
-    }),
-    cookie: cookieSchema,
-    response: {
-      200: 'LoginResult',
-      401: unauthorizedResponse,
-      429: rateLimitResponse,
+      return {
+        customer: {
+          id: found.id,
+          email: found.email,
+          firstName: found.firstName,
+          lastName: found.lastName,
+        },
+      };
     },
-  },
-);
+    {
+      body: t.Object({
+        email: t.String({ format: 'email' }),
+        password: t.String({ minLength: 1 }),
+      }),
+      cookie: cookieSchema,
+      response: {
+        200: 'LoginResult',
+        401: unauthorizedResponse,
+        429: rateLimitResponse,
+      },
+    },
+  );
 
 // Réinitialisation de mot de passe oublié (public, rate-limited). Deux étapes :
 // - forgot : crée un jeton (hash stocké, brut envoyé par email). Réponse TOUJOURS 200

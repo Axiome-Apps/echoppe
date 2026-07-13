@@ -17,11 +17,7 @@ import {
   customerCookieSchema,
   type SessionCustomer,
 } from '../plugins/customerAuth';
-import {
-  buildPaginatedResponse,
-  getPaginationParams,
-  paginationQuery,
-} from '../utils/pagination';
+import { buildPaginatedResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
 import { withAuthErrors, withCrudErrors } from '../utils/responses';
 
 // Espace commandes du client connecté (lecture seule). Chaque requête est filtrée sur

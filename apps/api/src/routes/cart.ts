@@ -163,7 +163,9 @@ async function getCartWithItems(cartId: string) {
           .where(inArray(variantOptionValue.variant, variantIds))
       : [];
   const optionValuesMap = new Map<string, { option: string; value: string }[]>();
-  for (const row of optionRows.sort((a, b) => a.optionSort - b.optionSort || a.valueSort - b.valueSort)) {
+  for (const row of optionRows.sort(
+    (a, b) => a.optionSort - b.optionSort || a.valueSort - b.valueSort,
+  )) {
     const list = optionValuesMap.get(row.variant) ?? [];
     list.push({ option: row.option, value: row.value });
     optionValuesMap.set(row.variant, list);
