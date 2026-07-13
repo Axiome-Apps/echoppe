@@ -28,6 +28,13 @@ COMPOSE_PROJECT_NAME=${projectName}
 # URL de l'API interrogée par la boutique (SSR + images).
 PUBLIC_API_URL=${apiUrl}
 
+# ─── Contenu (\`pnpm content:push\`) ──────────────────────────────────────
+# Clé d'API machine (scope write:content) pour synchroniser vos définitions de
+# blocs vers l'API. Créez-la dans l'admin (« Clés d'API »), ou via :
+#   docker compose exec api bun run api-key:create --name front --scopes write:content
+# puis collez-la ci-dessous.
+ECHOPPE_API_KEY=
+
 # ─── Version des images Échoppe (backend, cf. compose.yaml) ─────────────
 ECHOPPE_VERSION=latest
 
@@ -52,6 +59,25 @@ ENCRYPTION_KEY=${encryptionKey}
 `;
 }
 
+// Runtime qui exécutera `content push` (charge le src/content/*.ts du dev). On détecte au moment
+// du scaffold via l'user-agent du PM (npm_config_user_agent) et process.versions :
+//   - Bun ou Node ≥ 24 → TS natif, aucun outil ;
+//   - Node plus ancien → `npx tsx` à la volée (repli legacy, rien à installer).
+// Le script généré reste éditable si le dev change de runtime plus tard.
+function detectPushRunner(): string {
+  const userAgent = process.env.npm_config_user_agent ?? '';
+  if (userAgent.startsWith('bun') || process.versions.bun) return 'bun';
+  if (Number(process.versions.node.split('.')[0]) >= 24) return 'node';
+  return 'npx tsx';
+}
+
+interface TemplatePkg {
+  name: string;
+  scripts: Record<string, string>;
+  devDependencies: Record<string, string>;
+  [key: string]: unknown;
+}
+
 /** Copie le template et le personnalise (nom du projet + URL de l'API + .env). */
 async function scaffold(projectName: string, apiUrl: string, targetDir: string): Promise<void> {
   await cp(templateDir, targetDir, { recursive: true });
@@ -59,8 +85,14 @@ async function scaffold(projectName: string, apiUrl: string, targetDir: string):
   await rename(join(targetDir, '_gitignore'), join(targetDir, '.gitignore'));
 
   const pkgPath = join(targetDir, 'package.json');
-  const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { name: string };
+  const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as TemplatePkg;
   pkg.name = projectName;
+  // Outillage de contenu : dépendance + commandes de synchronisation (push) et de vérification de
+  // dérive (check, à brancher en CI / pre-build). Le typage du front, lui, est inféré côté source.
+  const runner = detectPushRunner();
+  pkg.devDependencies['@echoppe/content'] = 'latest';
+  pkg.scripts['content:push'] = `${runner} node_modules/@echoppe/content/dist/cli.js push`;
+  pkg.scripts['content:check'] = `${runner} node_modules/@echoppe/content/dist/cli.js check`;
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
   const encryptionKey = randomBytes(32).toString('base64');
@@ -139,6 +171,10 @@ async function main(): Promise<void> {
       '# Front Astro',
       'pnpm install',
       'pnpm dev',
+      '',
+      "# Contenu : créez une clé (admin « Clés d'API »), collez-la dans .env,",
+      "# puis synchronisez vos blocs vers l'API",
+      'pnpm content:push',
     ].join('\n'),
     'Prochaines étapes',
   );

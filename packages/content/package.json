@@ -1,0 +1,47 @@
+{
+  "name": "@echoppe/content",
+  "version": "0.0.0",
+  "description": "Déclaration de contenu config-as-code pour Échoppe — components, sections et champs typés, synchronisés vers l'API.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "echoppe",
+    "ecommerce",
+    "content",
+    "page-builder",
+    "headless"
+  ],
+  "author": "Axiome-Apps",
+  "license": "CECILL-2.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Axiome-Apps/echoppe.git",
+    "directory": "packages/content"
+  },
+  "homepage": "https://github.com/Axiome-Apps/echoppe#readme",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "6.0.3"
+  }
+}
