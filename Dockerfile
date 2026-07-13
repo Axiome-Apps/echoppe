@@ -79,14 +79,19 @@ USER echoppe
 EXPOSE 7532
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:7532/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:7532/health || exit 1
 
 CMD ["./api"]
 
 # ==============================================================================
 # Admin Dashboard
 # ==============================================================================
-FROM source AS admin-builder
+# L'admin est un site STATIQUE (l'image finale est caddy servant dist/) : les assets
+# compilés sont indépendants de l'architecture. On épingle donc le build vite sur la
+# plateforme de build native ($BUILDPLATFORM) au lieu de le ré-exécuter sous émulation
+# QEMU arm64 (~70× plus lent) pour un résultat identique. Seul le stage caddy final est
+# cross-buildé par arch (copie d'assets arch-indépendants).
+FROM --platform=$BUILDPLATFORM source AS admin-builder
 ARG VITE_API_URL=http://localhost:7532
 ENV VITE_API_URL=$VITE_API_URL
 RUN bun run --cwd apps/admin build
@@ -98,6 +103,6 @@ COPY apps/admin/Caddyfile /etc/caddy/Caddyfile
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:80/ || exit 1
 
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
