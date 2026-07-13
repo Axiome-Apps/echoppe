@@ -285,6 +285,7 @@ async function seed() {
     { resource: 'role', canRead: true, locked: true }, // Rôles système
     { resource: 'permission', canRead: true, locked: true }, // Permissions système
     { resource: 'audit_log', canRead: true, locked: true }, // Journal non modifiable
+    { resource: 'api_key', canCreate: true, canRead: true, canUpdate: true, canDelete: true }, // Clés machine
 
     // --- Tables compliance (pas de delete) ---
     { resource: 'order', canCreate: true, canRead: true, canUpdate: true }, // Historique obligatoire
@@ -341,6 +342,15 @@ async function seed() {
     { resource: 'address', canCreate: true, canRead: true, canUpdate: true },
     { resource: 'cart', canRead: true },
     { resource: 'content', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    // Clés d'API : chaque admin gère UNIQUEMENT les siennes (selfOnly). L'Owner voit tout (bypass).
+    {
+      resource: 'api_key',
+      canCreate: true,
+      canRead: true,
+      canUpdate: true,
+      canDelete: true,
+      selfOnly: true,
+    },
   ]);
 
   // =============================================

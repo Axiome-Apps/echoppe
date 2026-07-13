@@ -26,10 +26,13 @@ Le socle tourne en production (`0.2.x`) :
 
 ## 🔨 Maintenant
 
-- **Module contenu / page builder headless** — le dev déclare ses blocs (hero, texte
-  riche, grille produits, CTA…) et compose ses pages ; Échoppe stocke, valide et sert
-  la donnée — le rendu reste le vôtre. *(Lecture + CRUD livrés ; moteur de définitions
-  config-as-code et génération de types à venir.)*
+- **Module contenu / page builder headless** — le dev déclare ses blocs (sections et
+  composants réutilisables) en *config-as-code* avec `@echoppe/content` ; Échoppe stocke,
+  valide et sert la donnée, le rendu reste le vôtre. *(Déclaration, validation, synchronisation
+  CLI et typage du front par inférence livrés ; formulaires d'édition dans l'admin et menus à
+  venir.)*
+- **Clés d'API machine** — authentification par jeton scopé (lecture/écriture par
+  ressource) pour la CLI et les intégrations, sans exposer les identifiants humains.
 - **Première vraie boutique via la CLI** — validation grandeur nature du scaffolding.
 - **Cette roadmap publique.**
 
@@ -42,10 +45,13 @@ Le socle tourne en production (`0.2.x`) :
 - **RGPD** — protocole de suppression de compte (archivage légal vs suppression),
   export des données client, bannière cookies.
 - **Admin ↔ features storefront** — exposer côté admin les capacités qui le justifient.
+- **Erreurs API structurées** — codes + messages clairs, exploitables côté client.
 
 ## 🔭 Plus tard
 
 - **Éditeur de pages visuel** dans l'admin (drag & drop), au-dessus du module contenu.
+- **Optimisation d'images** — redimensionnement à la volée + formats modernes, avec un
+  composant `Image` prêt à l'emploi.
 - **Installeur desktop (Tauri)** — lancer Échoppe en local sans toucher au terminal.
 - **Import / export CSV** — produits, commandes, clients.
 - **Intégrations** — webhooks sortants, templates Zapier / n8n / Make.

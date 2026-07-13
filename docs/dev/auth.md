@@ -1,6 +1,8 @@
 # Authentification
 
-Échoppe utilise un système d'authentification par sessions.
+Échoppe utilise un système d'authentification par sessions pour les **humains** (admin,
+clients). Pour l'authentification **machine** (CLI, CI, intégrations), voir
+[Clés d'API](/dev/api-keys) — jeton scopé en `Authorization: Bearer`, sans cookie de session.
 
 ## Sessions
 
@@ -113,22 +115,21 @@ Les changements d'IP sont loggés pour audit.
 
 ### Login
 
-```mermaid
-sequenceDiagram
-    Client->>API: POST /auth/login {email, password}
-    API->>DB: Vérifier credentials
-    DB-->>API: User
-    API->>DB: Créer session
-    API-->>Client: Set-Cookie + User info
+```
+Client ──POST /auth/login {email, password}──▶ API
+                              API ──vérifier credentials──▶ DB
+                              API ◀──────────── User ─────── DB
+                              API ──créer session──────────▶ DB
+Client ◀──Set-Cookie + infos user──────────── API
 ```
 
 ### Requête authentifiée
 
-```mermaid
-sequenceDiagram
-    Client->>API: GET /orders (Cookie: session)
-    API->>DB: Valider session
-    DB-->>API: Session + User + Role
-    API->>API: Vérifier permissions
-    API-->>Client: Données
+```
+Client ──GET /orders (Cookie: session)──▶ API
+                            API ──valider session──▶ DB
+                            API ◀── Session + User + Role ── DB
+                            API ──vérifier permissions──╮
+                            API ◀───────────────────────╯
+Client ◀──────── Données ──────────────── API
 ```

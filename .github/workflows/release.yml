@@ -1,6 +1,6 @@
 name: Release
 
-# Publication npm des paquets publiables (@echoppe/client, create-echoppe).
+# Publication npm des paquets publiables (@echoppe/content, @echoppe/client, create-echoppe).
 #
 # Auth : Trusted Publishing (OIDC) — AUCUN token npm. npm échange le jeton
 # OIDC de GitHub Actions contre un droit de publication éphémère, à condition

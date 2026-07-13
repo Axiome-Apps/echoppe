@@ -76,6 +76,8 @@ export default defineConfig({
             { text: 'API REST', link: '/dev/api' },
             { text: 'Base de données', link: '/dev/database' },
             { text: 'Authentification', link: '/dev/auth' },
+            { text: "Clés d'API", link: '/dev/api-keys' },
+            { text: 'Module contenu', link: '/dev/content' },
             { text: 'Contribuer', link: '/dev/contributing' },
           ],
         },

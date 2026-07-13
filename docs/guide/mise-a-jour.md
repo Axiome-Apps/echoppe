@@ -6,7 +6,7 @@ faire attention.
 ## Ce qui se met à jour, et comment
 
 Le **backend** (API + Admin) est distribué en **images Docker**. Le **front** de votre
-boutique est votre propre code (Astro) : il n'est jamais écrasé par une mise à jour.
+boutique est votre propre code : il n'est jamais écrasé par une mise à jour.
 
 Mettre à jour le backend = récupérer les nouvelles images puis recréer les conteneurs :
 
