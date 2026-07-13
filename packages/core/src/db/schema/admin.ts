@@ -87,3 +87,22 @@ export const company = pgTable('company', {
   hostingAddress: varchar('hosting_address', { length: 500 }),
   hostingPhone: varchar('hosting_phone', { length: 20 }),
 });
+
+// Clés d'API machine (P2b) : authentifient un client non-interactif (CLI, CI) via
+// `Authorization: Bearer eck_…`. La clé en clair n'est JAMAIS stockée — seul son hash SHA-256.
+// Les `scopes` (ex. ['read:content','write:content']) sont dérivés en permissions RBAC à la
+// résolution (cf. plugins/rbac). Portée réduite + révocable, contrairement aux creds humaines.
+export const apiKey = pgTable(
+  'api_key',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 100 }).notNull(), // libellé lisible (« CLI DPC », « CI »)
+    hash: varchar('hash', { length: 64 }).unique().notNull(), // SHA-256 hex de la clé
+    scopes: jsonb('scopes').$type<string[]>().notNull(),
+    createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }), // null = pas d'expiration
+    dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('api_key_hash_idx').on(table.hash)],
+);

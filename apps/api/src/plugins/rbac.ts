@@ -1,6 +1,7 @@
 import type { Action, Resource } from '@echoppe/core';
 import { db, eq, permission, role } from '@echoppe/core';
 import { Elysia } from 'elysia';
+import { resolveApiKey } from './apiKey';
 import { COOKIE_NAME, getSessionFromToken, type SessionRole, type SessionUser } from './auth';
 import {
   CUSTOMER_COOKIE_NAME,
@@ -36,7 +37,20 @@ export type PublicAccess = {
   permissions: Map<string, PermissionSet>;
 };
 
-export type RbacAuthContext = AuthenticatedAdmin | AuthenticatedCustomer | PublicAccess;
+// Client machine authentifié par clé d'API (CLI, CI). Pas d'utilisateur ni de rôle : ses
+// permissions sont dérivées de ses scopes. Jamais de bypass owner (ce n'est pas un humain).
+export type AuthenticatedApiKey = {
+  type: 'apikey';
+  keyId: string;
+  scopes: string[];
+  permissions: Map<string, PermissionSet>;
+};
+
+export type RbacAuthContext =
+  | AuthenticatedAdmin
+  | AuthenticatedCustomer
+  | AuthenticatedApiKey
+  | PublicAccess;
 
 // Cache des permissions par rôle (en mémoire)
 const permissionCache = new Map<string, Map<string, PermissionSet>>();
@@ -157,7 +171,19 @@ export function invalidateSystemRoleCache() {
  */
 export async function getAuthContext(
   cookie: Record<string, { value?: string }>,
+  authHeader?: string,
 ): Promise<RbacAuthContext> {
+  // 0. Essayer la clé d'API machine (Authorization: Bearer eck_…)
+  const apiKeyPrincipal = await resolveApiKey(authHeader);
+  if (apiKeyPrincipal) {
+    return {
+      type: 'apikey',
+      keyId: apiKeyPrincipal.keyId,
+      scopes: apiKeyPrincipal.scopes,
+      permissions: apiKeyPrincipal.permissions,
+    };
+  }
+
   // 1. Essayer l'auth admin
   const adminToken = cookie[COOKIE_NAME]?.value;
   if (adminToken) {
@@ -244,6 +270,17 @@ export function checkPermission(
     };
   }
 
+  if (authContext.type === 'apikey') {
+    // Client machine : permissions issues des scopes, aucun principal humain, pas de self-only.
+    return {
+      allowed,
+      selfOnly: false,
+      currentUser: null,
+      currentRole: null,
+      currentCustomer: null,
+    };
+  }
+
   // Public access
   return {
     allowed,
@@ -256,8 +293,11 @@ export function checkPermission(
 
 // Plugin RBAC - dérive le contexte d'auth avec permissions
 export const rbacPlugin = new Elysia({ name: 'rbac' }).derive(
-  async ({ cookie }): Promise<{ authContext: RbacAuthContext }> => {
-    const authContext = await getAuthContext(cookie as Record<string, { value?: string }>);
+  async ({ cookie, headers }): Promise<{ authContext: RbacAuthContext }> => {
+    const authContext = await getAuthContext(
+      cookie as Record<string, { value?: string }>,
+      headers.authorization,
+    );
     return { authContext };
   },
 );
@@ -269,8 +309,11 @@ export const rbacPlugin = new Elysia({ name: 'rbac' }).derive(
 export function permissionGuard(resource: Resource, action: Action) {
   return new Elysia({ name: `permission-${resource}-${action}` }).macro({
     permission: {
-      async resolve({ cookie, status }) {
-        const authContext = await getAuthContext(cookie as Record<string, { value?: string }>);
+      async resolve({ cookie, headers, status }) {
+        const authContext = await getAuthContext(
+          cookie as Record<string, { value?: string }>,
+          headers.authorization,
+        );
         const result = checkPermission(authContext, resource, action);
 
         if (!result.allowed) {

@@ -6,6 +6,7 @@ import { Elysia } from 'elysia';
 import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
 import { initAdmin } from './lib/init-admin';
 import { securityHeaders } from './plugins/security-headers';
+import { apiKeyRoutes } from './routes/api-keys';
 import { assetsRoutes } from './routes/assets';
 import { auditLogsRoutes } from './routes/audit-logs';
 import { authRoutes } from './routes/auth';
@@ -110,6 +111,7 @@ const app = new Elysia()
   .use(productsRoutes)
   .use(pagesRoutes)
   .use(contentRoutes)
+  .use(apiKeyRoutes)
   .use(mediaRoutes)
   .use(collectionsRoutes)
   .use(taxRatesRoutes)

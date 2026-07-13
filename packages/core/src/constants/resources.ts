@@ -40,6 +40,9 @@ export const RESOURCES = {
   PAYMENT_CONFIG: 'payment_config',
   COMMUNICATION_CONFIG: 'communication_config',
   AUDIT_LOG: 'audit_log',
+
+  // Clés d'API machine (CLI, CI)
+  API_KEY: 'api_key',
 } as const;
 
 export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];

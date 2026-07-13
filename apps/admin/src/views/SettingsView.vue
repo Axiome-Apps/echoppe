@@ -9,6 +9,7 @@ import Badge from '@/components/atoms/Badge.vue';
 import MediaPicker from '@/components/molecules/MediaPicker.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import DataTable from '@/components/organisms/DataTable/DataTable.vue';
+import ApiKeysPanel from '@/components/organisms/ApiKeys/ApiKeysPanel.vue';
 import Pagination from '@/components/molecules/Pagination.vue';
 import FilterText from '@/components/molecules/PageHeader/FilterText.vue';
 import FilterSelect from '@/components/molecules/PageHeader/FilterSelect.vue';
@@ -28,19 +29,20 @@ const route = useRoute();
 const toast = useToast();
 
 // Tabs
-type TabId = 'info' | 'roles' | 'users';
+type TabId = 'info' | 'roles' | 'users' | 'api-keys';
 const activeTab = ref<TabId>('info');
 
 const tabs = [
   { id: 'info' as const, label: 'Informations' },
   { id: 'roles' as const, label: 'Rôles & permissions' },
   { id: 'users' as const, label: 'Utilisateurs' },
+  { id: 'api-keys' as const, label: "Clés d'API" },
 ];
 
 // Init tab from URL
 onMounted(() => {
   const tab = route.query.tab as string;
-  if (tab === 'roles' || tab === 'users') {
+  if (tab === 'roles' || tab === 'users' || tab === 'api-keys') {
     activeTab.value = tab;
   }
 });
@@ -943,6 +945,11 @@ const activeFiltersCount = computed(() => {
         :limit="paginationMeta.limit"
         @update:page="setPage"
       />
+    </div>
+
+    <!-- Tab: Clés d'API -->
+    <div v-else-if="activeTab === 'api-keys'">
+      <ApiKeysPanel />
     </div>
 
     <!-- Role Delete Modal -->
