@@ -11,7 +11,12 @@ import CheckIcon from '@/components/atoms/icons/CheckIcon.vue';
 import { api } from '@/lib/api';
 import { createOptionValue, getOptionValues, updateVariantOptions } from '@/lib/product-api';
 import { type Media, getMediaUrl } from '@/composables/media';
-import type { ProductMedia, Option, Variant as BaseVariant } from '@/composables/product';
+import type {
+  ProductMedia,
+  Option,
+  Variant as BaseVariant,
+  VariantMutation,
+} from '@/composables/product';
 
 // Type pour les options globales (sans valeurs)
 type GlobalOption = { id: string; name: string };
@@ -256,12 +261,13 @@ async function save() {
   };
 
   try {
-    let savedVariant: Variant | null = null;
+    // Réponse CRUD = VariantMutation (variant complet SANS optionValues) → pas de cast vers Variant.
+    let savedVariant: VariantMutation | null = null;
 
     if (isNew.value) {
       const { data } = await api.products({ id: props.productId }).variants.post(payload);
       if (data && 'id' in data) {
-        savedVariant = data as Variant;
+        savedVariant = data;
       }
     } else if (props.variant) {
       const { data } = await api
@@ -269,7 +275,7 @@ async function save() {
         .variants({ variantId: props.variant.id })
         .put(payload);
       if (data && 'id' in data) {
-        savedVariant = data as Variant;
+        savedVariant = data;
       }
     }
 

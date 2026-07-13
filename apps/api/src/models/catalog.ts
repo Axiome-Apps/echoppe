@@ -110,11 +110,34 @@ export const optionDetailSchema = t.Composite([
   }),
 ]);
 
-// Produit + variants + options (retour de GET /products/:id).
+// Produit + variants + options (retour de GET /products/:id, PUBLIC → variant projeté).
 export const productWithVariantsSchema = t.Composite([
   productSchema,
   t.Object({
     variants: t.Array(variantDetailSchema, { description: 'Variantes du produit.' }),
+    options: t.Array(optionDetailSchema, { description: 'Options du produit.' }),
+  }),
+]);
+
+// Vue ADMIN du variant : la vue COMPLÈTE (`variantSchema`, avec costPrice/lowStockThreshold) +
+// ses valeurs d'option. Réservée aux lectures admin (RBAC product.read) → jamais dans la surface
+// storefront. Distincte de `variantDetailSchema` (public, sans champs internes).
+export const variantAdminDetailSchema = t.Composite([
+  variantSchema,
+  t.Object({
+    optionValues: t.Array(
+      t.String({ format: 'uuid', description: "UUID d'une valeur d'option sélectionnée." }),
+      { description: 'Valeurs d’option qui définissent cette variante.' },
+    ),
+  }),
+]);
+
+// Produit + variants COMPLETS + options (retour de GET /products/:id/full, ADMIN). Alimente
+// l'éditeur produit/variants de l'admin (édition de costPrice/lowStockThreshold).
+export const productAdminWithVariantsSchema = t.Composite([
+  productSchema,
+  t.Object({
+    variants: t.Array(variantAdminDetailSchema, { description: 'Variantes (vue admin complète).' }),
     options: t.Array(optionDetailSchema, { description: 'Options du produit.' }),
   }),
 ]);
@@ -151,6 +174,7 @@ export const productDetailSchema = t.Composite([
 export const catalogModels = {
   Product: productSchema,
   ProductWithVariants: productWithVariantsSchema,
+  ProductAdminWithVariants: productAdminWithVariantsSchema,
   ProductDetail: productDetailSchema,
   ProductList: paginatedResponse(productListSchema),
   ProductMedia: productMediaSchema,

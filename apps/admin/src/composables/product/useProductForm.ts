@@ -132,7 +132,8 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
   async function loadProduct() {
     if (!productId.value) return;
 
-    const { data } = await api.products({ id: productId.value }).get();
+    // Lecture ADMIN complète (variants avec costPrice/lowStockThreshold).
+    const { data } = await api.products({ id: productId.value }).full.get();
     if (data && 'id' in data) {
       product.value = data;
       const formData: ProductFormState = {

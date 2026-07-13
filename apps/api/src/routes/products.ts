@@ -707,10 +707,63 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
     },
   )
 
+  // === LECTURE ADMIN ===
+  .use(permissionGuard('product', 'read'))
+
+  // GET /products/:id/full - Produit + variants COMPLETS (costPrice/lowStockThreshold) + options.
+  // Réservé à l'admin : la lecture publique `/products/:id` masque les champs internes du variant.
+  .get(
+    '/:id/full',
+    async ({ params, status }) => {
+      const [found] = await db.select().from(product).where(eq(product.id, params.id));
+      if (!found) return status(404, { message: 'Product not found' });
+
+      const variants = await db
+        .select()
+        .from(variant)
+        .where(eq(variant.product, params.id))
+        .orderBy(variant.sortOrder);
+
+      const productOptions = await db
+        .select({ option: option, sortOrder: productOption.sortOrder })
+        .from(productOption)
+        .innerJoin(option, eq(productOption.option, option.id))
+        .where(eq(productOption.product, params.id))
+        .orderBy(productOption.sortOrder);
+
+      const optionsWithValues = await Promise.all(
+        productOptions.map(async (po) => {
+          const values = await db
+            .select()
+            .from(optionValue)
+            .where(eq(optionValue.option, po.option.id))
+            .orderBy(optionValue.sortOrder);
+          return { ...po.option, sortOrder: po.sortOrder, values };
+        }),
+      );
+
+      const variantsWithOptions = await Promise.all(
+        variants.map(async (v) => {
+          const optionValues = await db
+            .select()
+            .from(variantOptionValue)
+            .where(eq(variantOptionValue.variant, v.id));
+          return { ...v, optionValues: optionValues.map((ov) => ov.optionValue) };
+        }),
+      );
+
+      return { ...found, variants: variantsWithOptions, options: optionsWithValues };
+    },
+    {
+      permission: true,
+      params: productParams,
+      response: withNotFound({ 200: 'ProductAdminWithVariants' }),
+    },
+  )
+
   // === MEDIA ===
 
   // GET /products/:id/media
-  .use(permissionGuard('product', 'read'))
   .get(
     '/:id/media',
     async ({ params }) => {
