@@ -13,6 +13,7 @@ export type CategoryList = components['schemas']['CategoryList'];
 export type CheckoutResult = components['schemas']['CheckoutResult'];
 export type Collection = components['schemas']['Collection'];
 export type CollectionList = components['schemas']['CollectionList'];
+export type CountryList = components['schemas']['CountryList'];
 export type CustomerAuth = components['schemas']['CustomerAuth'];
 export type LoginResult = components['schemas']['LoginResult'];
 export type Menu = components['schemas']['Menu'];

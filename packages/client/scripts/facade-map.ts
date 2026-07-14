@@ -24,6 +24,7 @@ export const TAG_NAMESPACE: Record<string, string> = {
   Payments: 'checkout', // `/payments/checkout` fusionné dans checkout (`checkout.pay()`).
   Company: 'company',
   'Tax Rates': 'taxRates',
+  Countries: 'countries',
   Contact: 'contact',
   Pages: 'pages',
   Menus: 'menus',
@@ -70,6 +71,7 @@ export const METHOD_NAMES: Record<string, string> = {
   // company / taxRates / contact
   getCompany: 'get',
   'getTax-rates': 'list',
+  getCountries: 'list',
   postContact: 'send',
   // addresses
   getCustomerAddresses: 'list',

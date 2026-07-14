@@ -8,7 +8,7 @@
  * 4. Génère `src/models.ts` : des alias plats des schémas, importables directement
  *    (`import type { ProductDetail } from '@echoppe/client'`).
  *
- * Usage : `bun run generate` (API par défaut sur http://localhost:7532),
+ * Usage : `bun run generate` (API source par défaut sur http://localhost:7533),
  * ou `ECHOPPE_API_URL=https://api.exemple.fr bun run generate`.
  */
 import { $ } from 'bun';
@@ -82,7 +82,9 @@ function normalizeRecursiveSchemas(spec: OpenApiSpec): number {
   return registered.size;
 }
 
-const apiUrl = (process.env.ECHOPPE_API_URL ?? 'http://localhost:7532').replace(/\/+$/, '');
+// Défaut = API dev *depuis les sources* (API_PORT=7533, cf. .env), pas le conteneur Docker
+// (7532). Override par ECHOPPE_API_URL pour viser une API distante.
+const apiUrl = (process.env.ECHOPPE_API_URL ?? 'http://localhost:7533').replace(/\/+$/, '');
 const specUrl = `${apiUrl}/docs/json`;
 
 const response = await fetch(specUrl);

@@ -388,6 +388,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/countries/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCountries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/contact/": {
         parameters: {
             query?: never;
@@ -882,6 +898,19 @@ export interface components {
                 totalPages: number;
             };
         };
+        CountryList: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique du pays.
+             */
+            id: string;
+            /** @description Nom du pays. */
+            name: string;
+            /** @description Code ISO du pays (ex. « FR »). */
+            code: string;
+            /** @description Livraison activée vers ce pays. */
+            isShippingEnabled: boolean;
+        }[];
         CustomerAuth: {
             customer: {
                 /**
@@ -2668,6 +2697,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaxRateList"];
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getCountries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountryList"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */

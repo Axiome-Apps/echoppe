@@ -49,6 +49,7 @@ export const STOREFRONT_SURFACE: ReadonlyArray<readonly [HttpMethod, string]> = 
   ['get', '/checkout/payment-providers'],
   ['get', '/company/'],
   ['get', '/tax-rates/'],
+  ['get', '/countries/'],
   ['post', '/contact/'],
 
   // --- Client authentifié (customerAuth) ---

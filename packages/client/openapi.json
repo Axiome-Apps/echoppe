@@ -314,7 +314,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -334,7 +335,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -404,7 +406,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -424,7 +427,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -495,7 +499,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -515,7 +520,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -800,7 +806,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -820,7 +827,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -891,7 +899,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -911,7 +920,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -981,7 +991,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1001,7 +1012,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1116,7 +1128,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1136,7 +1149,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1222,7 +1236,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1242,7 +1257,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1313,7 +1329,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1333,7 +1350,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1403,7 +1421,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1423,7 +1442,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1538,7 +1558,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1558,7 +1579,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1598,7 +1620,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1618,7 +1641,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1688,7 +1712,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1708,7 +1733,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1778,7 +1804,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1798,7 +1825,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2359,7 +2387,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2379,7 +2408,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2659,7 +2689,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2679,7 +2710,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2719,7 +2751,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2739,13 +2772,76 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
           }
         },
         "operationId": "getTax-rates"
+      }
+    },
+    "/countries/": {
+      "get": {
+        "tags": [
+          "Countries"
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entité non traitable - Règle métier non respectée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Entité non traitable - Règle métier non respectée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Détail de l'erreur métier",
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Erreur serveur interne",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Erreur interne",
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getCountries"
       }
     },
     "/contact/": {
@@ -2891,7 +2987,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2931,7 +3028,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4769,7 +4867,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4789,7 +4888,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4908,7 +5008,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4928,7 +5029,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -6552,6 +6654,39 @@
           }
         },
         "$id": "#/components/schemas/CollectionList"
+      },
+      "CountryList": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "name",
+            "code",
+            "isShippingEnabled"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "description": "Identifiant unique du pays.",
+              "type": "string"
+            },
+            "name": {
+              "description": "Nom du pays.",
+              "type": "string"
+            },
+            "code": {
+              "description": "Code ISO du pays (ex. « FR »).",
+              "type": "string"
+            },
+            "isShippingEnabled": {
+              "description": "Livraison activée vers ce pays.",
+              "type": "boolean"
+            }
+          },
+          "$id": "#/components/schemas/Country"
+        },
+        "$id": "#/components/schemas/CountryList"
       },
       "CustomerAuth": {
         "type": "object",

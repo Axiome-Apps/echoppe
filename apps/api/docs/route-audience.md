@@ -61,6 +61,7 @@ PSP (signature). Aucune route de mutation orpheline détectée.
 | GET | `/checkout/payment-providers` | checkout | ✅ |
 | GET | `/company/` | company (infos légales) | ✅ |
 | GET | `/tax-rates/` | tax-rates | ✅ |
+| GET | `/countries/` | countries (pays livrables, formulaires d'adresse) | ✅ |
 | POST | `/contact/` | contact (formulaire) | ✅ |
 
 ## Storefront — `client` authentifié (SDK ✅, `customerAuth`)
