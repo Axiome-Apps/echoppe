@@ -5,6 +5,8 @@ node_modules/
 dist/
 build/
 .output/
+*.bun-build
+*.tsbuildinfo
 
 # Bun
 .bun/
