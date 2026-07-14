@@ -48,6 +48,24 @@ ADMIN_PORT=3001
 API_PORT=8000
 ```
 
+### API : conteneur (7532) vs dev depuis les sources (7533)
+
+`7532` reste **le** port de l'API — celui de l'image Docker, du conteneur (`compose.dev.yaml`),
+de la prod et du template `create-echoppe`. L'identité mathématique est intacte.
+
+En dev **monorepo**, on lance parfois l'API *depuis les sources* (`bun run dev:api`) alors qu'un
+conteneur tourne déjà sur `7532` (ex. pour régénérer le SDK `@echoppe/client`, qui interroge
+`/docs/json`). Pour que les deux coexistent sans collision, le `.env` du monorepo fixe
+`API_PORT=7533` (source), et le générateur SDK vise `7533` par défaut. Admin (proxy Vite) et
+store suivent via `API_PORT` / `PUBLIC_API_URL`.
+
+| Contexte | Port API | Source du port |
+|----------|----------|----------------|
+| Conteneur Docker / prod / template CLI | `7532` | défaut code (`API_PORT ?? 7532`) |
+| Dev monorepo depuis les sources | `7533` | `.env` racine (`API_PORT=7533`) |
+
+`7533` n'a pas de valeur symbolique : c'est un port de travail local, pas une identité produit.
+
 ### Pourquoi des ports "originaux" par défaut ?
 
 1. **Éviter les conflits** — Les ports standards (3000, 8000, 8080) sont souvent déjà occupés en environnement de développement

@@ -28,6 +28,7 @@ import { models } from '../models';
 import { optionSchema, productMediaSchema, variantPublicSchema } from '../models/catalog';
 import { permissionGuard } from '../plugins/rbac';
 import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
+import { enrichProductCards } from '../utils/product-cards';
 import {
   conflictResponse,
   successSchema,
@@ -238,50 +239,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
           .where(whereClause),
       ]);
 
-      // Fetch featured images and default variants for all products
-      const productIds = products.map((p) => p.id);
-
-      const [featuredImages, defaultVariants] = await Promise.all([
-        productIds.length > 0
-          ? db
-              .select({ productId: productMedia.product, mediaId: productMedia.media })
-              .from(productMedia)
-              .where(
-                and(inArray(productMedia.product, productIds), eq(productMedia.isFeatured, true)),
-              )
-          : [],
-        productIds.length > 0
-          ? db
-              .select({
-                productId: variant.product,
-                priceHt: variant.priceHt,
-                compareAtPriceHt: variant.compareAtPriceHt,
-                quantity: variant.quantity,
-              })
-              .from(variant)
-              .where(and(inArray(variant.product, productIds), eq(variant.isDefault, true)))
-          : [],
-      ]);
-
-      // Create lookup maps
-      const featuredImageMap = new Map(featuredImages.map((fi) => [fi.productId, fi.mediaId]));
-      const defaultVariantMap = new Map(
-        defaultVariants.map((dv) => [
-          dv.productId,
-          {
-            priceHt: dv.priceHt,
-            compareAtPriceHt: dv.compareAtPriceHt,
-            quantity: dv.quantity,
-          },
-        ]),
-      );
-
-      // Enrich products
-      let enrichedProducts = products.map((p) => ({
-        ...p,
-        featuredImage: featuredImageMap.get(p.id) ?? null,
-        defaultVariant: defaultVariantMap.get(p.id) ?? null,
-      }));
+      let enrichedProducts = await enrichProductCards(products);
 
       // Sort by price if requested (post-enrichment)
       if (sort === 'price') {

@@ -31,6 +31,9 @@ export const productListSchema = t.Object({
     t.String({ format: 'uuid', description: 'UUID du média mis en avant.' }),
   ),
   defaultVariant: t.Nullable(defaultVariantSchema),
+  images: t.Array(t.String({ format: 'uuid', description: "UUID d'un média de la galerie." }), {
+    description: 'Galerie ordonnée (image principale en tête) — survol, miniatures.',
+  }),
 });
 
 export const productSchema = t.Object({

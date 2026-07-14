@@ -314,8 +314,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -335,8 +334,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -406,8 +404,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -427,8 +424,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -499,8 +495,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -520,8 +515,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -806,8 +800,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -827,8 +820,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -899,8 +891,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -920,8 +911,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -991,8 +981,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1012,8 +1001,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1128,8 +1116,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1149,8 +1136,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1236,8 +1222,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1257,8 +1242,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1329,8 +1313,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1350,8 +1333,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1421,8 +1403,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1442,8 +1423,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1558,8 +1538,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1579,8 +1558,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1620,8 +1598,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1641,8 +1618,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1712,8 +1688,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1733,8 +1708,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1804,8 +1778,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1825,8 +1798,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2387,8 +2359,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2408,8 +2379,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2689,8 +2659,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2710,8 +2679,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2751,8 +2719,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2772,8 +2739,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2813,8 +2779,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2834,8 +2799,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -2987,8 +2951,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -3028,8 +2991,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -4867,8 +4829,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -4888,8 +4849,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -5008,8 +4968,7 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -5029,8 +4988,7 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -7870,7 +7828,8 @@
                 "dateCreated",
                 "dateUpdated",
                 "featuredImage",
-                "defaultVariant"
+                "defaultVariant",
+                "images"
               ],
               "properties": {
                 "id": {
@@ -8006,6 +7965,15 @@
                       "type": "null"
                     }
                   ]
+                },
+                "images": {
+                  "description": "Galerie ordonnée (image principale en tête) — survol, miniatures.",
+                  "type": "array",
+                  "items": {
+                    "format": "uuid",
+                    "description": "UUID d'un média de la galerie.",
+                    "type": "string"
+                  }
                 }
               }
             }

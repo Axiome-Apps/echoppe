@@ -1249,6 +1249,8 @@ export interface components {
                     /** @description Stock disponible. */
                     quantity: number;
                 } | null) | null;
+                /** @description Galerie ordonnée (image principale en tête) — survol, miniatures. */
+                images: string[];
             }[];
             meta: {
                 total: number;

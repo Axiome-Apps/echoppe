@@ -1,20 +1,11 @@
-import {
-  and,
-  category,
-  count,
-  db,
-  eq,
-  inArray,
-  product,
-  productMedia,
-  variant,
-} from '@echoppe/core';
+import { category, count, db, eq, product } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
 import { permissionGuard } from '../plugins/rbac';
 import { buildPaginatedResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
+import { enrichProductCards } from '../utils/product-cards';
 import {
   successSchema,
   withAuthErrors,
@@ -129,44 +120,7 @@ export const categoriesRoutes = new Elysia({
           .where(eq(product.category, params.id)),
       ]);
 
-      // Fetch featured images and default variants
-      const productIds = products.map((p) => p.id);
-
-      const [featuredImages, defaultVariants] = await Promise.all([
-        productIds.length > 0
-          ? db
-              .select({ productId: productMedia.product, mediaId: productMedia.media })
-              .from(productMedia)
-              .where(
-                and(inArray(productMedia.product, productIds), eq(productMedia.isFeatured, true)),
-              )
-          : [],
-        productIds.length > 0
-          ? db
-              .select({
-                productId: variant.product,
-                priceHt: variant.priceHt,
-                compareAtPriceHt: variant.compareAtPriceHt,
-                quantity: variant.quantity,
-              })
-              .from(variant)
-              .where(and(inArray(variant.product, productIds), eq(variant.isDefault, true)))
-          : [],
-      ]);
-
-      const featuredImageMap = new Map(featuredImages.map((fi) => [fi.productId, fi.mediaId]));
-      const defaultVariantMap = new Map(
-        defaultVariants.map((dv) => [
-          dv.productId,
-          { priceHt: dv.priceHt, compareAtPriceHt: dv.compareAtPriceHt, quantity: dv.quantity },
-        ]),
-      );
-
-      const enrichedProducts = products.map((p) => ({
-        ...p,
-        featuredImage: featuredImageMap.get(p.id) ?? null,
-        defaultVariant: defaultVariantMap.get(p.id) ?? null,
-      }));
+      const enrichedProducts = await enrichProductCards(products);
 
       return buildPaginatedResponse(enrichedProducts, total, page, limit);
     },
