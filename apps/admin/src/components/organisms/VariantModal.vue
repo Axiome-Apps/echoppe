@@ -79,7 +79,7 @@ const globalOptions = ref<GlobalOption[]>([]);
 
 // Load global options on mount
 onMounted(async () => {
-  const { data } = await api.products.options.get();
+  const { data } = await api.products['option-axes'].get();
   if (data && Array.isArray(data)) {
     globalOptions.value = data;
   }
@@ -206,7 +206,7 @@ async function addExistingOption(optionId: string) {
   if (!globalOpt) return;
 
   // Associe l'option au produit via l'API
-  const { data } = await api.products({ id: props.productId }).options.post({
+  const { data } = await api.products({ id: props.productId })['option-axes'].post({
     name: globalOpt.name,
   });
 
@@ -222,7 +222,7 @@ async function addExistingOption(optionId: string) {
 async function createOption(name: string) {
   if (!name.trim()) return;
 
-  const { data } = await api.products({ id: props.productId }).options.post({
+  const { data } = await api.products({ id: props.productId })['option-axes'].post({
     name: name.trim(),
   });
 

@@ -33,7 +33,7 @@ export type Option = ProductDetail['options'][number];
 export type OptionValueItem = Option['values'][number];
 export type ColorMetadata = NonNullable<OptionValueItem['metadata']>;
 // Option globale telle que listée par GET /products/options (id, name, type), sans les valeurs.
-export type GlobalOption = ApiItem<ReturnType<typeof api.products.options.get>>;
+export type GlobalOption = ApiItem<ReturnType<typeof api.products['option-axes']['get']>>;
 
 // Type ProductMedia inféré depuis Eden
 export type ProductMedia = NonNullable<

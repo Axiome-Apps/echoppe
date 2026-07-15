@@ -14,10 +14,8 @@ export async function createOptionValue(
   value: string,
   metadata?: ColorMetadata,
 ): Promise<OptionValueItem | null> {
-  const { data } = await api
-    .products({ id: productId })
-    .options({ optionId })
-    .values.post({ value, metadata });
+  const axis = api.products({ id: productId })['option-axes']({ optionId });
+  const { data } = await axis.values.post({ value, metadata });
   return data ?? null;
 }
 
@@ -31,11 +29,8 @@ export async function updateOptionValue(
   valueId: string,
   patch: { value?: string; metadata?: ColorMetadata | null; sortOrder?: number },
 ): Promise<OptionValueItem | null> {
-  const { data } = await api
-    .products({ id: productId })
-    .options({ optionId })
-    .values({ valueId })
-    .put(patch);
+  const axis = api.products({ id: productId })['option-axes']({ optionId });
+  const { data } = await axis.values({ valueId }).put(patch);
   return data ?? null;
 }
 
@@ -46,7 +41,7 @@ export async function getOptionValues(
   productId: string,
   optionId: string,
 ): Promise<OptionValueItem[]> {
-  const { data } = await api.products({ id: productId }).options({ optionId }).values.get();
+  const { data } = await api.products({ id: productId })['option-axes']({ optionId }).values.get();
   return Array.isArray(data) ? data : [];
 }
 
@@ -58,7 +53,7 @@ export async function updateOption(
   optionId: string,
   patch: { name?: string; type?: GlobalOption['type']; sortOrder?: number },
 ): Promise<GlobalOption | null> {
-  const { data } = await api.products({ id: productId }).options({ optionId }).put(patch);
+  const { data } = await api.products({ id: productId })['option-axes']({ optionId }).put(patch);
   return data ?? null;
 }
 

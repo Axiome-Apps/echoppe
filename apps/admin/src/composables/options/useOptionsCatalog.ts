@@ -3,9 +3,13 @@ import { api } from '@/lib/api';
 import type { ApiItem } from '@/types/api';
 import { ref } from 'vue';
 
-// Types INFÉRÉS d'Eden — ressource globale /options (le catalogue d'axes).
-export type Axis = ApiItem<ReturnType<typeof api.options.get>>;
-export type OptionValue = ApiItem<ReturnType<ReturnType<typeof api.options>['values']['get']>>;
+// Ressource globale `/option-axes` (le catalogue d'axes). Nommée SANS le mot `options` :
+// c'est un verbe HTTP réservé par Eden Treaty (la forme appel déclencherait un OPTIONS).
+const axesApi = api['option-axes'];
+
+// Types INFÉRÉS d'Eden.
+export type Axis = ApiItem<ReturnType<typeof axesApi.get>>;
+export type OptionValue = ApiItem<ReturnType<ReturnType<typeof axesApi>['values']['get']>>;
 export type ColorMetadata = NonNullable<OptionValue['metadata']>;
 export type AxisWithValues = Axis & { values: OptionValue[] };
 
@@ -29,11 +33,11 @@ export function useOptionsCatalog() {
   async function load() {
     loading.value = true;
     try {
-      const { data } = await api.options.get();
+      const { data } = await axesApi.get();
       if (!data) return;
       axes.value = await Promise.all(
         data.map(async (axis) => {
-          const { data: values } = await api.options({ optionId: axis.id }).values.get();
+          const { data: values } = await axesApi({ optionId: axis.id }).values.get();
           return { ...axis, values: values ?? [] };
         }),
       );
@@ -43,7 +47,7 @@ export function useOptionsCatalog() {
   }
 
   async function createAxis(name: string, type: Axis['type']): Promise<boolean> {
-    const { data, error } = await api.options.post({ name, type });
+    const { data, error } = await axesApi.post({ name, type });
     if (error || !data) {
       toast.error(errorMessage(error, "Création de l'axe impossible"));
       return false;
@@ -56,7 +60,7 @@ export function useOptionsCatalog() {
     axisId: string,
     patch: { name?: string; type?: Axis['type'] },
   ): Promise<boolean> {
-    const { data, error } = await api.options({ optionId: axisId }).put(patch);
+    const { data, error } = await axesApi({ optionId: axisId }).put(patch);
     if (error || !data) {
       toast.error(errorMessage(error, "Mise à jour de l'axe impossible"));
       return false;
@@ -74,7 +78,7 @@ export function useOptionsCatalog() {
   }
 
   async function deleteAxis(axisId: string): Promise<boolean> {
-    const { error } = await api.options({ optionId: axisId }).delete();
+    const { error } = await axesApi({ optionId: axisId }).delete();
     if (error) {
       toast.error(errorMessage(error, "Suppression de l'axe impossible"));
       return false;
@@ -88,7 +92,7 @@ export function useOptionsCatalog() {
     value: string,
     metadata?: ColorMetadata,
   ): Promise<boolean> {
-    const { data, error } = await api.options({ optionId: axisId }).values.post({ value, metadata });
+    const { data, error } = await axesApi({ optionId: axisId }).values.post({ value, metadata });
     if (error || !data) {
       toast.error(errorMessage(error, 'Ajout de la valeur impossible'));
       return false;
@@ -102,10 +106,7 @@ export function useOptionsCatalog() {
     valueId: string,
     patch: { value?: string; metadata?: ColorMetadata | null },
   ): Promise<boolean> {
-    const { data, error } = await api
-      .options({ optionId: axisId })
-      .values({ valueId })
-      .put(patch);
+    const { data, error } = await axesApi({ optionId: axisId }).values({ valueId }).put(patch);
     if (error || !data) {
       toast.error(errorMessage(error, 'Mise à jour de la valeur impossible'));
       return false;
@@ -120,7 +121,7 @@ export function useOptionsCatalog() {
   }
 
   async function deleteValue(axisId: string, valueId: string): Promise<boolean> {
-    const { error } = await api.options({ optionId: axisId }).values({ valueId }).delete();
+    const { error } = await axesApi({ optionId: axisId }).values({ valueId }).delete();
     if (error) {
       toast.error(errorMessage(error, 'Suppression de la valeur impossible'));
       return false;

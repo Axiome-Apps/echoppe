@@ -895,7 +895,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // GET /options - Liste toutes les options globales
   .use(permissionGuard('option', 'read'))
   .get(
-    '/options',
+    '/option-axes',
     async () => {
       const options = await db.select().from(option).orderBy(option.name);
       return options;
@@ -905,7 +905,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
   // GET /products/:id/options/:optionId/values - Valeurs (globales) d'une option
   .get(
-    '/:id/options/:optionId/values',
+    '/:id/option-axes/:optionId/values',
     async ({ params }) => {
       return db
         .select()
@@ -919,7 +919,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // POST /products/:id/options - Associe une option au produit (crée l'option si elle n'existe pas)
   .use(permissionGuard('option', 'create'))
   .post(
-    '/:id/options',
+    '/:id/option-axes',
     async ({ params, body, status }) => {
       const [productExists] = await db.select().from(product).where(eq(product.id, params.id));
       if (!productExists) return status(404, { message: 'Product not found' });
@@ -968,7 +968,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
   // POST /products/:id/options/:optionId/values
   .post(
-    '/:id/options/:optionId/values',
+    '/:id/option-axes/:optionId/values',
     async ({ params, body, status }) => {
       const [optionExists] = await db.select().from(option).where(eq(option.id, params.optionId));
       if (!optionExists) return status(404, { message: 'Option not found' });
@@ -1009,7 +1009,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // PUT /products/:id/options/:optionId - Édite une option (name/type/sortOrder)
   .use(permissionGuard('option', 'update'))
   .put(
-    '/:id/options/:optionId',
+    '/:id/option-axes/:optionId',
     async ({ params, body, status }) => {
       const [existing] = await db.select().from(option).where(eq(option.id, params.optionId));
       if (!existing) return status(404, { message: 'Option not found' });
@@ -1045,7 +1045,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
   // PUT /products/:id/options/:optionId/values/:valueId - Édite une valeur (value/metadata/sortOrder)
   .put(
-    '/:id/options/:optionId/values/:valueId',
+    '/:id/option-axes/:optionId/values/:valueId',
     async ({ params, body, status }) => {
       const [opt] = await db.select().from(option).where(eq(option.id, params.optionId));
       if (!opt) return status(404, { message: 'Option not found' });
@@ -1086,7 +1086,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // DELETE /products/:id/options/:optionId/values/:valueId - Supprime une valeur (409 si utilisée)
   .use(permissionGuard('option', 'delete'))
   .delete(
-    '/:id/options/:optionId/values/:valueId',
+    '/:id/option-axes/:optionId/values/:valueId',
     async ({ params, status }) => {
       const [existing] = await db
         .select()
@@ -1117,7 +1117,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   // DELETE /products/:id/options/:optionId - Dissocie l'option DU PRODUIT (l'axe global reste).
   // 409 si des variantes du produit portent encore une de ses valeurs.
   .delete(
-    '/:id/options/:optionId',
+    '/:id/option-axes/:optionId',
     async ({ params, status }) => {
       const [assoc] = await db
         .select()

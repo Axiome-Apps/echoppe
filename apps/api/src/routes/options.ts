@@ -46,7 +46,9 @@ const valueUpdateBody = t.Object({
   sortOrder: t.Optional(t.Number()),
 });
 
-export const optionsRoutes = new Elysia({ prefix: '/options', detail: { tags: ['Options'] } })
+// Prefix `/option-axes` (pas `/options`) : `options` est un verbe HTTP → Eden Treaty le réserve,
+// la forme `api.options({id})` déclenche une requête OPTIONS au lieu de cibler la ressource.
+export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags: ['Options'] } })
   .use(models)
 
   // === LECTURE ===
