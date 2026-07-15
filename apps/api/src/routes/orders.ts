@@ -29,13 +29,7 @@ import {
 import { Elysia, t } from 'elysia';
 import { UPLOAD_DIR } from '../lib/config';
 import { permissionGuard } from '../plugins/rbac';
-import {
-  buildEqFilters,
-  buildListResponse,
-  getPaginationParams,
-  listResponse,
-  parseSort,
-} from '../utils/pagination';
+import { buildListResponse, listResponse, parseListQuery } from '../utils/pagination';
 import { successSchema, withCrudErrors } from '../utils/responses';
 
 const ordersQuery = t.Object({
@@ -218,25 +212,19 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
   .get(
     '/',
     async ({ query }) => {
-      const { page, limit, offset } = getPaginationParams(query);
-
-      // Tri générique (allowlist : id de colonne UI -> colonne DB), défaut = date desc.
-      const orderBy = parseSort(
-        query.sort,
-        query.order,
-        {
+      const { page, limit, offset, orderBy, filters } = parseListQuery(query, {
+        sortable: {
           orderNumber: order.orderNumber,
           status: order.status,
           totalTtc: order.totalTtc,
           dateCreated: order.dateCreated,
         },
-        desc(order.dateCreated),
-      );
+        defaultSort: desc(order.dateCreated),
+        filterable: { status: order.status },
+      });
 
-      // Filtre d'égalité générique (status, multi-valeurs virgule -> inArray).
-      const conditions = [...buildEqFilters(query, { status: order.status })];
-
-      // Filtres bespoke : ranges de date/montant + recherche cross-table.
+      // Filtres génériques (status) + bespoke : ranges de date/montant + recherche cross-table.
+      const conditions = [...filters];
       if (query.dateFrom) {
         conditions.push(gte(order.dateCreated, new Date(`${query.dateFrom}T00:00:00`)));
       }
@@ -280,7 +268,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
           .from(order)
           .innerJoin(customer, eq(order.customer, customer.id))
           .where(whereClause)
-          .orderBy(orderBy)
+          .orderBy(...orderBy)
           .limit(limit)
           .offset(offset),
         db

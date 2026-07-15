@@ -4,12 +4,7 @@ import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
 import { permissionGuard } from '../plugins/rbac';
-import {
-  buildListResponse,
-  buildPaginatedResponse,
-  getPaginationParams,
-  paginationQuery,
-} from '../utils/pagination';
+import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
   successSchema,
@@ -61,7 +56,7 @@ export const collectionsRoutes = new Elysia({
         db.select({ total: count(collection.id) }).from(collection),
       ]);
 
-      return buildPaginatedResponse(collections, total, page, limit);
+      return buildListResponse(collections, total, page, limit);
     },
     { query: paginationQuery, response: withReadErrors({ 200: 'CollectionList' }) },
   )

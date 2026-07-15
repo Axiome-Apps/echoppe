@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { paginatedResponse } from '../utils/pagination';
+import { listResponse } from '../utils/pagination';
 
 // Schéma d'entité collection — SOURCE UNIQUE. Importé par les routes (par valeur) ET agrégé
 // dans `collectionModels` pour être enregistré comme modèle nommé → peuple
@@ -20,5 +20,5 @@ export const collectionSchema = t.Object({
 // Modèles nommés exposés dans le contrat (components.schemas).
 export const collectionModels = {
   Collection: collectionSchema,
-  CollectionList: paginatedResponse(collectionSchema),
+  CollectionList: listResponse(collectionSchema),
 };

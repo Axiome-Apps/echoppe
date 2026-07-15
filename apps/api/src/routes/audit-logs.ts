@@ -2,7 +2,7 @@ import type { SQL } from '@echoppe/core';
 import { and, auditLog, count, db, desc, eq, gte, isNotNull, lte, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
-import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
+import { buildListResponse, getPaginationParams, listResponse } from '../utils/pagination';
 
 // Query schema
 const auditLogQuery = t.Object({
@@ -34,15 +34,7 @@ const auditLogItemSchema = t.Object({
   dateCreated: t.Date(),
 });
 
-const paginatedAuditLogsSchema = t.Object({
-  data: t.Array(auditLogItemSchema),
-  meta: t.Object({
-    page: t.Number(),
-    limit: t.Number(),
-    total: t.Number(),
-    totalPages: t.Number(),
-  }),
-});
+const paginatedAuditLogsSchema = listResponse(auditLogItemSchema);
 
 export const auditLogsRoutes = new Elysia({ prefix: '/audit-logs', detail: { tags: ['Audit'] } })
 
@@ -121,7 +113,7 @@ export const auditLogsRoutes = new Elysia({ prefix: '/audit-logs', detail: { tag
         user: log.user?.id ? log.user : null,
       }));
 
-      return buildPaginatedResponse(transformedLogs, total, page, limit);
+      return buildListResponse(transformedLogs, total, page, limit);
     },
     {
       permission: true,

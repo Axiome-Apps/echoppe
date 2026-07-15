@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { paginatedResponse } from '../utils/pagination';
+import { listResponse } from '../utils/pagination';
 
 // Projection STOREFRONT d'une commande — vue du client connecté sur SES propres commandes.
 // Volontairement plus pauvre que la vue admin (routes/orders.ts) : pas de `internalNote`
@@ -105,5 +105,5 @@ export const orderSchema = t.Object({
 // Modèles nommés exposés dans le contrat (components.schemas).
 export const orderModels = {
   Order: orderSchema,
-  OrderList: paginatedResponse(orderListItemSchema),
+  OrderList: listResponse(orderListItemSchema),
 };

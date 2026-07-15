@@ -17,7 +17,7 @@ import {
   customerCookieSchema,
   type SessionCustomer,
 } from '../plugins/customerAuth';
-import { buildPaginatedResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
+import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
 import { withAuthErrors, withCrudErrors } from '../utils/responses';
 
 // Espace commandes du client connecté (lecture seule). Chaque requête est filtrée sur
@@ -62,7 +62,7 @@ export const customerOrdersRoutes = new Elysia({
 
       const total = Number(countResult[0]?.count ?? 0);
 
-      return buildPaginatedResponse(orders, total, page, limit);
+      return buildListResponse(orders, total, page, limit);
     },
     {
       customerAuth: true,

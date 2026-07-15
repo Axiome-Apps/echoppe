@@ -1,6 +1,12 @@
 import { db, desc, eq, product, sql, stockMove, variant } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
+import {
+  buildListResponse,
+  getPaginationParams,
+  listResponse,
+  paginationQuery,
+} from '../utils/pagination';
 import { withCrudErrors } from '../utils/responses';
 
 const stockMoveCreateBody = t.Object({
@@ -17,11 +23,6 @@ const alertSchema = t.Object({
   sku: t.Nullable(t.String()),
   quantity: t.Number(),
   lowStockThreshold: t.Nullable(t.Number()),
-});
-
-const paginationQuery = t.Object({
-  page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
-  limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100, default: 20 })),
 });
 
 // Schemas
@@ -47,15 +48,7 @@ const stockVariantSchema = t.Object({
   productName: t.String(),
   quantity: t.Number(),
 });
-const paginatedStockSchema = t.Object({
-  data: t.Array(stockMoveSchema),
-  meta: t.Object({
-    page: t.Number(),
-    limit: t.Number(),
-    total: t.Number(),
-    totalPages: t.Number(),
-  }),
-});
+const paginatedStockSchema = listResponse(stockMoveSchema);
 
 export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stock'] } })
 
@@ -66,9 +59,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
   .get(
     '/',
     async ({ query }) => {
-      const page = query.page ?? 1;
-      const limit = query.limit ?? 20;
-      const offset = (page - 1) * limit;
+      const { page, limit, offset } = getPaginationParams(query);
 
       const [moves, countResult] = await Promise.all([
         db
@@ -82,15 +73,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
 
       const total = Number(countResult[0]?.count ?? 0);
 
-      return {
-        data: moves,
-        meta: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      };
+      return buildListResponse(moves, total, page, limit);
     },
     { permission: true, query: paginationQuery, response: { 200: paginatedStockSchema } },
   )

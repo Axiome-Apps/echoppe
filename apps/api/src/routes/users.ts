@@ -2,13 +2,7 @@ import { and, count, db, desc, eq, ilike, or, role, session, sql, user } from '@
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { permissionGuard } from '../plugins/rbac';
-import {
-  buildEqFilters,
-  buildListResponse,
-  getPaginationParams,
-  listResponse,
-  parseSort,
-} from '../utils/pagination';
+import { buildListResponse, listResponse, parseListQuery } from '../utils/pagination';
 import { badRequestResponse, successSchema, withCrudErrors } from '../utils/responses';
 
 // Query schemas
@@ -95,25 +89,23 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   .get(
     '/',
     async ({ query }) => {
-      const { page, limit, offset } = getPaginationParams(query);
       const { search, status } = query;
 
-      // Tri : colonnes autorisées. Défaut (aucun tri explicite) = owner d'abord,
-      // puis plus récents — un ordre à deux colonnes que parseSort ne couvre pas.
-      const sortable = {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        dateCreated: user.dateCreated,
-        lastLogin: user.lastLogin,
-      };
-      const orderBy =
-        query.sort && query.sort in sortable
-          ? [parseSort(query.sort, query.order, sortable, desc(user.dateCreated))]
-          : [desc(user.isOwner), desc(user.dateCreated)];
+      // Défaut (aucun tri explicite) = owner d'abord puis plus récents (multi-colonnes).
+      // Filtre role générique ; search full-text + status->isActive restent bespoke.
+      const { page, limit, offset, orderBy, filters } = parseListQuery(query, {
+        sortable: {
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          dateCreated: user.dateCreated,
+          lastLogin: user.lastLogin,
+        },
+        defaultSort: [desc(user.isOwner), desc(user.dateCreated)],
+        filterable: { role: user.role },
+      });
 
-      // Filtre d'égalité générique (role), + bespoke (search full-text, status->isActive).
-      const conditions = [...buildEqFilters(query, { role: user.role })];
+      const conditions = [...filters];
 
       if (search) {
         const searchPattern = `%${search}%`;

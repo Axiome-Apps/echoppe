@@ -17,12 +17,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
-import {
-  buildListResponse,
-  getPaginationParams,
-  listResponse,
-  parseSort,
-} from '../utils/pagination';
+import { buildListResponse, listResponse, parseListQuery } from '../utils/pagination';
 import { successSchema, withCrudErrors } from '../utils/responses';
 
 // Query schemas
@@ -124,22 +119,20 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
   .get(
     '/',
     async ({ query }) => {
-      const { page, limit, offset } = getPaginationParams(query);
       const { search, status, dateFrom, dateTo, hasOrders } = query;
 
-      // Tri générique (défaut : plus récents d'abord).
-      const orderBy = parseSort(
-        query.sort,
-        query.order,
-        {
+      // Tri générique (défaut : plus récents d'abord). Filtres tous bespoke
+      // (status -> emailVerified, hasOrders -> agrégat) → pas de `filterable`.
+      const { page, limit, offset, orderBy } = parseListQuery(query, {
+        sortable: {
           email: customer.email,
           firstName: customer.firstName,
           lastName: customer.lastName,
           dateCreated: customer.dateCreated,
           lastLogin: customer.lastLogin,
         },
-        desc(customer.dateCreated),
-      );
+        defaultSort: desc(customer.dateCreated),
+      });
 
       const conditions = [];
 
@@ -213,7 +206,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
           })
           .from(customer)
           .where(whereClause)
-          .orderBy(orderBy)
+          .orderBy(...orderBy)
           .limit(limit)
           .offset(offset),
         db

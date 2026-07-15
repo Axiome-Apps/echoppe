@@ -20,11 +20,11 @@ import { getClientIp, logAudit } from '../lib/audit';
 import { UPLOAD_DIR } from '../lib/config';
 import { permissionGuard } from '../plugins/rbac';
 import {
-  buildPaginatedResponse,
+  buildListResponse,
   DEFAULT_LIMIT,
   getPaginationParams,
+  listResponse,
   MAX_LIMIT,
-  paginatedResponse,
 } from '../utils/pagination';
 import { errorSchema, successSchema, withAuthErrors } from '../utils/responses';
 
@@ -290,9 +290,9 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
           : db.select({ total: count(media.id) }).from(media),
       ]);
 
-      return buildPaginatedResponse(items, total, page, limit);
+      return buildListResponse(items, total, page, limit);
     },
-    { permission: true, query: mediaQuery, response: paginatedResponse(mediaSchema) },
+    { permission: true, query: mediaQuery, response: listResponse(mediaSchema) },
   )
 
   // GET /media/:id - Get single media

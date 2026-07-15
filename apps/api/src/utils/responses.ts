@@ -182,6 +182,3 @@ export function withFullErrors<const T extends ResponseMap>(responses: T) {
     429: rateLimitResponse,
   };
 }
-
-// Ré-export de paginatedResponse pour centraliser les imports
-export { paginatedResponse } from './pagination';
