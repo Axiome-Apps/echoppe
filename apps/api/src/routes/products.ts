@@ -1081,4 +1081,75 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       body: optionValueUpdateBody,
       response: withCrudErrors({ 200: 'OptionValue' }),
     },
+  )
+
+  // DELETE /products/:id/options/:optionId/values/:valueId - Supprime une valeur (409 si utilisée)
+  .use(permissionGuard('option', 'delete'))
+  .delete(
+    '/:id/options/:optionId/values/:valueId',
+    async ({ params, status }) => {
+      const [existing] = await db
+        .select()
+        .from(optionValue)
+        .where(and(eq(optionValue.id, params.valueId), eq(optionValue.option, params.optionId)));
+      if (!existing) return status(404, { message: 'Option value not found' });
+
+      // Refuse si des variantes portent encore cette valeur (ne réécrit jamais une variante).
+      const [used] = await db
+        .select({ v: variantOptionValue.variant })
+        .from(variantOptionValue)
+        .where(eq(variantOptionValue.optionValue, params.valueId))
+        .limit(1);
+      if (used) {
+        return status(409, { message: 'Valeur utilisée par des variantes — détachez-la d’abord' });
+      }
+
+      await db.delete(optionValue).where(eq(optionValue.id, params.valueId));
+      return { success: true };
+    },
+    {
+      permission: true,
+      params: optionValueParams,
+      response: withCrudErrors({ 200: successSchema, 409: conflictResponse }),
+    },
+  )
+
+  // DELETE /products/:id/options/:optionId - Dissocie l'option DU PRODUIT (l'axe global reste).
+  // 409 si des variantes du produit portent encore une de ses valeurs.
+  .delete(
+    '/:id/options/:optionId',
+    async ({ params, status }) => {
+      const [assoc] = await db
+        .select()
+        .from(productOption)
+        .where(
+          and(eq(productOption.product, params.id), eq(productOption.option, params.optionId)),
+        );
+      if (!assoc) return status(404, { message: 'Option non associée au produit' });
+
+      const [used] = await db
+        .select({ v: variantOptionValue.variant })
+        .from(variantOptionValue)
+        .innerJoin(variant, eq(variant.id, variantOptionValue.variant))
+        .innerJoin(optionValue, eq(optionValue.id, variantOptionValue.optionValue))
+        .where(and(eq(variant.product, params.id), eq(optionValue.option, params.optionId)))
+        .limit(1);
+      if (used) {
+        return status(409, {
+          message: 'Des variantes du produit utilisent cette option — détachez-les d’abord',
+        });
+      }
+
+      await db
+        .delete(productOption)
+        .where(
+          and(eq(productOption.product, params.id), eq(productOption.option, params.optionId)),
+        );
+      return { success: true };
+    },
+    {
+      permission: true,
+      params: optionParams,
+      response: withCrudErrors({ 200: successSchema, 409: conflictResponse }),
+    },
   );
