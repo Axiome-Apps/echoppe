@@ -4,6 +4,7 @@ import {
   boolean,
   decimal,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -12,7 +13,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { productStatusEnum } from './enums';
+import { optionTypeEnum, productStatusEnum } from './enums';
 import { media } from './media';
 import { taxRate } from './referential';
 
@@ -98,6 +99,9 @@ export const option = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     name: varchar('name', { length: 50 }).notNull(), // Color, Size...
+    // Type de l'axe : `string` (défaut) ou `color`. Identifie l'axe sans dépendre du nom
+    // (fragile, i18n) et pilote widget admin + rendu storefront.
+    type: optionTypeEnum('type').notNull().default('string'),
     sortOrder: integer('sort_order').notNull().default(0),
   },
   (table) => [
@@ -121,6 +125,18 @@ export const productOption = pgTable(
   (table) => [primaryKey({ columns: [table.product, table.option] })],
 );
 
+// Métadonnée d'une valeur d'option, discriminée par `option.type` PARENT (l'option est SSOT,
+// pas de `type` redondant ici). Type figé pour typer la colonne jsonb (parse-au-write via la
+// validation API selon le type parent, trust-au-read). `color` : couleur oklch canonique
+// (`{ l, c, h, alpha }`, rendu `oklch(l c h / alpha)`). `string` : pas de metadata (null).
+export interface ColorMetadata {
+  l: number; // lightness 0–1
+  c: number; // chroma (garde-fou 0–0.4 ; le gamut réel dépend de l/h, géré au picker + navigateur)
+  h: number; // hue 0–360
+  alpha: number; // 0–1
+}
+export type OptionValueMetadata = ColorMetadata;
+
 export const optionValue = pgTable(
   'option_value',
   {
@@ -129,6 +145,7 @@ export const optionValue = pgTable(
       .notNull()
       .references(() => option.id, { onDelete: 'cascade' }),
     value: varchar('value', { length: 100 }).notNull(), // Red, M, XL...
+    metadata: jsonb('metadata').$type<OptionValueMetadata>(), // null pour type=string
     sortOrder: integer('sort_order').notNull().default(0),
   },
   (table) => [
