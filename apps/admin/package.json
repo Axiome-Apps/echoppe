@@ -22,6 +22,7 @@
     "@tiptap/extension-underline": "^3.27.1",
     "@tiptap/starter-kit": "^3.27.1",
     "@tiptap/vue-3": "^3.27.1",
+    "culori": "^4.0.2",
     "vue": "^3.5.39",
     "vue-draggable-plus": "^0.6.1",
     "vue-router": "^5.1.0"
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.2",
+    "@types/culori": "^4.0.1",
     "@typescript-eslint/eslint-plugin": "^8.62.1",
     "@typescript-eslint/parser": "^8.62.1",
     "@vitejs/plugin-vue": "^6.0.7",
