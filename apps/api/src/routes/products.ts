@@ -257,7 +257,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   .get(
     '/by-slug/:slug',
     async ({ params, status }) => {
-      const [found] = await db.select().from(product).where(eq(product.slug, params.slug));
+      // Public : seul un produit PUBLIÉ est visible (sinon 404, pas de fuite de brouillon).
+      const [found] = await db
+        .select()
+        .from(product)
+        .where(and(eq(product.slug, params.slug), eq(product.status, 'published')));
       if (!found) return status(404, { message: 'Product not found' });
 
       const variants = await db
@@ -345,7 +349,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   .get(
     '/:id',
     async ({ params, status }) => {
-      const [found] = await db.select().from(product).where(eq(product.id, params.id));
+      // Public : seul un produit PUBLIÉ est visible (sinon 404, pas de fuite de brouillon).
+      const [found] = await db
+        .select()
+        .from(product)
+        .where(and(eq(product.id, params.id), eq(product.status, 'published')));
       if (!found) return status(404, { message: 'Product not found' });
 
       const variants = await db
@@ -397,6 +405,13 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   .get(
     '/:id/variants',
     async ({ params }) => {
+      // Public : pas de variantes pour un produit non publié.
+      const [found] = await db
+        .select({ id: product.id })
+        .from(product)
+        .where(and(eq(product.id, params.id), eq(product.status, 'published')));
+      if (!found) return [];
+
       const variants = await db
         .select()
         .from(variant)
