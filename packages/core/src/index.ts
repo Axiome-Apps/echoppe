@@ -1,4 +1,4 @@
-export type { SQL } from 'drizzle-orm';
+export type { Column, SQL } from 'drizzle-orm';
 // Re-export drizzle-orm utilities
 export {
   and,

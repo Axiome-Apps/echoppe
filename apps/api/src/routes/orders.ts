@@ -29,9 +29,16 @@ import {
 import { Elysia, t } from 'elysia';
 import { UPLOAD_DIR } from '../lib/config';
 import { permissionGuard } from '../plugins/rbac';
+import {
+  buildEqFilters,
+  buildListResponse,
+  getPaginationParams,
+  listResponse,
+  parseSort,
+} from '../utils/pagination';
 import { successSchema, withCrudErrors } from '../utils/responses';
 
-const paginationQuery = t.Object({
+const ordersQuery = t.Object({
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
   limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100, default: 20 })),
   status: t.Optional(t.String()),
@@ -40,6 +47,8 @@ const paginationQuery = t.Object({
   search: t.Optional(t.String()),
   amountMin: t.Optional(t.Numeric()),
   amountMax: t.Optional(t.Numeric()),
+  sort: t.Optional(t.String()),
+  order: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
 });
 
 const statusBody = t.Object({
@@ -91,15 +100,7 @@ const orderListItemSchema = t.Object({
   customer: customerSummarySchema,
 });
 
-const paginatedOrdersSchema = t.Object({
-  data: t.Array(orderListItemSchema),
-  meta: t.Object({
-    page: t.Number(),
-    limit: t.Number(),
-    total: t.Number(),
-    totalPages: t.Number(),
-  }),
-});
+const paginatedOrdersSchema = listResponse(orderListItemSchema);
 
 const customerDetailSchema = t.Object({
   id: t.String(),
@@ -217,60 +218,46 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
   .get(
     '/',
     async ({ query }) => {
-      const page = query.page ?? 1;
-      const limit = query.limit ?? 20;
-      const offset = (page - 1) * limit;
+      const { page, limit, offset } = getPaginationParams(query);
 
-      // Build conditions
-      const conditions = [];
+      // Tri générique (allowlist : id de colonne UI -> colonne DB), défaut = date desc.
+      const orderBy = parseSort(
+        query.sort,
+        query.order,
+        {
+          orderNumber: order.orderNumber,
+          status: order.status,
+          totalTtc: order.totalTtc,
+          dateCreated: order.dateCreated,
+        },
+        desc(order.dateCreated),
+      );
 
-      // Filter by status (can be comma-separated)
-      if (query.status) {
-        const statuses = query.status.split(',');
-        if (statuses.length === 1) {
-          conditions.push(
-            eq(order.status, statuses[0] as (typeof order.status.enumValues)[number]),
-          );
-        } else {
-          conditions.push(
-            or(
-              ...statuses.map((s) =>
-                eq(order.status, s as (typeof order.status.enumValues)[number]),
-              ),
-            ),
-          );
-        }
-      }
+      // Filtre d'égalité générique (status, multi-valeurs virgule -> inArray).
+      const conditions = [...buildEqFilters(query, { status: order.status })];
 
-      // Filter by date range (interpret as local time, not UTC)
+      // Filtres bespoke : ranges de date/montant + recherche cross-table.
       if (query.dateFrom) {
-        const fromDate = new Date(`${query.dateFrom}T00:00:00`);
-        conditions.push(gte(order.dateCreated, fromDate));
+        conditions.push(gte(order.dateCreated, new Date(`${query.dateFrom}T00:00:00`)));
       }
       if (query.dateTo) {
-        const toDate = new Date(`${query.dateTo}T23:59:59.999`);
-        conditions.push(lte(order.dateCreated, toDate));
+        conditions.push(lte(order.dateCreated, new Date(`${query.dateTo}T23:59:59.999`)));
       }
-
-      // Filter by amount
       if (query.amountMin !== undefined) {
         conditions.push(gte(order.totalTtc, query.amountMin.toString()));
       }
       if (query.amountMax !== undefined) {
         conditions.push(lte(order.totalTtc, query.amountMax.toString()));
       }
-
-      // Search by orderNumber, customer name or email
       if (query.search) {
         const search = `%${query.search}%`;
-        conditions.push(
-          or(
-            like(order.orderNumber, search),
-            like(customer.email, search),
-            like(customer.firstName, search),
-            like(customer.lastName, search),
-          ),
+        const searchCondition = or(
+          like(order.orderNumber, search),
+          like(customer.email, search),
+          like(customer.firstName, search),
+          like(customer.lastName, search),
         );
+        if (searchCondition) conditions.push(searchCondition);
       }
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -293,7 +280,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
           .from(order)
           .innerJoin(customer, eq(order.customer, customer.id))
           .where(whereClause)
-          .orderBy(desc(order.dateCreated))
+          .orderBy(orderBy)
           .limit(limit)
           .offset(offset),
         db
@@ -305,17 +292,9 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
 
       const total = Number(countResult[0]?.count ?? 0);
 
-      return {
-        data: orders,
-        meta: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      };
+      return buildListResponse(orders, total, page, limit);
     },
-    { permission: true, query: paginationQuery, response: { 200: paginatedOrdersSchema } },
+    { permission: true, query: ordersQuery, response: { 200: paginatedOrdersSchema } },
   )
 
   // GET /orders/:id - Détail commande
