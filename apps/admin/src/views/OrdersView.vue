@@ -46,6 +46,10 @@ const amountMinFilter = ref('');
 const amountMaxFilter = ref('');
 const filtersOpen = ref(false);
 
+// Tri serveur (id de colonne + sens). Vide = tri par défaut de l'API (date desc).
+const sortField = ref('');
+const sortOrder = ref<'asc' | 'desc'>('desc');
+
 const statusOptions: FilterOption[] = [
   { value: 'pending', label: 'En attente' },
   { value: 'confirmed', label: 'Confirmee' },
@@ -70,6 +74,10 @@ async function loadOrders() {
     if (dateToFilter.value) query.dateTo = dateToFilter.value;
     if (amountMinFilter.value) query.amountMin = parseFloat(amountMinFilter.value);
     if (amountMaxFilter.value) query.amountMax = parseFloat(amountMaxFilter.value);
+    if (sortField.value) {
+      query.sort = sortField.value;
+      query.order = sortOrder.value;
+    }
 
     const { data } = await api.orders.get({ query });
     if (data?.data && data?.meta) {
@@ -81,6 +89,13 @@ async function loadOrders() {
   } finally {
     loading.value = false;
   }
+}
+
+function handleSort(payload: { field: string; order: 'asc' | 'desc' } | null) {
+  sortField.value = payload?.field ?? '';
+  sortOrder.value = payload?.order ?? 'desc';
+  paginationMeta.value.page = 1;
+  loadOrders();
 }
 
 function setPage(page: number) {
@@ -156,6 +171,7 @@ const columns = computed<DataTableColumn<Order>[]>(() => [
     id: 'customer',
     label: 'Client',
     accessorKey: 'customer',
+    sortable: false,
     cell: ({ row }) =>
       h('div', {}, [
         h(
@@ -253,12 +269,14 @@ const activeFiltersCount = computed(() => {
       :show-add="false"
       :searchable="false"
       filterable
+      server-sort
       :active-filters-count="activeFiltersCount"
       empty-message="Aucune commande"
       :on-row-click="openDetail"
       @selection-change="handleSelectionChange"
       @apply-filters="applyFilters"
       @reset-filters="resetFilters"
+      @sort="handleSort"
     >
       <template #filters>
         <FilterText

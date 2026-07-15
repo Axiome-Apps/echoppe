@@ -31,6 +31,7 @@ const productThumbnails = ref<Map<string, string>>(new Map());
 const loading = ref(true);
 const deleteModalOpen = ref(false);
 const selectedProducts = ref<Product[]>([]);
+const searchFilter = ref('');
 
 // Pagination state
 const paginationMeta = ref({
@@ -43,9 +44,13 @@ const paginationMeta = ref({
 async function loadProducts() {
   loading.value = true;
   try {
-    const { data } = await api.products.get({
-      query: { page: paginationMeta.value.page, limit: paginationMeta.value.limit },
-    });
+    const query: Record<string, string | number> = {
+      page: paginationMeta.value.page,
+      limit: paginationMeta.value.limit,
+    };
+    if (searchFilter.value) query.search = searchFilter.value;
+
+    const { data } = await api.products.get({ query });
     if (data?.data && data?.meta) {
       products.value = data.data;
       paginationMeta.value = data.meta;
@@ -61,6 +66,14 @@ async function loadProducts() {
 function setPage(page: number) {
   paginationMeta.value.page = page;
   router.replace({ query: { ...route.query, page: page > 1 ? String(page) : undefined } });
+  loadProducts();
+}
+
+function onSearch(value: string) {
+  searchFilter.value = value;
+  // Une nouvelle recherche reconstruit la pagination depuis le premier résultat.
+  paginationMeta.value.page = 1;
+  router.replace({ query: { ...route.query, page: undefined } });
   loadProducts();
 }
 
@@ -267,10 +280,12 @@ const deleteMessage = computed(() => {
       :batch-actions="batchActions"
       :on-batch-action="handleBatchAction"
       search-placeholder="Rechercher un produit..."
+      server-search
       add-label="Nouveau produit"
       empty-message="Aucun produit"
       :on-row-click="openEdit"
       @add="openCreate"
+      @search="onSearch"
       @selection-change="handleSelectionChange"
     />
 

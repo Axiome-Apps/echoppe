@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="TData extends Record<string, unknown>">
-import { ref, computed, watch, h } from 'vue';
+import { ref, computed, watch, onBeforeUnmount, h } from 'vue';
 import {
   useVueTable,
   getCoreRowModel,
@@ -29,6 +29,9 @@ const props = withDefaults(
     loading?: boolean;
     searchable?: boolean;
     searchPlaceholder?: string;
+    serverSearch?: boolean;
+    serverSort?: boolean;
+    searchDebounce?: number;
     filterable?: boolean;
     filtersOpen?: boolean;
     activeFiltersCount?: number;
@@ -47,6 +50,9 @@ const props = withDefaults(
     loading: false,
     searchable: true,
     searchPlaceholder: 'Rechercher...',
+    serverSearch: false,
+    serverSort: false,
+    searchDebounce: 300,
     filterable: false,
     filtersOpen: false,
     activeFiltersCount: 0,
@@ -69,6 +75,8 @@ const emit = defineEmits<{
   'update:filtersOpen': [open: boolean];
   applyFilters: [];
   resetFilters: [];
+  search: [value: string];
+  sort: [payload: { field: string; order: 'asc' | 'desc' } | null];
 }>();
 
 const sorting = ref<SortingState>([]);
@@ -194,7 +202,9 @@ const table = useVueTable({
       return sorting.value;
     },
     get globalFilter() {
-      return globalFilter.value;
+      // En mode recherche serveur, on n'applique pas le filtre client :
+      // les données reçues sont déjà filtrées par l'API.
+      return props.serverSearch ? '' : globalFilter.value;
     },
     get columnVisibility() {
       return columnVisibility.value;
@@ -222,11 +232,30 @@ const table = useVueTable({
   onRowSelectionChange: (updater) => {
     rowSelection.value = typeof updater === 'function' ? updater(rowSelection.value) : updater;
   },
+  // Tri serveur : TanStack ne trie pas côté client, il ne fait que porter l'état.
+  manualSorting: props.serverSort,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   enableRowSelection: props.selectable,
   enableMultiRowSelection: true,
+});
+
+// Recherche serveur : émet la valeur saisie (debounce) au parent, qui relance l'API.
+let searchTimer: ReturnType<typeof setTimeout> | undefined;
+watch(globalFilter, (value) => {
+  if (!props.serverSearch) return;
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => emit('search', value), props.searchDebounce);
+});
+onBeforeUnmount(() => clearTimeout(searchTimer));
+
+// Tri serveur : émet la colonne triée (id + sens) au parent, qui relance l'API.
+// `null` quand le tri est réinitialisé (retour au tri par défaut serveur).
+watch(sorting, (value) => {
+  if (!props.serverSort) return;
+  const first = value[0];
+  emit('sort', first ? { field: first.id, order: first.desc ? 'desc' : 'asc' } : null);
 });
 
 // Emit selection changes
