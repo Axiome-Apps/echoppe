@@ -1,4 +1,5 @@
-import { t } from 'elysia';
+import type { ColorMetadata } from '@echoppe/core';
+import { type Static, t } from 'elysia';
 import { listResponse } from '../utils/pagination';
 
 // Schémas d'entité (réponses) du domaine catalogue — SOURCE UNIQUE. Importés par les
@@ -81,6 +82,17 @@ export const colorMetadataSchema = t.Object(
   },
   { description: 'Couleur oklch canonique (type=color).' },
 );
+
+// Garde-fou compile-time : le TypeBox (validation + bornes) doit rester structurellement aligné
+// sur la SSOT `ColorMetadata` (core). Toute divergence de forme casse le build ici.
+type _ColorMetadataMatchesSSOT =
+  Static<typeof colorMetadataSchema> extends ColorMetadata
+    ? ColorMetadata extends Static<typeof colorMetadataSchema>
+      ? true
+      : never
+    : never;
+const _colorMetadataInSync: _ColorMetadataMatchesSSOT = true;
+void _colorMetadataInSync;
 
 export const optionSchema = t.Object({
   id: t.String({ format: 'uuid', description: "Identifiant unique de l'option." }),

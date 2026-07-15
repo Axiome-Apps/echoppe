@@ -126,14 +126,15 @@ export const productOption = pgTable(
 );
 
 // Métadonnée d'une valeur d'option, discriminée par `option.type` PARENT (l'option est SSOT,
-// pas de `type` redondant ici). Type figé pour typer la colonne jsonb (parse-au-write via la
-// validation API selon le type parent, trust-au-read). `color` : couleur oklch canonique
-// (`{ l, c, h, alpha }`, rendu `oklch(l c h / alpha)`). `string` : pas de metadata (null).
+// pas de `type` redondant ici). SSOT de la forme couleur oklch canonique `{ l, c, h, alpha }`,
+// typant la colonne jsonb (parse-au-write via la validation API selon le type parent, trust-au-read).
+// Les BORNES/validation vivent côté API (`colorMetadataSchema` TypeBox, gardé aligné sur ce type).
+// `color` : rendu `oklch(l c h / alpha)`. `string` : pas de metadata (null).
 export interface ColorMetadata {
   l: number; // lightness 0–1
-  c: number; // chroma (garde-fou 0–0.4 ; le gamut réel dépend de l/h, géré au picker + navigateur)
+  c: number; // chroma (gamut réel dépend de l/h, géré au picker + navigateur)
   h: number; // hue 0–360
-  alpha: number; // 0–1
+  alpha: number; // opacité 0–1
 }
 export type OptionValueMetadata = ColorMetadata;
 
