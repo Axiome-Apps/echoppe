@@ -25,7 +25,13 @@ import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
-import { optionSchema, productMediaSchema, variantPublicSchema } from '../models/catalog';
+import {
+  colorMetadataSchema,
+  optionSchema,
+  optionTypeSchema,
+  productMediaSchema,
+  variantPublicSchema,
+} from '../models/catalog';
 import { permissionGuard } from '../plugins/rbac';
 import { buildEqFilters, buildListResponse, getPaginationParams } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
@@ -116,11 +122,14 @@ const productMediaUpdateBody = t.Object({
 
 const optionBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 50 }),
+  type: t.Optional(optionTypeSchema),
   sortOrder: t.Optional(t.Number({ default: 0 })),
 });
 
 const optionValueBody = t.Object({
   value: t.String({ minLength: 1, maxLength: 100 }),
+  // Couleur (type=color) ; ignorée/forcée à null pour une option de type string à la frontière.
+  metadata: t.Optional(colorMetadataSchema),
   sortOrder: t.Optional(t.Number({ default: 0 })),
 });
 
@@ -889,8 +898,12 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .then((r) => r[0]);
 
       if (!opt) {
-        [opt] = await db.insert(option).values({ name: body.name }).returning();
+        [opt] = await db
+          .insert(option)
+          .values({ name: body.name, type: body.type ?? 'string' })
+          .returning();
       }
+      // Option existante : on respecte son `type` (pas de mutation silencieuse via ce POST).
 
       // Vérifie si l'association existe déjà
       const [existing] = await db
@@ -936,11 +949,16 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         return existing; // Retourne la valeur existante au lieu d'erreur
       }
 
+      // Frontière discriminée par le type PARENT : la couleur n'existe que pour type=color,
+      // forcée à null sinon (une valeur texte ne porte pas de metadata).
+      const metadata = optionExists.type === 'color' ? (body.metadata ?? null) : null;
+
       const [created] = await db
         .insert(optionValue)
         .values({
           option: params.optionId,
           value: body.value,
+          metadata,
           sortOrder: body.sortOrder ?? 0,
         })
         .returning();

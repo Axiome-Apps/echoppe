@@ -48,15 +48,35 @@ export const productSchema = t.Object({
   dateUpdated: t.Date({ description: 'Date de dernière modification.' }),
 });
 
+// Type d'axe d'option : `string` (valeur texte) ou `color` (pastille oklch).
+export const optionTypeSchema = t.Union([t.Literal('string'), t.Literal('color')], {
+  description: "Type de l'axe : `string` (texte) ou `color` (pastille couleur).",
+});
+
+// Couleur oklch canonique portée par une valeur d'option de type `color`. Bornes structurelles
+// (garde-fou anti-garbage) ; le gamut réel dépend de l/h → géré au picker admin + navigateur.
+// Rendu CSS : `oklch(l c h / alpha)`.
+export const colorMetadataSchema = t.Object(
+  {
+    l: t.Number({ minimum: 0, maximum: 1, description: 'Lightness 0–1.' }),
+    c: t.Number({ minimum: 0, maximum: 0.4, description: 'Chroma (garde-fou 0–0.4).' }),
+    h: t.Number({ minimum: 0, maximum: 360, description: 'Hue 0–360.' }),
+    alpha: t.Number({ minimum: 0, maximum: 1, description: 'Opacité 0–1.' }),
+  },
+  { description: 'Couleur oklch canonique (type=color).' },
+);
+
 export const optionSchema = t.Object({
   id: t.String({ format: 'uuid', description: "Identifiant unique de l'option." }),
   name: t.String({ description: "Nom de l'option (ex. « Taille », « Couleur »)." }),
+  type: optionTypeSchema,
 });
 
 export const optionValueSchema = t.Object({
   id: t.String({ format: 'uuid', description: "Identifiant unique de la valeur d'option." }),
   option: t.String({ format: 'uuid', description: "UUID de l'option parente." }),
   value: t.String({ description: 'Valeur (ex. « M », « Rouge »).' }),
+  metadata: t.Nullable(colorMetadataSchema),
   sortOrder: t.Number({ description: "Ordre d'affichage." }),
 });
 
