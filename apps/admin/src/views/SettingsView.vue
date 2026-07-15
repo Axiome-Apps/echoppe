@@ -239,6 +239,14 @@ const roleFilter = ref('');
 const statusFilter = ref('');
 const filtersOpen = ref(false);
 
+// Tri serveur. Map id de colonne UI -> champ de tri API (allowlist route users).
+const sortField = ref('');
+const sortOrder = ref<'asc' | 'desc'>('desc');
+const SORT_FIELD_MAP: Record<string, string> = {
+  name: 'lastName',
+  lastLogin: 'lastLogin',
+};
+
 const showUserDeleteModal = ref(false);
 const userToDelete = ref<User | null>(null);
 const deletingUser = ref(false);
@@ -265,6 +273,10 @@ async function loadUsers() {
     if (searchFilter.value) query.search = searchFilter.value;
     if (roleFilter.value) query.role = roleFilter.value;
     if (statusFilter.value) query.status = statusFilter.value;
+    if (sortField.value) {
+      query.sort = sortField.value;
+      query.order = sortOrder.value;
+    }
 
     const { data } = await api.users.get({ query });
     if (data?.data && data?.meta) {
@@ -279,6 +291,13 @@ async function loadUsers() {
 }
 
 onMounted(loadUsers);
+
+function handleSort(payload: { field: string; order: 'asc' | 'desc' } | null) {
+  sortField.value = payload ? (SORT_FIELD_MAP[payload.field] ?? '') : '';
+  sortOrder.value = payload?.order ?? 'desc';
+  paginationMeta.value.page = 1;
+  loadUsers();
+}
 
 function setPage(page: number) {
   paginationMeta.value.page = page;
@@ -349,6 +368,7 @@ const userColumns = computed<DataTableColumn<User>[]>(() => [
     id: 'role',
     label: 'Rôle',
     accessorKey: 'role',
+    sortable: false,
     cell: ({ row }) =>
       h(Badge, { variant: 'info' }, () => row.original.role.name),
   },
@@ -356,6 +376,7 @@ const userColumns = computed<DataTableColumn<User>[]>(() => [
     id: 'status',
     label: 'Statut',
     accessorKey: 'isActive',
+    sortable: false,
     cell: ({ row }) => {
       const config = getStatusConfig(row.original.isActive);
       return h(Badge, { variant: config.variant }, () => config.label);
@@ -911,12 +932,14 @@ const activeFiltersCount = computed(() => {
         :show-add="false"
         :searchable="false"
         filterable
+        server-sort
         :active-filters-count="activeFiltersCount"
         empty-message="Aucun utilisateur"
         :on-row-click="openEditUser"
         @selection-change="handleSelectionChange"
         @apply-filters="applyFilters"
         @reset-filters="resetFilters"
+        @sort="handleSort"
       >
         <template #filters>
           <FilterText

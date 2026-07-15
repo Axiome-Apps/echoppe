@@ -33,6 +33,14 @@ const deleteModalOpen = ref(false);
 const selectedProducts = ref<Product[]>([]);
 const searchFilter = ref('');
 
+// Tri serveur. Map id de colonne UI -> champ de tri API (route products : name|price|date).
+const sortField = ref('');
+const sortOrder = ref<'asc' | 'desc'>('desc');
+const SORT_FIELD_MAP: Record<string, string> = {
+  name: 'name',
+  dateCreated: 'date',
+};
+
 // Pagination state
 const paginationMeta = ref({
   total: 0,
@@ -49,6 +57,10 @@ async function loadProducts() {
       limit: paginationMeta.value.limit,
     };
     if (searchFilter.value) query.search = searchFilter.value;
+    if (sortField.value) {
+      query.sort = sortField.value;
+      query.order = sortOrder.value;
+    }
 
     const { data } = await api.products.get({ query });
     if (data?.data && data?.meta) {
@@ -74,6 +86,13 @@ function onSearch(value: string) {
   // Une nouvelle recherche reconstruit la pagination depuis le premier résultat.
   paginationMeta.value.page = 1;
   router.replace({ query: { ...route.query, page: undefined } });
+  loadProducts();
+}
+
+function handleSort(payload: { field: string; order: 'asc' | 'desc' } | null) {
+  sortField.value = payload ? (SORT_FIELD_MAP[payload.field] ?? '') : '';
+  sortOrder.value = payload?.order ?? 'desc';
+  paginationMeta.value.page = 1;
   loadProducts();
 }
 
@@ -192,12 +211,14 @@ const columns = computed<DataTableColumn<Product>[]>(() => [
     id: 'category',
     label: 'Categorie',
     accessorKey: 'category',
+    sortable: false,
     cell: ({ row }) => h('span', { class: 'text-gray-600' }, getCategoryName(row.original.category)),
   },
   {
     id: 'status',
     label: 'Statut',
     accessorKey: 'status',
+    sortable: false,
     cell: ({ row }) => {
       const config = getStatusConfig(row.original.status);
       return h(Badge, { variant: config.variant }, () => config.label);
@@ -208,6 +229,7 @@ const columns = computed<DataTableColumn<Product>[]>(() => [
     label: 'Description',
     accessorKey: 'description',
     defaultVisible: false,
+    sortable: false,
     cell: ({ row }) => h(
       'span',
       { class: 'text-gray-500 text-sm line-clamp-1 max-w-xs' },
@@ -226,6 +248,7 @@ const columns = computed<DataTableColumn<Product>[]>(() => [
     label: 'Derniere modif.',
     accessorKey: 'dateUpdated',
     defaultVisible: false,
+    sortable: false,
     cell: ({ row }) => h('span', { class: 'text-gray-500 text-sm' }, formatDate(row.original.dateUpdated)),
   },
 ]);
@@ -281,11 +304,13 @@ const deleteMessage = computed(() => {
       :on-batch-action="handleBatchAction"
       search-placeholder="Rechercher un produit..."
       server-search
+      server-sort
       add-label="Nouveau produit"
       empty-message="Aucun produit"
       :on-row-click="openEdit"
       @add="openCreate"
       @search="onSearch"
+      @sort="handleSort"
       @selection-change="handleSelectionChange"
     />
 

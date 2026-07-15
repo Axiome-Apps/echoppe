@@ -44,6 +44,15 @@ const dateToFilter = ref('');
 const hasOrdersFilter = ref('');
 const filtersOpen = ref(false);
 
+// Tri serveur. Map id de colonne UI -> champ de tri API (allowlist route customers).
+const sortField = ref('');
+const sortOrder = ref<'asc' | 'desc'>('desc');
+const SORT_FIELD_MAP: Record<string, string> = {
+  name: 'lastName',
+  dateCreated: 'dateCreated',
+  lastLogin: 'lastLogin',
+};
+
 const statusOptions: FilterOption[] = [
   { value: 'active', label: 'Actif' },
   { value: 'inactive', label: 'Inactif' },
@@ -67,6 +76,10 @@ async function loadCustomers() {
     if (dateFromFilter.value) query.dateFrom = dateFromFilter.value;
     if (dateToFilter.value) query.dateTo = dateToFilter.value;
     if (hasOrdersFilter.value) query.hasOrders = hasOrdersFilter.value;
+    if (sortField.value) {
+      query.sort = sortField.value;
+      query.order = sortOrder.value;
+    }
 
     const { data } = await api.customers.get({ query });
     if (data?.data && data?.meta) {
@@ -78,6 +91,13 @@ async function loadCustomers() {
   } finally {
     loading.value = false;
   }
+}
+
+function handleSort(payload: { field: string; order: 'asc' | 'desc' } | null) {
+  sortField.value = payload ? (SORT_FIELD_MAP[payload.field] ?? '') : '';
+  sortOrder.value = payload?.order ?? 'desc';
+  paginationMeta.value.page = 1;
+  loadCustomers();
 }
 
 function setPage(page: number) {
@@ -153,6 +173,7 @@ const columns = computed<DataTableColumn<Customer>[]>(() => [
     id: 'phone',
     label: 'Téléphone',
     accessorKey: 'phone',
+    sortable: false,
     cell: ({ row }) =>
       h('span', { class: 'text-gray-600' }, row.original.phone || '-'),
   },
@@ -160,6 +181,7 @@ const columns = computed<DataTableColumn<Customer>[]>(() => [
     id: 'status',
     label: 'Statut',
     accessorKey: 'emailVerified',
+    sortable: false,
     cell: ({ row }) => {
       const config = getStatusConfig(row.original.emailVerified);
       return h(Badge, { variant: config.variant }, () => config.label);
@@ -169,6 +191,7 @@ const columns = computed<DataTableColumn<Customer>[]>(() => [
     id: 'orderCount',
     label: 'Commandes',
     accessorKey: 'orderCount',
+    sortable: false,
     cell: ({ row }) =>
       h('span', { class: 'text-gray-600' }, String(row.original.orderCount)),
   },
@@ -247,12 +270,14 @@ const activeFiltersCount = computed(() => {
       :show-add="false"
       :searchable="false"
       filterable
+      server-sort
       :active-filters-count="activeFiltersCount"
       empty-message="Aucun client"
       :on-row-click="openDetail"
       @selection-change="handleSelectionChange"
       @apply-filters="applyFilters"
       @reset-filters="resetFilters"
+      @sort="handleSort"
     >
       <template #filters>
         <FilterText
