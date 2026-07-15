@@ -27,11 +27,13 @@ export type VariantMutation = ApiData<
   ReturnType<ReturnType<typeof api.products>['variants']['post']>
 >;
 
-export type Option = {
-  id: string;
-  name: string;
-  values: { id: string; value: string }[];
-};
+// Option (axe) enrichie de ses valeurs — INFÉRÉE d'Eden (via ProductDetail), plus de shape manuel.
+// Porte `type` (string|color) et, sur chaque valeur, `metadata` (couleur oklch).
+export type Option = ProductDetail['options'][number];
+export type OptionValueItem = Option['values'][number];
+export type ColorMetadata = NonNullable<OptionValueItem['metadata']>;
+// Option globale telle que listée par GET /products/options (id, name, type), sans les valeurs.
+export type GlobalOption = ApiItem<ReturnType<typeof api.products.options.get>>;
 
 // Type ProductMedia inféré depuis Eden
 export type ProductMedia = NonNullable<

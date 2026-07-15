@@ -12,14 +12,12 @@ import { api } from '@/lib/api';
 import { createOptionValue, getOptionValues, updateVariantOptions } from '@/lib/product-api';
 import { type Media, getMediaUrl } from '@/composables/media';
 import type {
+  GlobalOption,
   ProductMedia,
   Option,
   Variant as BaseVariant,
   VariantMutation,
 } from '@/composables/product';
-
-// Type pour les options globales (sans valeurs)
-type GlobalOption = { id: string; name: string };
 
 // Type Variant étendu pour le formulaire (inclut optionValues)
 type Variant = BaseVariant & { optionValues?: string[] };
@@ -190,7 +188,7 @@ async function handleCreateOptionValue(optionId: string, value: string) {
   if (data) {
     const updatedOptions = props.options.map((opt) => {
       if (opt.id === optionId) {
-        return { ...opt, values: [...opt.values, { id: data.id, value: data.value }] };
+        return { ...opt, values: [...opt.values, data] };
       }
       return opt;
     });
@@ -215,11 +213,7 @@ async function addExistingOption(optionId: string) {
   if (data && 'id' in data) {
     // Recharge les valeurs de cette option
     const values = await getOptionValues(props.productId, optionId);
-    const newOption: Option = {
-      id: data.id,
-      name: data.name,
-      values: values.map((v) => ({ id: v.id, value: v.value })),
-    };
+    const newOption: Option = { ...data, sortOrder: 0, values };
     props.onOptionsChange([...props.options, newOption]);
     showAddOptionCombobox.value = false;
   }
@@ -233,10 +227,10 @@ async function createOption(name: string) {
   });
 
   if (data && 'id' in data) {
-    const newOption: Option = { id: data.id, name: data.name, values: [] };
+    const newOption: Option = { ...data, sortOrder: 0, values: [] };
     props.onOptionsChange([...props.options, newOption]);
     // Ajoute aux options globales pour ne pas la re-proposer
-    globalOptions.value.push({ id: data.id, name: data.name });
+    globalOptions.value.push(data);
     showAddOptionCombobox.value = false;
   }
 }
