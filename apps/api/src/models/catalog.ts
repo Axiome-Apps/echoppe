@@ -17,6 +17,19 @@ export const defaultVariantSchema = t.Object({
   quantity: t.Number({ description: 'Stock disponible.' }),
 });
 
+// Pastille de l'axe couleur sur la carte produit — couleur CSS oklch prête au rendu + image
+// de variante optionnelle (survol). Cf. `enrichProductCards`.
+export const swatchSchema = t.Object({
+  optionValueId: t.String({ format: 'uuid', description: "UUID de la valeur d'option (couleur)." }),
+  label: t.String({ description: 'Libellé de la couleur (ex. « Rouge »).' }),
+  color: t.String({
+    description: 'Couleur CSS oklch prête au rendu (ex. « oklch(0.65 0.12 220 / 1) »).',
+  }),
+  image: t.Nullable(
+    t.String({ format: 'uuid', description: 'UUID du média de la variante (survol), si défini.' }),
+  ),
+});
+
 export const productListSchema = t.Object({
   id: t.String({ format: 'uuid', description: 'Identifiant unique du produit.' }),
   category: t.String({ format: 'uuid', description: 'UUID de la catégorie du produit.' }),
@@ -33,6 +46,9 @@ export const productListSchema = t.Object({
   defaultVariant: t.Nullable(defaultVariantSchema),
   images: t.Array(t.String({ format: 'uuid', description: "UUID d'un média de la galerie." }), {
     description: 'Galerie ordonnée (image principale en tête) — survol, miniatures.',
+  }),
+  swatches: t.Array(swatchSchema, {
+    description: 'Axe couleur (option type=color) — pastilles, vide si aucune.',
   }),
 });
 

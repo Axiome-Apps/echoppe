@@ -5,8 +5,11 @@ import type { ApiData, ApiItem, ApiPaginatedItem } from '@/types/api';
 // ProductListItem = type avec featuredImage/defaultVariant (pour affichage liste)
 export type ProductListItem = ApiPaginatedItem<ReturnType<typeof api.products.get>>;
 // Product = type de base (pour édition). On omet les champs d'affichage propres à la carte liste
-// (featuredImage/defaultVariant/images) : l'édition charge ses médias via loadProductMedia().
-export type Product = Omit<ProductListItem, 'featuredImage' | 'defaultVariant' | 'images'>;
+// (featuredImage/defaultVariant/images/swatches) : l'édition charge ses médias via loadProductMedia().
+export type Product = Omit<
+  ProductListItem,
+  'featuredImage' | 'defaultVariant' | 'images' | 'swatches'
+>;
 export type TaxRate = ApiItem<ReturnType<typeof api['tax-rates']['get']>>;
 export type Collection = ApiPaginatedItem<ReturnType<typeof api.collections.get>>;
 
