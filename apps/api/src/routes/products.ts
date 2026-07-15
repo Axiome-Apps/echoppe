@@ -29,6 +29,7 @@ import {
   colorMetadataSchema,
   optionSchema,
   optionTypeSchema,
+  optionValueSchema,
   productMediaSchema,
   variantPublicSchema,
 } from '../models/catalog';
@@ -900,6 +901,19 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       return options;
     },
     { permission: true, response: { 200: t.Array(optionSchema) } },
+  )
+
+  // GET /products/:id/options/:optionId/values - Valeurs (globales) d'une option
+  .get(
+    '/:id/options/:optionId/values',
+    async ({ params }) => {
+      return db
+        .select()
+        .from(optionValue)
+        .where(eq(optionValue.option, params.optionId))
+        .orderBy(optionValue.sortOrder);
+    },
+    { permission: true, params: optionParams, response: { 200: t.Array(optionValueSchema) } },
   )
 
   // POST /products/:id/options - Associe une option au produit (crée l'option si elle n'existe pas)
