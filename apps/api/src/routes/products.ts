@@ -133,7 +133,7 @@ const productSearchQuery = t.Object({
   minPrice: t.Optional(t.Numeric({ minimum: 0 })),
   maxPrice: t.Optional(t.Numeric({ minimum: 0 })),
   inStock: t.Optional(t.BooleanString()),
-  sort: t.Optional(t.Union([t.Literal('price'), t.Literal('name'), t.Literal('date')])),
+  sort: t.Optional(t.Union([t.Literal('price'), t.Literal('name'), t.Literal('dateCreated')])),
   order: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
 });
 
@@ -213,7 +213,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         case 'name':
           orderByClause = sortOrder(product.name);
           break;
-        case 'date':
+        case 'dateCreated':
           orderByClause = sortOrder(product.dateCreated);
           break;
         case 'price':

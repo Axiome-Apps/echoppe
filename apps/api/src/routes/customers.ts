@@ -125,6 +125,8 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
       // (status -> emailVerified, hasOrders -> agrégat) → pas de `filterable`.
       const { page, limit, offset, orderBy } = parseListQuery(query, {
         sortable: {
+          // `name` = colonne « Client » de l'UI (tri par nom de famille).
+          name: customer.lastName,
           email: customer.email,
           firstName: customer.firstName,
           lastName: customer.lastName,

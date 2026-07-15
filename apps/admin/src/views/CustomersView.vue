@@ -44,14 +44,9 @@ const dateToFilter = ref('');
 const hasOrdersFilter = ref('');
 const filtersOpen = ref(false);
 
-// Tri serveur. Map id de colonne UI -> champ de tri API (allowlist route customers).
+// Tri serveur. Les id de colonnes correspondent aux clés d'allowlist de l'API.
 const sortField = ref('');
 const sortOrder = ref<'asc' | 'desc'>('desc');
-const SORT_FIELD_MAP: Record<string, string> = {
-  name: 'lastName',
-  dateCreated: 'dateCreated',
-  lastLogin: 'lastLogin',
-};
 
 const statusOptions: FilterOption[] = [
   { value: 'active', label: 'Actif' },
@@ -94,7 +89,7 @@ async function loadCustomers() {
 }
 
 function handleSort(payload: { field: string; order: 'asc' | 'desc' } | null) {
-  sortField.value = payload ? (SORT_FIELD_MAP[payload.field] ?? '') : '';
+  sortField.value = payload?.field ?? '';
   sortOrder.value = payload?.order ?? 'desc';
   paginationMeta.value.page = 1;
   loadCustomers();

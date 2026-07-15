@@ -33,13 +33,9 @@ const deleteModalOpen = ref(false);
 const selectedProducts = ref<Product[]>([]);
 const searchFilter = ref('');
 
-// Tri serveur. Map id de colonne UI -> champ de tri API (route products : name|price|date).
+// Tri serveur. Les id de colonnes correspondent aux clés de tri de l'API.
 const sortField = ref('');
 const sortOrder = ref<'asc' | 'desc'>('desc');
-const SORT_FIELD_MAP: Record<string, string> = {
-  name: 'name',
-  dateCreated: 'date',
-};
 
 // Pagination state
 const paginationMeta = ref({
@@ -90,7 +86,7 @@ function onSearch(value: string) {
 }
 
 function handleSort(payload: { field: string; order: 'asc' | 'desc' } | null) {
-  sortField.value = payload ? (SORT_FIELD_MAP[payload.field] ?? '') : '';
+  sortField.value = payload?.field ?? '';
   sortOrder.value = payload?.order ?? 'desc';
   paginationMeta.value.page = 1;
   loadProducts();

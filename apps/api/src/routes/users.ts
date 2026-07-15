@@ -95,6 +95,8 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       // Filtre role générique ; search full-text + status->isActive restent bespoke.
       const { page, limit, offset, orderBy, filters } = parseListQuery(query, {
         sortable: {
+          // `name` = colonne « Utilisateur » de l'UI (tri par nom de famille).
+          name: user.lastName,
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
