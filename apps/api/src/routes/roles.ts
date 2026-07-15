@@ -1,4 +1,4 @@
-import { and, db, eq, permission, RESOURCES, role, user } from '@echoppe/core';
+import { and, db, eq, permission, RESOURCES, role, sql, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { invalidatePermissionCache, permissionGuard } from '../plugins/rbac';
@@ -77,7 +77,15 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
   .get(
     '/',
     async () => {
-      return db.select().from(role).orderBy(role.name);
+      // Ordre métier fixe des rôles système (Propriétaire → Administrateur → Client → Public),
+      // puis les rôles custom par ordre alphabétique.
+      const systemOrder = sql`CASE ${role.name}
+        WHEN 'Propriétaire' THEN 0
+        WHEN 'Administrateur' THEN 1
+        WHEN 'Client' THEN 2
+        WHEN 'Public' THEN 3
+        ELSE 4 END`;
+      return db.select().from(role).orderBy(systemOrder, role.name);
     },
     {
       permission: true,
