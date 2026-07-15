@@ -133,6 +133,26 @@ const optionValueBody = t.Object({
   sortOrder: t.Optional(t.Number({ default: 0 })),
 });
 
+// Mise à jour partielle : seuls les champs fournis changent.
+const optionUpdateBody = t.Object({
+  name: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
+  type: t.Optional(optionTypeSchema),
+  sortOrder: t.Optional(t.Number()),
+});
+
+const optionValueUpdateBody = t.Object({
+  value: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
+  // `null` efface la couleur ; absent = inchangé ; forcée à null si l'option n'est pas color.
+  metadata: t.Optional(t.Nullable(colorMetadataSchema)),
+  sortOrder: t.Optional(t.Number()),
+});
+
+const optionValueParams = t.Object({
+  id: t.String({ format: 'uuid' }),
+  optionId: t.String({ format: 'uuid' }),
+  valueId: t.String({ format: 'uuid' }),
+});
+
 // Query schema pour recherche/filtres/tri
 const productSearchQuery = t.Object({
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
@@ -968,6 +988,83 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       permission: true,
       params: optionParams,
       body: optionValueBody,
+      response: withCrudErrors({ 200: 'OptionValue' }),
+    },
+  )
+
+  // PUT /products/:id/options/:optionId - Édite une option (name/type/sortOrder)
+  .use(permissionGuard('option', 'update'))
+  .put(
+    '/:id/options/:optionId',
+    async ({ params, body, status }) => {
+      const [existing] = await db.select().from(option).where(eq(option.id, params.optionId));
+      if (!existing) return status(404, { message: 'Option not found' });
+
+      const nextType = body.type ?? existing.type;
+      const [updated] = await db
+        .update(option)
+        .set({
+          name: body.name ?? existing.name,
+          type: nextType,
+          sortOrder: body.sortOrder ?? existing.sortOrder,
+        })
+        .where(eq(option.id, params.optionId))
+        .returning();
+
+      // Passage color → string : une valeur texte ne porte pas de couleur → on nettoie les metadata.
+      if (existing.type === 'color' && nextType === 'string') {
+        await db
+          .update(optionValue)
+          .set({ metadata: null })
+          .where(eq(optionValue.option, params.optionId));
+      }
+
+      return updated;
+    },
+    {
+      permission: true,
+      params: optionParams,
+      body: optionUpdateBody,
+      response: withCrudErrors({ 200: 'Option' }),
+    },
+  )
+
+  // PUT /products/:id/options/:optionId/values/:valueId - Édite une valeur (value/metadata/sortOrder)
+  .put(
+    '/:id/options/:optionId/values/:valueId',
+    async ({ params, body, status }) => {
+      const [opt] = await db.select().from(option).where(eq(option.id, params.optionId));
+      if (!opt) return status(404, { message: 'Option not found' });
+
+      const [existing] = await db
+        .select()
+        .from(optionValue)
+        .where(and(eq(optionValue.id, params.valueId), eq(optionValue.option, params.optionId)));
+      if (!existing) return status(404, { message: 'Option value not found' });
+
+      // Frontière discriminée par le type PARENT : couleur seulement pour type=color (null sinon).
+      // metadata absent pour une couleur = inchangé ; `null` = effacer.
+      let metadata: (typeof existing)['metadata'] = null;
+      if (opt.type === 'color') {
+        metadata = body.metadata !== undefined ? body.metadata : existing.metadata;
+      }
+
+      const [updated] = await db
+        .update(optionValue)
+        .set({
+          value: body.value ?? existing.value,
+          metadata,
+          sortOrder: body.sortOrder ?? existing.sortOrder,
+        })
+        .where(eq(optionValue.id, params.valueId))
+        .returning();
+
+      return updated;
+    },
+    {
+      permission: true,
+      params: optionValueParams,
+      body: optionValueUpdateBody,
       response: withCrudErrors({ 200: 'OptionValue' }),
     },
   );
