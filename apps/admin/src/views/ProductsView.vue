@@ -15,7 +15,7 @@ import type { ApiData } from '@/types/api';
 import type { Category } from '@/composables/categories';
 
 // Types inférés depuis Eden
-type ProductsResponse = ApiData<ReturnType<typeof api.products.get>>;
+type ProductsResponse = ApiData<ReturnType<typeof api.products.admin.get>>;
 type Product = ProductsResponse['data'][number];
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
@@ -58,7 +58,7 @@ async function loadProducts() {
       query.order = sortOrder.value;
     }
 
-    const { data } = await api.products.get({ query });
+    const { data } = await api.products.admin.get({ query });
     if (data?.data && data?.meta) {
       products.value = data.data;
       paginationMeta.value = data.meta;

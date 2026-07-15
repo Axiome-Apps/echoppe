@@ -3,8 +3,9 @@ import ProductCard from '../../components/ProductCard.astro';
 import Layout from '../../layouts/Layout.astro';
 import { api } from '../../lib/api';
 
+// La liste publique de l'API ne renvoie déjà que les produits publiés.
 const { data } = await api.products.list();
-const products = (data?.data ?? []).filter((p) => p.status === 'published');
+const products = data?.data ?? [];
 ---
 
 <Layout title="Produits — Boutique Échoppe">

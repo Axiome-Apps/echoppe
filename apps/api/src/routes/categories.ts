@@ -1,4 +1,4 @@
-import { category, count, db, eq, product } from '@echoppe/core';
+import { and, category, count, db, eq, product } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
@@ -106,18 +106,23 @@ export const categoriesRoutes = new Elysia({
 
       const { page, limit, offset } = getPaginationParams(query);
 
+      // Liste publique : produits PUBLIÉS de la catégorie uniquement.
+      const publishedInCategory = and(
+        eq(product.category, params.id),
+        eq(product.status, 'published'),
+      );
       const [products, [{ total }]] = await Promise.all([
         db
           .select()
           .from(product)
-          .where(eq(product.category, params.id))
+          .where(publishedInCategory)
           .orderBy(product.dateCreated)
           .limit(limit)
           .offset(offset),
         db
           .select({ total: count(product.id) })
           .from(product)
-          .where(eq(product.category, params.id)),
+          .where(publishedInCategory),
       ]);
 
       const enrichedProducts = await enrichProductCards(products);

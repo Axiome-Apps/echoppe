@@ -1,4 +1,4 @@
-import { collection, count, db, eq, inArray, product, productCollection } from '@echoppe/core';
+import { and, collection, count, db, eq, inArray, product, productCollection } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
@@ -113,18 +113,20 @@ export const collectionsRoutes = new Elysia({
         return buildListResponse([], 0, page, limit);
       }
 
+      // Liste publique : produits PUBLIÉS de la collection uniquement.
+      const publishedInCollection = and(inArray(product.id, ids), eq(product.status, 'published'));
       const [products, [{ total }]] = await Promise.all([
         db
           .select()
           .from(product)
-          .where(inArray(product.id, ids))
+          .where(publishedInCollection)
           .orderBy(product.dateCreated)
           .limit(limit)
           .offset(offset),
         db
           .select({ total: count(product.id) })
           .from(product)
-          .where(inArray(product.id, ids)),
+          .where(publishedInCollection),
       ]);
 
       const enrichedProducts = await enrichProductCards(products);

@@ -27,7 +27,7 @@ import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
 import { optionSchema, productMediaSchema, variantPublicSchema } from '../models/catalog';
 import { permissionGuard } from '../plugins/rbac';
-import { buildListResponse, getPaginationParams } from '../utils/pagination';
+import { buildEqFilters, buildListResponse, getPaginationParams } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
   conflictResponse,
@@ -137,6 +137,108 @@ const productSearchQuery = t.Object({
   order: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
 });
 
+// Query admin = query publique + filtre `status` (l'admin voit/filtre tous les statuts).
+const productAdminSearchQuery = t.Composite([
+  productSearchQuery,
+  t.Object({ status: t.Optional(t.String()) }),
+]);
+
+interface ProductCardsQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sort?: string;
+  order?: string;
+}
+
+// Liste de cartes produit enrichies, partagée public/admin. Mêmes recherche/filtres
+// prix-stock/tri/pagination ; seule la VISIBILITÉ par statut diffère et est injectée
+// par l'appelant via `statusConditions` (public = published forcé ; admin = filtre libre).
+async function queryProductCards(query: ProductCardsQuery, statusConditions: SQL[]) {
+  const { page, limit, offset } = getPaginationParams(query);
+  const { search, category, minPrice, maxPrice, inStock, sort, order } = query;
+
+  const conditions: SQL[] = [...statusConditions];
+
+  if (search) {
+    const searchPattern = `%${search}%`;
+    const searchCondition = or(
+      ilike(product.name, searchPattern),
+      ilike(product.description, searchPattern),
+    );
+    if (searchCondition) conditions.push(searchCondition);
+  }
+
+  if (category) {
+    conditions.push(eq(product.category, category));
+  }
+
+  // Filtres prix/stock : passent par le variant par défaut.
+  if (minPrice !== undefined || maxPrice !== undefined || inStock) {
+    const variantConditions: SQL[] = [eq(variant.isDefault, true)];
+    if (minPrice !== undefined) {
+      variantConditions.push(gte(sql`CAST(${variant.priceHt} AS DECIMAL)`, minPrice));
+    }
+    if (maxPrice !== undefined) {
+      variantConditions.push(lte(sql`CAST(${variant.priceHt} AS DECIMAL)`, maxPrice));
+    }
+    if (inStock) {
+      variantConditions.push(gt(variant.quantity, 0));
+    }
+
+    const matchingVariants = await db
+      .select({ productId: variant.product })
+      .from(variant)
+      .where(and(...variantConditions));
+
+    const filteredProductIds = matchingVariants.map((v) => v.productId);
+    if (filteredProductIds.length === 0) {
+      return buildListResponse([], 0, page, limit);
+    }
+    conditions.push(inArray(product.id, filteredProductIds));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const sortOrder = order === 'desc' ? desc : asc;
+  let orderByClause: SQL;
+  switch (sort) {
+    case 'name':
+      orderByClause = sortOrder(product.name);
+      break;
+    case 'dateCreated':
+      orderByClause = sortOrder(product.dateCreated);
+      break;
+    // 'price' : tri réel post-enrichissement (sur le variant par défaut).
+    default:
+      orderByClause = desc(product.dateCreated);
+  }
+
+  const [products, [{ total }]] = await Promise.all([
+    db.select().from(product).where(whereClause).orderBy(orderByClause).limit(limit).offset(offset),
+    db
+      .select({ total: count(product.id) })
+      .from(product)
+      .where(whereClause),
+  ]);
+
+  let enrichedProducts = await enrichProductCards(products);
+
+  if (sort === 'price') {
+    enrichedProducts = enrichedProducts.sort((a, b) => {
+      const priceA = a.defaultVariant ? parseFloat(a.defaultVariant.priceHt) : 0;
+      const priceB = b.defaultVariant ? parseFloat(b.defaultVariant.priceHt) : 0;
+      return order === 'desc' ? priceB - priceA : priceA - priceB;
+    });
+  }
+
+  return buildListResponse(enrichedProducts, total, page, limit);
+}
+
 export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: ['Products'] } })
 
   // Registre central des modèles nommés (src/models) → peuplent components.schemas
@@ -145,115 +247,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
   // === PUBLIC ROUTES ===
 
-  // GET /products - List all with pagination, search, filters, sort (public)
-  .get(
-    '/',
-    async ({ query }) => {
-      const { page, limit, offset } = getPaginationParams(query);
-      const { search, category, minPrice, maxPrice, inStock, sort, order } = query;
-
-      // Build WHERE conditions
-      const conditions: SQL[] = [];
-
-      // Search by name or description
-      if (search) {
-        const searchPattern = `%${search}%`;
-        const searchCondition = or(
-          ilike(product.name, searchPattern),
-          ilike(product.description, searchPattern),
-        );
-        if (searchCondition) {
-          conditions.push(searchCondition);
-        }
-      }
-
-      // Filter by category
-      if (category) {
-        conditions.push(eq(product.category, category));
-      }
-
-      // For price and stock filters, we need to join with variant
-      // First, get filtered product IDs based on variant conditions
-      let filteredProductIds: string[] | null = null;
-
-      if (minPrice !== undefined || maxPrice !== undefined || inStock) {
-        const variantConditions: SQL[] = [eq(variant.isDefault, true)];
-
-        if (minPrice !== undefined) {
-          variantConditions.push(gte(sql`CAST(${variant.priceHt} AS DECIMAL)`, minPrice));
-        }
-        if (maxPrice !== undefined) {
-          variantConditions.push(lte(sql`CAST(${variant.priceHt} AS DECIMAL)`, maxPrice));
-        }
-        if (inStock) {
-          variantConditions.push(gt(variant.quantity, 0));
-        }
-
-        const matchingVariants = await db
-          .select({ productId: variant.product })
-          .from(variant)
-          .where(and(...variantConditions));
-
-        filteredProductIds = matchingVariants.map((v) => v.productId);
-
-        if (filteredProductIds.length === 0) {
-          return buildListResponse([], 0, page, limit);
-        }
-
-        conditions.push(inArray(product.id, filteredProductIds));
-      }
-
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-      // Build ORDER BY
-      let orderByClause: SQL;
-      const sortOrder = order === 'desc' ? desc : asc;
-
-      switch (sort) {
-        case 'name':
-          orderByClause = sortOrder(product.name);
-          break;
-        case 'dateCreated':
-          orderByClause = sortOrder(product.dateCreated);
-          break;
-        case 'price':
-          // Price sorting needs special handling (done after enrichment)
-          orderByClause = sortOrder(product.dateCreated);
-          break;
-        default:
-          orderByClause = desc(product.dateCreated);
-      }
-
-      // Query products
-      const [products, [{ total }]] = await Promise.all([
-        db
-          .select()
-          .from(product)
-          .where(whereClause)
-          .orderBy(orderByClause)
-          .limit(limit)
-          .offset(offset),
-        db
-          .select({ total: count(product.id) })
-          .from(product)
-          .where(whereClause),
-      ]);
-
-      let enrichedProducts = await enrichProductCards(products);
-
-      // Sort by price if requested (post-enrichment)
-      if (sort === 'price') {
-        enrichedProducts = enrichedProducts.sort((a, b) => {
-          const priceA = a.defaultVariant ? parseFloat(a.defaultVariant.priceHt) : 0;
-          const priceB = b.defaultVariant ? parseFloat(b.defaultVariant.priceHt) : 0;
-          return order === 'desc' ? priceB - priceA : priceA - priceB;
-        });
-      }
-
-      return buildListResponse(enrichedProducts, total, page, limit);
-    },
-    { query: productSearchQuery, response: withReadErrors({ 200: 'ProductList' }) },
-  )
+  // GET /products - Liste publique : produits PUBLIÉS uniquement (SDK/storefront).
+  .get('/', async ({ query }) => queryProductCards(query, [eq(product.status, 'published')]), {
+    query: productSearchQuery,
+    response: withReadErrors({ 200: 'ProductList' }),
+  })
 
   // GET /products/by-slug/:slug - Get one by slug with variants (public, for storefront)
   .get(
@@ -667,6 +665,20 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
   // === LECTURE ADMIN ===
   .use(permissionGuard('product', 'read'))
+
+  // GET /products/admin - Liste admin : TOUS les statuts + filtre `status` optionnel.
+  // Même projection que la liste publique (aucun champ interne côté carte) ; la
+  // différence est la visibilité des lignes (brouillons/archivés inclus).
+  .get(
+    '/admin',
+    async ({ query }) =>
+      queryProductCards(query, buildEqFilters(query, { status: product.status })),
+    {
+      permission: true,
+      query: productAdminSearchQuery,
+      response: withReadErrors({ 200: 'ProductList' }),
+    },
+  )
 
   // GET /products/:id/full - Produit + variants COMPLETS (costPrice/lowStockThreshold) + options.
   // Réservé à l'admin : la lecture publique `/products/:id` masque les champs internes du variant.
