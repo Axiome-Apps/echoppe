@@ -664,7 +664,9 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   )
 
   // === LECTURE ADMIN ===
-  .use(permissionGuard('product', 'read'))
+  // adminOnly : le rôle Public a `product:read` (storefront) → sans ça, ces lectures
+  // (brouillons, champs internes du variant) seraient accessibles à un anonyme.
+  .use(permissionGuard('product', 'read', { adminOnly: true }))
 
   // GET /products/admin - Liste admin : TOUS les statuts + filtre `status` optionnel.
   // Même projection que la liste publique (aucun champ interne côté carte) ; la

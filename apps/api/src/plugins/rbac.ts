@@ -303,17 +303,33 @@ export const rbacPlugin = new Elysia({ name: 'rbac' }).derive(
 );
 
 /**
- * Crée un guard de permission pour une ressource et action
+ * Crée un guard de permission pour une ressource et action.
  * Usage: .use(permissionGuard('product', 'create'))
+ *
+ * `adminOnly` : restreint aux principaux privilégiés (session admin ou clé d'API
+ * machine). Nécessaire quand le rôle Public possède déjà l'action (ex. `product:read`
+ * accordé au storefront) mais que l'endpoint doit rester réservé à l'admin — sinon
+ * le bit de permission seul laisserait passer un anonyme.
  */
-export function permissionGuard(resource: Resource, action: Action) {
-  return new Elysia({ name: `permission-${resource}-${action}` }).macro({
+export function permissionGuard(
+  resource: Resource,
+  action: Action,
+  options?: { adminOnly?: boolean },
+) {
+  return new Elysia({
+    name: `permission-${resource}-${action}${options?.adminOnly ? '-admin' : ''}`,
+  }).macro({
     permission: {
       async resolve({ cookie, headers, status }) {
         const authContext = await getAuthContext(
           cookie as Record<string, { value?: string }>,
           headers.authorization,
         );
+
+        if (options?.adminOnly && authContext.type !== 'admin' && authContext.type !== 'apikey') {
+          return status(403, { message: `Permission refusée: ${action} sur ${resource}` });
+        }
+
         const result = checkPermission(authContext, resource, action);
 
         if (!result.allowed) {
