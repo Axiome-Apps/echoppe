@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { eq } from 'drizzle-orm';
 import { db } from './index';
 import {
+  type ColorMetadata,
   category,
   company,
   country,
@@ -567,11 +568,11 @@ async function seed() {
 
   // Créer les options globales
   const globalOptionsData = [
-    { name: 'Couleur', sortOrder: 0 },
-    { name: 'Taille', sortOrder: 1 },
-    { name: 'Longueur', sortOrder: 2 },
-    { name: 'Motif', sortOrder: 3 },
-    { name: 'Parfum', sortOrder: 4 },
+    { name: 'Couleur', type: 'color' as const, sortOrder: 0 },
+    { name: 'Taille', type: 'string' as const, sortOrder: 1 },
+    { name: 'Longueur', type: 'string' as const, sortOrder: 2 },
+    { name: 'Motif', type: 'string' as const, sortOrder: 3 },
+    { name: 'Parfum', type: 'string' as const, sortOrder: 4 },
   ];
 
   const globalOptions = await db
@@ -597,25 +598,29 @@ async function seed() {
   // === OPTION VALUES ===
   console.log('  → Option values...');
 
-  const optionValuesData: { optionName: string; values: string[] }[] = [
+  // Une valeur d'option : chaîne simple (axe texte) ou { value, metadata } (axe couleur → oklch).
+  type SeedValue = string | { value: string; metadata: ColorMetadata };
+  const color = (l: number, c: number, h: number): ColorMetadata => ({ l, c, h, alpha: 1 });
+
+  const optionValuesData: { optionName: string; values: SeedValue[] }[] = [
     {
       optionName: 'Couleur',
       values: [
-        'Or',
-        'Argent',
-        'Or Rose',
-        'Naturel',
-        'Noir',
-        'Marron',
-        'Bleu Océan',
-        'Vert Sauge',
-        'Terracotta',
-        'Blanc',
-        'Gris',
-        'Beige',
-        'Écru',
-        'Gris Chiné',
-        'Bleu Indigo',
+        { value: 'Or', metadata: color(0.8, 0.13, 90) },
+        { value: 'Argent', metadata: color(0.8, 0.005, 250) },
+        { value: 'Or Rose', metadata: color(0.8, 0.06, 40) },
+        { value: 'Naturel', metadata: color(0.85, 0.03, 80) },
+        { value: 'Noir', metadata: color(0.2, 0.0, 0) },
+        { value: 'Marron', metadata: color(0.45, 0.08, 50) },
+        { value: 'Bleu Océan', metadata: color(0.6, 0.12, 230) },
+        { value: 'Vert Sauge', metadata: color(0.75, 0.05, 150) },
+        { value: 'Terracotta', metadata: color(0.62, 0.12, 40) },
+        { value: 'Blanc', metadata: color(0.98, 0.0, 0) },
+        { value: 'Gris', metadata: color(0.7, 0.0, 0) },
+        { value: 'Beige', metadata: color(0.88, 0.03, 85) },
+        { value: 'Écru', metadata: color(0.92, 0.02, 95) },
+        { value: 'Gris Chiné', metadata: color(0.72, 0.01, 250) },
+        { value: 'Bleu Indigo', metadata: color(0.45, 0.11, 275) },
       ],
     },
     { optionName: 'Taille', values: ['S', 'M', 'L', 'Petit', 'Moyen', 'Grand'] },
@@ -634,13 +639,16 @@ async function seed() {
 
     const valMap = new Map<string, string>();
     for (let i = 0; i < ov.values.length; i++) {
+      const entry = ov.values[i];
+      const value = typeof entry === 'string' ? entry : entry.value;
+      const metadata = typeof entry === 'string' ? null : entry.metadata;
       const [val] = await db
         .insert(optionValue)
-        .values({ option: optId, value: ov.values[i], sortOrder: i })
+        .values({ option: optId, value, metadata, sortOrder: i })
         .onConflictDoNothing()
         .returning();
       if (val) {
-        valMap.set(ov.values[i], val.id);
+        valMap.set(value, val.id);
         valueCount++;
       }
     }
