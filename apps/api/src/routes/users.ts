@@ -2,7 +2,13 @@ import { and, count, db, desc, eq, ilike, or, role, session, sql, user } from '@
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { permissionGuard } from '../plugins/rbac';
-import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
+import {
+  buildEqFilters,
+  buildListResponse,
+  getPaginationParams,
+  listResponse,
+  parseSort,
+} from '../utils/pagination';
 import { badRequestResponse, successSchema, withCrudErrors } from '../utils/responses';
 
 // Query schemas
@@ -12,6 +18,8 @@ const userSearchQuery = t.Object({
   search: t.Optional(t.String()),
   role: t.Optional(t.String({ format: 'uuid' })),
   status: t.Optional(t.String()),
+  sort: t.Optional(t.String()),
+  order: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
 });
 
 // Body schemas
@@ -59,15 +67,7 @@ const userListItemSchema = t.Object({
   lastLogin: t.Nullable(t.Date()),
 });
 
-const paginatedUsersSchema = t.Object({
-  data: t.Array(userListItemSchema),
-  meta: t.Object({
-    page: t.Number(),
-    limit: t.Number(),
-    total: t.Number(),
-    totalPages: t.Number(),
-  }),
-});
+const paginatedUsersSchema = listResponse(userListItemSchema);
 
 const userDetailSchema = t.Object({
   id: t.String(),
@@ -96,28 +96,35 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
     '/',
     async ({ query }) => {
       const { page, limit, offset } = getPaginationParams(query);
-      const { search, role: roleId, status } = query;
+      const { search, status } = query;
 
-      const conditions = [];
+      // Tri : colonnes autorisées. Défaut (aucun tri explicite) = owner d'abord,
+      // puis plus récents — un ordre à deux colonnes que parseSort ne couvre pas.
+      const sortable = {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        dateCreated: user.dateCreated,
+        lastLogin: user.lastLogin,
+      };
+      const orderBy =
+        query.sort && query.sort in sortable
+          ? [parseSort(query.sort, query.order, sortable, desc(user.dateCreated))]
+          : [desc(user.isOwner), desc(user.dateCreated)];
 
-      // Search by email, firstName, lastName
+      // Filtre d'égalité générique (role), + bespoke (search full-text, status->isActive).
+      const conditions = [...buildEqFilters(query, { role: user.role })];
+
       if (search) {
         const searchPattern = `%${search}%`;
-        conditions.push(
-          or(
-            ilike(user.email, searchPattern),
-            ilike(user.firstName, searchPattern),
-            ilike(user.lastName, searchPattern),
-          ),
+        const searchCondition = or(
+          ilike(user.email, searchPattern),
+          ilike(user.firstName, searchPattern),
+          ilike(user.lastName, searchPattern),
         );
+        if (searchCondition) conditions.push(searchCondition);
       }
 
-      // Filter by role
-      if (roleId) {
-        conditions.push(eq(user.role, roleId));
-      }
-
-      // Filter by status
       if (status === 'active') {
         conditions.push(eq(user.isActive, true));
       } else if (status === 'inactive') {
@@ -145,7 +152,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
           .from(user)
           .innerJoin(role, eq(user.role, role.id))
           .where(whereClause)
-          .orderBy(desc(user.isOwner), desc(user.dateCreated))
+          .orderBy(...orderBy)
           .limit(limit)
           .offset(offset),
         db
@@ -154,7 +161,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
           .where(whereClause),
       ]);
 
-      return buildPaginatedResponse(users, total, page, limit);
+      return buildListResponse(users, total, page, limit);
     },
     {
       permission: true,

@@ -4,7 +4,12 @@ import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
 import { permissionGuard } from '../plugins/rbac';
-import { buildPaginatedResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
+import {
+  buildListResponse,
+  buildPaginatedResponse,
+  getPaginationParams,
+  paginationQuery,
+} from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
   successSchema,
@@ -110,7 +115,7 @@ export const collectionsRoutes = new Elysia({
       const ids = productIds.map((p) => p.productId);
 
       if (ids.length === 0) {
-        return buildPaginatedResponse([], 0, page, limit);
+        return buildListResponse([], 0, page, limit);
       }
 
       const [products, [{ total }]] = await Promise.all([
@@ -129,7 +134,7 @@ export const collectionsRoutes = new Elysia({
 
       const enrichedProducts = await enrichProductCards(products);
 
-      return buildPaginatedResponse(enrichedProducts, total, page, limit);
+      return buildListResponse(enrichedProducts, total, page, limit);
     },
     {
       params: collectionParams,

@@ -27,7 +27,7 @@ import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
 import { optionSchema, productMediaSchema, variantPublicSchema } from '../models/catalog';
 import { permissionGuard } from '../plugins/rbac';
-import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
+import { buildListResponse, getPaginationParams } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
   conflictResponse,
@@ -197,7 +197,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         filteredProductIds = matchingVariants.map((v) => v.productId);
 
         if (filteredProductIds.length === 0) {
-          return buildPaginatedResponse([], 0, page, limit);
+          return buildListResponse([], 0, page, limit);
         }
 
         conditions.push(inArray(product.id, filteredProductIds));
@@ -250,7 +250,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         });
       }
 
-      return buildPaginatedResponse(enrichedProducts, total, page, limit);
+      return buildListResponse(enrichedProducts, total, page, limit);
     },
     { query: productSearchQuery, response: withReadErrors({ 200: 'ProductList' }) },
   )

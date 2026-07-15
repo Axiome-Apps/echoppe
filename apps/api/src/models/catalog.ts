@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { paginatedResponse } from '../utils/pagination';
+import { listResponse } from '../utils/pagination';
 
 // Schémas d'entité (réponses) du domaine catalogue — SOURCE UNIQUE. Importés par les
 // routes (par valeur) ET agrégés dans le registre `catalogModels` pour être enregistrés
@@ -179,7 +179,7 @@ export const catalogModels = {
   ProductWithVariants: productWithVariantsSchema,
   ProductAdminWithVariants: productAdminWithVariantsSchema,
   ProductDetail: productDetailSchema,
-  ProductList: paginatedResponse(productListSchema),
+  ProductList: listResponse(productListSchema),
   ProductMedia: productMediaSchema,
   Variant: variantSchema,
   Option: optionSchema,

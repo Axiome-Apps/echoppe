@@ -17,7 +17,12 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { permissionGuard } from '../plugins/rbac';
-import { buildPaginatedResponse, getPaginationParams } from '../utils/pagination';
+import {
+  buildListResponse,
+  getPaginationParams,
+  listResponse,
+  parseSort,
+} from '../utils/pagination';
 import { successSchema, withCrudErrors } from '../utils/responses';
 
 // Query schemas
@@ -29,6 +34,8 @@ const customerSearchQuery = t.Object({
   dateFrom: t.Optional(t.String()),
   dateTo: t.Optional(t.String()),
   hasOrders: t.Optional(t.String()),
+  sort: t.Optional(t.String()),
+  order: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
 });
 
 // Body schemas
@@ -62,15 +69,7 @@ const customerListItemSchema = t.Object({
   orderCount: t.Number(),
 });
 
-const paginatedCustomersSchema = t.Object({
-  data: t.Array(customerListItemSchema),
-  meta: t.Object({
-    page: t.Number(),
-    limit: t.Number(),
-    total: t.Number(),
-    totalPages: t.Number(),
-  }),
-});
+const paginatedCustomersSchema = listResponse(customerListItemSchema);
 
 const addressSchema = t.Object({
   id: t.String(),
@@ -127,6 +126,20 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
     async ({ query }) => {
       const { page, limit, offset } = getPaginationParams(query);
       const { search, status, dateFrom, dateTo, hasOrders } = query;
+
+      // Tri générique (défaut : plus récents d'abord).
+      const orderBy = parseSort(
+        query.sort,
+        query.order,
+        {
+          email: customer.email,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          dateCreated: customer.dateCreated,
+          lastLogin: customer.lastLogin,
+        },
+        desc(customer.dateCreated),
+      );
 
       const conditions = [];
 
@@ -200,7 +213,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
           })
           .from(customer)
           .where(whereClause)
-          .orderBy(desc(customer.dateCreated))
+          .orderBy(orderBy)
           .limit(limit)
           .offset(offset),
         db
@@ -209,7 +222,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
           .where(whereClause),
       ]);
 
-      return buildPaginatedResponse(
+      return buildListResponse(
         customers.map((c) => ({ ...c, orderCount: Number(c.orderCount) })),
         total,
         page,
