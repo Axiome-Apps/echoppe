@@ -3,7 +3,7 @@ import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
-import { permissionGuard } from '../plugins/rbac';
+import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
 import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
@@ -45,15 +45,29 @@ export const collectionsRoutes = new Elysia({
 
   // === PUBLIC ROUTES ===
 
-  // GET /collections - List all with pagination (public)
+  // GET /collections - List (public visible-only ; admin/API voit tout).
   .get(
     '/',
-    async ({ query }) => {
+    async ({ query, cookie, headers }) => {
       const { page, limit, offset } = getPaginationParams(query);
+      const all = await isPrivilegedRequest(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
+      );
+      const visibilityFilter = all ? undefined : eq(collection.isVisible, true);
 
       const [collections, [{ total }]] = await Promise.all([
-        db.select().from(collection).orderBy(collection.dateCreated).limit(limit).offset(offset),
-        db.select({ total: count(collection.id) }).from(collection),
+        db
+          .select()
+          .from(collection)
+          .where(visibilityFilter)
+          .orderBy(collection.dateCreated)
+          .limit(limit)
+          .offset(offset),
+        db
+          .select({ total: count(collection.id) })
+          .from(collection)
+          .where(visibilityFilter),
       ]);
 
       return buildListResponse(collections, total, page, limit);
@@ -61,11 +75,22 @@ export const collectionsRoutes = new Elysia({
     { query: paginationQuery, response: withReadErrors({ 200: 'CollectionList' }) },
   )
 
-  // GET /collections/:id - Get one (public)
+  // GET /collections/:id - Get one (public : 404 si invisible pour un anonyme).
   .get(
     '/:id',
-    async ({ params, status }) => {
-      const [found] = await db.select().from(collection).where(eq(collection.id, params.id));
+    async ({ params, status, cookie, headers }) => {
+      const all = await isPrivilegedRequest(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
+      );
+      const [found] = await db
+        .select()
+        .from(collection)
+        .where(
+          all
+            ? eq(collection.id, params.id)
+            : and(eq(collection.id, params.id), eq(collection.isVisible, true)),
+        );
       if (!found) return status(404, { message: 'Collection non trouvee' });
       return found;
     },
@@ -75,11 +100,22 @@ export const collectionsRoutes = new Elysia({
     },
   )
 
-  // GET /collections/by-slug/:slug - Get one by slug (public)
+  // GET /collections/by-slug/:slug - Get one by slug (public : 404 si invisible).
   .get(
     '/by-slug/:slug',
-    async ({ params, status }) => {
-      const [found] = await db.select().from(collection).where(eq(collection.slug, params.slug));
+    async ({ params, status, cookie, headers }) => {
+      const all = await isPrivilegedRequest(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
+      );
+      const [found] = await db
+        .select()
+        .from(collection)
+        .where(
+          all
+            ? eq(collection.slug, params.slug)
+            : and(eq(collection.slug, params.slug), eq(collection.isVisible, true)),
+        );
       if (!found) return status(404, { message: 'Collection not found' });
       return found;
     },
@@ -92,11 +128,19 @@ export const collectionsRoutes = new Elysia({
   // GET /collections/:id/products - Get products in collection with pagination (public)
   .get(
     '/:id/products',
-    async ({ params, query, status }) => {
+    async ({ params, query, status, cookie, headers }) => {
+      const all = await isPrivilegedRequest(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
+      );
       const [collectionExists] = await db
-        .select()
+        .select({ id: collection.id })
         .from(collection)
-        .where(eq(collection.id, params.id));
+        .where(
+          all
+            ? eq(collection.id, params.id)
+            : and(eq(collection.id, params.id), eq(collection.isVisible, true)),
+        );
       if (!collectionExists) return status(404, { message: 'Collection not found' });
 
       const { page, limit, offset } = getPaginationParams(query);

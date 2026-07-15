@@ -167,6 +167,20 @@ export function invalidateSystemRoleCache() {
 }
 
 /**
+ * Vrai si la requête provient d'un principal privilégié (session admin ou clé d'API
+ * machine). Sert aux routes publiques dont la VISIBILITÉ dépend de l'appelant : un
+ * anonyme ne voit que le contenu public (ex. `isVisible`), l'admin voit tout — sans
+ * dupliquer l'endpoint quand seule la visibilité des lignes diffère.
+ */
+export async function isPrivilegedRequest(
+  cookie: Record<string, { value?: string }>,
+  authHeader?: string,
+): Promise<boolean> {
+  const authContext = await getAuthContext(cookie, authHeader);
+  return authContext.type === 'admin' || authContext.type === 'apikey';
+}
+
+/**
  * Obtient le contexte d'authentification depuis les cookies
  */
 export async function getAuthContext(

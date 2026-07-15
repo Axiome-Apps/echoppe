@@ -3,7 +3,7 @@ import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
-import { permissionGuard } from '../plugins/rbac';
+import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
 import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
@@ -60,20 +60,39 @@ export const categoriesRoutes = new Elysia({
 
   // === PUBLIC ROUTES ===
 
-  // GET /categories - List all (public)
+  // GET /categories - List (public visible-only ; admin/API voit tout).
   .get(
     '/',
-    async () => {
-      return db.select().from(category).orderBy(category.sortOrder);
+    async ({ cookie, headers }) => {
+      const all = await isPrivilegedRequest(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
+      );
+      return db
+        .select()
+        .from(category)
+        .where(all ? undefined : eq(category.isVisible, true))
+        .orderBy(category.sortOrder);
     },
     { response: withReadErrors({ 200: 'CategoryList' }) },
   )
 
-  // GET /categories/:id - Get one (public)
+  // GET /categories/:id - Get one (public : 404 si invisible pour un anonyme).
   .get(
     '/:id',
-    async ({ params, status }) => {
-      const [found] = await db.select().from(category).where(eq(category.id, params.id));
+    async ({ params, status, cookie, headers }) => {
+      const all = await isPrivilegedRequest(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
+      );
+      const [found] = await db
+        .select()
+        .from(category)
+        .where(
+          all
+            ? eq(category.id, params.id)
+            : and(eq(category.id, params.id), eq(category.isVisible, true)),
+        );
       if (!found) return status(404, { message: 'Category not found' });
       return found;
     },
@@ -83,11 +102,22 @@ export const categoriesRoutes = new Elysia({
     },
   )
 
-  // GET /categories/by-slug/:slug - Get one by slug (public)
+  // GET /categories/by-slug/:slug - Get one by slug (public : 404 si invisible).
   .get(
     '/by-slug/:slug',
-    async ({ params, status }) => {
-      const [found] = await db.select().from(category).where(eq(category.slug, params.slug));
+    async ({ params, status, cookie, headers }) => {
+      const all = await isPrivilegedRequest(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
+      );
+      const [found] = await db
+        .select()
+        .from(category)
+        .where(
+          all
+            ? eq(category.slug, params.slug)
+            : and(eq(category.slug, params.slug), eq(category.isVisible, true)),
+        );
       if (!found) return status(404, { message: 'Category not found' });
       return found;
     },
@@ -100,8 +130,19 @@ export const categoriesRoutes = new Elysia({
   // GET /categories/:id/products - Get products in category with pagination (public)
   .get(
     '/:id/products',
-    async ({ params, query, status }) => {
-      const [categoryExists] = await db.select().from(category).where(eq(category.id, params.id));
+    async ({ params, query, status, cookie, headers }) => {
+      const all = await isPrivilegedRequest(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
+      );
+      const [categoryExists] = await db
+        .select({ id: category.id })
+        .from(category)
+        .where(
+          all
+            ? eq(category.id, params.id)
+            : and(eq(category.id, params.id), eq(category.isVisible, true)),
+        );
       if (!categoryExists) return status(404, { message: 'Category not found' });
 
       const { page, limit, offset } = getPaginationParams(query);
