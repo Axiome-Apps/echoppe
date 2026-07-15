@@ -6,6 +6,7 @@ import ChevronDownIcon from './icons/ChevronDownIcon.vue';
 export interface ComboboxOption {
   value: string;
   label: string;
+  color?: string; // couleur CSS optionnelle → pastille (ex. valeurs d'un axe couleur)
 }
 
 const props = withDefaults(
@@ -37,10 +38,8 @@ const isOpen = ref(false);
 const search = ref('');
 const highlightedIndex = ref(0);
 
-const displayValue = computed(() => {
-  const found = props.options.find((o) => o.value === props.modelValue);
-  return found?.label ?? props.modelValue;
-});
+const selectedOption = computed(() => props.options.find((o) => o.value === props.modelValue));
+const displayValue = computed(() => selectedOption.value?.label ?? props.modelValue);
 
 const filteredOptions = computed(() => {
   if (!search.value) return props.options;
@@ -146,8 +145,16 @@ const sizeClasses = {
       ]"
       @click="open"
     >
-      <span :class="modelValue ? 'text-gray-900' : 'text-gray-400'">
-        {{ modelValue ? displayValue : placeholder }}
+      <span
+        class="flex items-center gap-2 min-w-0"
+        :class="modelValue ? 'text-gray-900' : 'text-gray-400'"
+      >
+        <span
+          v-if="selectedOption?.color"
+          class="inline-block w-3.5 h-3.5 rounded-full border border-gray-300 shrink-0"
+          :style="{ backgroundColor: selectedOption.color }"
+        />
+        <span class="truncate">{{ modelValue ? displayValue : placeholder }}</span>
       </span>
       <div class="flex items-center gap-1 -mr-1">
         <button
@@ -188,7 +195,7 @@ const sizeClasses = {
           v-for="(option, index) in filteredOptions"
           :key="option.value"
           :class="[
-            'px-3 py-2 cursor-pointer text-sm',
+            'px-3 py-2 cursor-pointer text-sm flex items-center gap-2',
             highlightedIndex === index
               ? 'bg-blue-50 text-blue-700'
               : 'hover:bg-gray-50',
@@ -196,6 +203,11 @@ const sizeClasses = {
           ]"
           @mousedown.prevent="selectOption(option)"
         >
+          <span
+            v-if="option.color"
+            class="inline-block w-3.5 h-3.5 rounded-full border border-gray-300 shrink-0"
+            :style="{ backgroundColor: option.color }"
+          />
           {{ option.label }}
         </li>
 

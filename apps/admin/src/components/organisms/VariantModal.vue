@@ -164,9 +164,16 @@ const statusOptions = [
   { value: 'archived', label: 'Archivé' },
 ];
 
-// Option combobox helpers
+// Option combobox helpers — pastille pour les valeurs d'un axe couleur.
 function getOptionComboboxOptions(opt: Option): ComboboxOption[] {
-  return opt.values.map((v) => ({ value: v.id, label: v.value }));
+  return opt.values.map((v) => ({
+    value: v.id,
+    label: v.value,
+    color:
+      opt.type === 'color' && v.metadata
+        ? `oklch(${v.metadata.l} ${v.metadata.c} ${v.metadata.h} / ${v.metadata.alpha})`
+        : undefined,
+  }));
 }
 
 function getSelectedValueForOption(optionId: string): string {
