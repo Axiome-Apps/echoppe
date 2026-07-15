@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '@/lib/api';
+import { useAuth } from '@/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import Badge from '@/components/atoms/Badge.vue';
@@ -25,6 +26,7 @@ interface UserForm {
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const { user: currentUser } = useAuth();
 
 const loading = ref(true);
 const saving = ref(false);
@@ -41,6 +43,9 @@ const form = ref<UserForm>({
 
 const isNew = computed(() => route.name === 'user-create');
 const isOwner = computed(() => user.value?.isOwner ?? false);
+// L'owner peut se modifier lui-même ; seul un AUTRE utilisateur est verrouillé (cf. users.ts).
+const isSelf = computed(() => !!currentUser.value && currentUser.value.id === user.value?.id);
+const isLocked = computed(() => isOwner.value && !isSelf.value);
 const pageTitle = computed(() => {
   if (isNew.value) return 'Nouvel utilisateur';
   return user.value ? `${user.value.firstName} ${user.value.lastName}` : 'Utilisateur';
@@ -212,7 +217,7 @@ function cancel() {
         </div>
 
         <div
-          v-if="isOwner"
+          v-if="isLocked"
           class="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800"
         >
           Le propriétaire ne peut pas être modifié par d'autres utilisateurs.
@@ -228,7 +233,7 @@ function cancel() {
                 v-model="form.firstName"
                 type="text"
                 required
-                :disabled="isOwner"
+                :disabled="isLocked"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
@@ -241,7 +246,7 @@ function cancel() {
                 v-model="form.lastName"
                 type="text"
                 required
-                :disabled="isOwner"
+                :disabled="isLocked"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
@@ -254,7 +259,7 @@ function cancel() {
                 v-model="form.email"
                 type="email"
                 required
-                :disabled="isOwner"
+                :disabled="isLocked"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
@@ -275,7 +280,7 @@ function cancel() {
                 v-model="form.password"
                 type="password"
                 :required="isNew"
-                :disabled="isOwner"
+                :disabled="isLocked"
                 minlength="6"
                 placeholder="••••••"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -289,7 +294,7 @@ function cancel() {
               <select
                 v-model="form.role"
                 required
-                :disabled="isOwner"
+                :disabled="isLocked"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option
@@ -319,7 +324,7 @@ function cancel() {
               Annuler
             </Button>
             <Button
-              v-if="!isOwner"
+              v-if="!isLocked"
               type="submit"
               variant="primary"
               size="lg"
