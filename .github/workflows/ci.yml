@@ -1,0 +1,53 @@
+name: CI
+
+# Garde qualité sur main + PR. Le drift-guard (T1) échoue si le schéma Drizzle
+# diverge des migrations committées — c'est ce qui aurait attrapé l'incident 0.4.0
+# (colonnes poussées en dev via db:push, jamais générées en migration).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type-check
+        run: bun run type-check
+
+      - name: Lint
+        run: bun run lint
+
+      # T1 — Garde anti-dérive : le schéma TS doit être entièrement capturé par les
+      # migrations committées. `db:generate` est hors-ligne (compare schéma ↔ snapshots),
+      # DATABASE_URL est un placeholder requis par drizzle.config mais aucune connexion
+      # n'est ouverte. S'il produit un fichier, c'est qu'une migration manque → échec.
+      - name: Migration drift guard
+        env:
+          DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
+        run: |
+          bun run --cwd packages/core db:generate --name=drift_guard
+          if ! git diff --quiet --exit-code packages/core/drizzle || [ -n "$(git ls-files --others --exclude-standard packages/core/drizzle)" ]; then
+            echo "::error::Dérive schéma ↔ migrations : le schéma Drizzle a changé sans migration générée."
+            echo "Lancer 'bun run db:generate' puis committer le .sql + meta/*_snapshot.json."
+            git status --short packages/core/drizzle
+            exit 1
+          fi
+          echo "✓ Schéma == migrations, aucune dérive."
