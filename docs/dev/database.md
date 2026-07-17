@@ -132,3 +132,15 @@ bun run db:migrate
 ```
 
 Les fichiers de migration sont dans `packages/core/drizzle/`.
+
+::: danger `db:push` ≠ `db:generate` — piège de dérive
+`db:push` applique le schéma en dev **sans créer de fichier de migration**. L'image
+publiée n'embarque que les migrations : un schéma poussé par `push` seul est **absent
+de l'image** → 500 au runtime pour toute boutique (base fraîche ou upgradée).
+
+**Règle** : après toute modif de `src/db/schema/`, lancer `db:generate` et committer
+le `.sql` + le `meta/*_snapshot.json`. Un second `db:generate` doit afficher
+« No schema changes ». Réserver `db:push` au prototypage local jetable.
+
+Détail complet du process : [Publier une version](/dev/releasing).
+:::

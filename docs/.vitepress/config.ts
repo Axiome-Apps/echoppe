@@ -78,6 +78,7 @@ export default defineConfig({
             { text: 'Authentification', link: '/dev/auth' },
             { text: "Clés d'API", link: '/dev/api-keys' },
             { text: 'Module contenu', link: '/dev/content' },
+            { text: 'Publier une version', link: '/dev/releasing' },
             { text: 'Contribuer', link: '/dev/contributing' },
           ],
         },
