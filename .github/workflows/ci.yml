@@ -51,3 +51,39 @@ jobs:
             exit 1
           fi
           echo "✓ Schéma == migrations, aucune dérive."
+
+  # T2 — Smoke « base vierge depuis les migrations » : Postgres neuf → migrate → les routes
+  # clés répondent (/products/ 200 sans 500, /countries/ non vide). Aurait attrapé le 500
+  # de l'image 0.4.0 (colonnes manquantes) et le /countries/ vide.
+  smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: echoppe
+          POSTGRES_PASSWORD: echoppe
+          POSTGRES_DB: echoppe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U echoppe -d echoppe"
+          --health-interval 5s --health-timeout 5s --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # SMOKE_DATABASE_URL cible le service Postgres neuf (base vierge). Le wrapper l'utilise
+      # tel quel (pas de conteneur éphémère à provisionner en CI).
+      - name: Smoke storefront
+        env:
+          SMOKE_DATABASE_URL: postgresql://echoppe:echoppe@localhost:5432/echoppe
+        run: bun run --cwd apps/api test:smoke

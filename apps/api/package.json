@@ -9,7 +9,8 @@
     "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun --env-file=../../.env run dist/index.js",
     "api-key:create": "bun --env-file=../../.env run src/scripts/create-api-key.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:smoke": "bun run scripts/smoke.ts"
   },
   "dependencies": {
     "@echoppe/core": "workspace:*",

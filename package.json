@@ -31,7 +31,9 @@
     "db:seed": "bun run --cwd packages/core db:seed",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "sh scripts/release.sh"
+    "release": "sh scripts/release.sh",
+    "test": "bun run --cwd packages/client test",
+    "test:integration": "bun run --cwd apps/api test:smoke"
   },
   "dependencies": {
     "@elysiajs/eden": "^1.4.9"
