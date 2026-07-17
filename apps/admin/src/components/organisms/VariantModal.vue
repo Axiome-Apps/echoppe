@@ -8,6 +8,8 @@ import Input from '@/components/atoms/Input.vue';
 import Combobox from '@/components/atoms/Combobox.vue';
 import type { ComboboxOption } from '@/components/atoms/Combobox.vue';
 import CheckIcon from '@/components/atoms/icons/CheckIcon.vue';
+import ColorPicker from '@/components/molecules/ColorPicker.vue';
+import type { ColorMetadata } from '@/composables/options/useOptionsCatalog';
 import { api } from '@/lib/api';
 import { createOptionValue, getOptionValues, updateVariantOptions } from '@/lib/product-api';
 import { type Media, getMediaUrl } from '@/composables/media';
@@ -189,19 +191,35 @@ function setValueForOption(optionId: string, valueId: string) {
   }
 }
 
-async function handleCreateOptionValue(optionId: string, value: string) {
-  const data = await createOptionValue(props.productId, optionId, value);
+const DEFAULT_COLOR: ColorMetadata = { l: 0.7, c: 0.12, h: 30, alpha: 1 };
+// Brouillon de création d'une valeur couleur (ouvre le picker) : axe + libellé + couleur.
+const colorValueDraft = ref<{ optionId: string; label: string; color: ColorMetadata } | null>(null);
 
-  if (data) {
-    const updatedOptions = props.options.map((opt) => {
-      if (opt.id === optionId) {
-        return { ...opt, values: [...opt.values, data] };
-      }
-      return opt;
-    });
-    props.onOptionsChange(updatedOptions);
-    setValueForOption(optionId, data.id);
+// Valeurs créables à la volée : couleur → passe par le picker, texte → création directe.
+function handleCreateOptionValue(optionId: string, value: string) {
+  const opt = props.options.find((o) => o.id === optionId);
+  if (opt?.type === 'color') {
+    colorValueDraft.value = { optionId, label: value, color: { ...DEFAULT_COLOR } };
+    return;
   }
+  void createValue(optionId, value);
+}
+
+async function createValue(optionId: string, value: string, metadata?: ColorMetadata) {
+  const data = await createOptionValue(props.productId, optionId, value, metadata);
+  if (!data) return;
+  const updatedOptions = props.options.map((opt) =>
+    opt.id === optionId ? { ...opt, values: [...opt.values, data] } : opt,
+  );
+  props.onOptionsChange(updatedOptions);
+  setValueForOption(optionId, data.id);
+}
+
+async function submitColorValue() {
+  const draft = colorValueDraft.value;
+  if (!draft || !draft.label.trim()) return;
+  await createValue(draft.optionId, draft.label.trim(), draft.color);
+  colorValueDraft.value = null;
 }
 
 // New option creation
@@ -222,22 +240,6 @@ async function addExistingOption(optionId: string) {
     const values = await getOptionValues(props.productId, optionId);
     const newOption: Option = { ...data, sortOrder: 0, values };
     props.onOptionsChange([...props.options, newOption]);
-    showAddOptionCombobox.value = false;
-  }
-}
-
-async function createOption(name: string) {
-  if (!name.trim()) return;
-
-  const { data } = await api.products({ id: props.productId })['option-axes'].post({
-    name: name.trim(),
-  });
-
-  if (data && 'id' in data) {
-    const newOption: Option = { ...data, sortOrder: 0, values: [] };
-    props.onOptionsChange([...props.options, newOption]);
-    // Ajoute aux options globales pour ne pas la re-proposer
-    globalOptions.value.push(data);
     showAddOptionCombobox.value = false;
   }
 }
@@ -561,7 +563,13 @@ async function save() {
             v-for="opt in options"
             :key="opt.id"
           >
-            <Label>{{ opt.name }}</Label>
+            <Label>
+              {{ opt.name }}
+              <span
+                v-if="opt.type === 'color'"
+                class="ml-1 text-xs font-normal text-gray-400"
+              >couleur</span>
+            </Label>
             <Combobox
               :model-value="getSelectedValueForOption(opt.id)"
               :options="getOptionComboboxOptions(opt)"
@@ -579,14 +587,14 @@ async function save() {
           class="flex gap-3 items-end"
         >
           <div class="flex-1">
-            <Label>Option à ajouter</Label>
+            <Label>Axe à ajouter</Label>
             <Combobox
               model-value=""
               :options="availableOptionsForAdd"
-              placeholder="Sélectionner ou créer une option"
+              :creatable="false"
+              placeholder="Sélectionner un axe existant"
               size="lg"
               @update:model-value="addExistingOption($event)"
-              @create="createOption($event)"
             />
           </div>
           <button
@@ -603,9 +611,47 @@ async function save() {
           class="text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
           @click="showAddOptionCombobox = true"
         >
-          + Ajouter une option
+          + Ajouter un axe
         </button>
       </section>
+
+      <!-- Création d'une valeur couleur (via le picker) -->
+      <Modal
+        v-if="colorValueDraft"
+        title="Nouvelle couleur"
+        @close="colorValueDraft = null"
+      >
+        <div class="space-y-4">
+          <div>
+            <Label required>Libellé</Label>
+            <Input
+              v-model="colorValueDraft.label"
+              placeholder="Rouge, Bleu Océan…"
+              size="lg"
+            />
+          </div>
+          <div>
+            <Label>Couleur</Label>
+            <ColorPicker v-model="colorValueDraft.color" />
+          </div>
+        </div>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <Button
+              variant="ghost"
+              @click="colorValueDraft = null"
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="primary"
+              @click="submitColorValue"
+            >
+              Ajouter
+            </Button>
+          </div>
+        </template>
+      </Modal>
     </div>
 
     <template #footer>
