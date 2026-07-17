@@ -131,7 +131,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -271,7 +272,7 @@
               "enum": [
                 "price",
                 "name",
-                "date"
+                "dateCreated"
               ]
             }
           },
@@ -314,7 +315,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -334,7 +336,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -384,7 +387,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -404,7 +408,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -424,7 +429,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -475,7 +481,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -495,7 +502,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -515,7 +523,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -759,7 +768,8 @@
                         ]
                       }
                     },
-                    "$id": "#/components/schemas/ProductMedia"
+                    "$id": "#/components/schemas/ProductMedia",
+                    "additionalProperties": false
                   }
                 }
               }
@@ -800,7 +810,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -820,7 +831,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -871,7 +883,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -891,7 +904,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -911,7 +925,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -961,7 +976,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -981,7 +997,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1001,7 +1018,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1096,7 +1114,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1116,7 +1135,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1136,7 +1156,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1222,7 +1243,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1242,7 +1264,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1293,7 +1316,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1313,7 +1337,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1333,7 +1358,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1383,7 +1409,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1403,7 +1430,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1423,7 +1451,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1518,7 +1547,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1538,7 +1568,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1558,7 +1589,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1598,7 +1630,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1618,7 +1651,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1668,7 +1702,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1688,7 +1723,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1708,7 +1744,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1758,7 +1795,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1778,7 +1816,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1798,7 +1837,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2022,7 +2062,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2156,7 +2197,8 @@
                       "description": "Permission manquante",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2176,7 +2218,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2241,7 +2284,8 @@
                       "description": "Permission manquante",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2261,7 +2305,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2319,7 +2364,8 @@
                       "description": "Raison du refus d'authentification",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2359,7 +2405,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2379,7 +2426,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2659,7 +2707,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2679,7 +2728,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2719,7 +2769,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2739,7 +2790,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2779,7 +2831,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2799,7 +2852,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2951,7 +3005,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2971,7 +3026,8 @@
                       "description": "Temps d'attente avant nouvelle tentative",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -2991,7 +3047,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3200,7 +3257,8 @@
                       "description": "Temps d'attente avant nouvelle tentative",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3312,7 +3370,8 @@
                       "description": "Raison du refus d'authentification",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3332,7 +3391,8 @@
                       "description": "Temps d'attente avant nouvelle tentative",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3432,7 +3492,8 @@
                       "description": "Raison du refus d'authentification",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3482,7 +3543,8 @@
                       "description": "Raison du refus d'authentification",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3604,7 +3666,8 @@
                       "description": "Raison du refus d'authentification",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3701,7 +3764,8 @@
                       "description": "Temps d'attente avant nouvelle tentative",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3812,7 +3876,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3832,7 +3897,8 @@
                       "description": "Temps d'attente avant nouvelle tentative",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -3983,7 +4049,8 @@
                       "description": "Raison du refus d'authentification",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4278,7 +4345,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4336,7 +4404,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4610,7 +4679,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4629,7 +4699,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4695,7 +4766,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4789,7 +4861,8 @@
                       "description": "Raison du refus d'authentification",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4809,7 +4882,8 @@
                       "description": "Permission manquante",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4829,7 +4903,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4849,7 +4924,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4908,7 +4984,8 @@
                       "description": "Raison du refus d'authentification",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4928,7 +5005,8 @@
                       "description": "Permission manquante",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4948,7 +5026,8 @@
                       "description": "Ressource non trouvée",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4968,7 +5047,8 @@
                       "description": "Détail de l'erreur métier",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -4988,7 +5068,8 @@
                       "description": "Erreur interne",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -5477,7 +5558,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -5496,7 +5578,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -5662,7 +5745,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -5681,7 +5765,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -5700,7 +5785,8 @@
                       "description": "Description de l'erreur",
                       "type": "string"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -6593,7 +6679,9 @@
               "total",
               "page",
               "limit",
-              "totalPages"
+              "totalPages",
+              "hasNextPage",
+              "hasPrevPage"
             ],
             "properties": {
               "total": {
@@ -6607,11 +6695,18 @@
               },
               "totalPages": {
                 "type": "number"
+              },
+              "hasNextPage": {
+                "type": "boolean"
+              },
+              "hasPrevPage": {
+                "type": "boolean"
               }
             }
           }
         },
-        "$id": "#/components/schemas/CollectionList"
+        "$id": "#/components/schemas/CollectionList",
+        "additionalProperties": false
       },
       "CountryList": {
         "type": "array",
@@ -7305,7 +7400,9 @@
               "total",
               "page",
               "limit",
-              "totalPages"
+              "totalPages",
+              "hasNextPage",
+              "hasPrevPage"
             ],
             "properties": {
               "total": {
@@ -7319,6 +7416,12 @@
               },
               "totalPages": {
                 "type": "number"
+              },
+              "hasNextPage": {
+                "type": "boolean"
+              },
+              "hasPrevPage": {
+                "type": "boolean"
               }
             }
           }
@@ -7727,6 +7830,7 @@
               "required": [
                 "id",
                 "name",
+                "type",
                 "sortOrder",
                 "values"
               ],
@@ -7739,6 +7843,13 @@
                 "name": {
                   "description": "Nom de l'option (ex. « Taille », « Couleur »).",
                   "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "color"
+                  ]
                 },
                 "sortOrder": {
                   "description": "Ordre d'affichage de l'option.",
@@ -7753,6 +7864,7 @@
                       "id",
                       "option",
                       "value",
+                      "metadata",
                       "sortOrder"
                     ],
                     "properties": {
@@ -7769,6 +7881,50 @@
                       "value": {
                         "description": "Valeur (ex. « M », « Rouge »).",
                         "type": "string"
+                      },
+                      "metadata": {
+                        "nullable": true,
+                        "anyOf": [
+                          {
+                            "description": "Couleur oklch canonique (type=color).",
+                            "type": "object",
+                            "required": [
+                              "l",
+                              "c",
+                              "h",
+                              "alpha"
+                            ],
+                            "properties": {
+                              "l": {
+                                "minimum": 0,
+                                "maximum": 1,
+                                "description": "Lightness 0–1.",
+                                "type": "number"
+                              },
+                              "c": {
+                                "minimum": 0,
+                                "maximum": 0.4,
+                                "description": "Chroma (garde-fou 0–0.4).",
+                                "type": "number"
+                              },
+                              "h": {
+                                "minimum": 0,
+                                "maximum": 360,
+                                "description": "Hue 0–360.",
+                                "type": "number"
+                              },
+                              "alpha": {
+                                "minimum": 0,
+                                "maximum": 1,
+                                "description": "Opacité 0–1.",
+                                "type": "number"
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "sortOrder": {
                         "description": "Ordre d'affichage.",
@@ -7829,7 +7985,8 @@
                 "dateUpdated",
                 "featuredImage",
                 "defaultVariant",
-                "images"
+                "images",
+                "swatches"
               ],
               "properties": {
                 "id": {
@@ -7974,6 +8131,47 @@
                     "description": "UUID d'un média de la galerie.",
                     "type": "string"
                   }
+                },
+                "swatches": {
+                  "description": "Axe couleur (option type=color) — pastilles, vide si aucune.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "optionValueId",
+                      "label",
+                      "color",
+                      "image"
+                    ],
+                    "properties": {
+                      "optionValueId": {
+                        "format": "uuid",
+                        "description": "UUID de la valeur d'option (couleur).",
+                        "type": "string"
+                      },
+                      "label": {
+                        "description": "Libellé de la couleur (ex. « Rouge »).",
+                        "type": "string"
+                      },
+                      "color": {
+                        "description": "Couleur CSS oklch prête au rendu (ex. « oklch(0.65 0.12 220 / 1) »).",
+                        "type": "string"
+                      },
+                      "image": {
+                        "nullable": true,
+                        "anyOf": [
+                          {
+                            "format": "uuid",
+                            "description": "UUID du média de la variante (survol), si défini.",
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -7984,7 +8182,9 @@
               "total",
               "page",
               "limit",
-              "totalPages"
+              "totalPages",
+              "hasNextPage",
+              "hasPrevPage"
             ],
             "properties": {
               "total": {
@@ -7998,11 +8198,18 @@
               },
               "totalPages": {
                 "type": "number"
+              },
+              "hasNextPage": {
+                "type": "boolean"
+              },
+              "hasPrevPage": {
+                "type": "boolean"
               }
             }
           }
         },
-        "$id": "#/components/schemas/ProductList"
+        "$id": "#/components/schemas/ProductList",
+        "additionalProperties": false
       },
       "ProductWithVariants": {
         "type": "object",
@@ -8264,6 +8471,7 @@
               "required": [
                 "id",
                 "name",
+                "type",
                 "sortOrder",
                 "values"
               ],
@@ -8276,6 +8484,13 @@
                 "name": {
                   "description": "Nom de l'option (ex. « Taille », « Couleur »).",
                   "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "color"
+                  ]
                 },
                 "sortOrder": {
                   "description": "Ordre d'affichage de l'option.",
@@ -8290,6 +8505,7 @@
                       "id",
                       "option",
                       "value",
+                      "metadata",
                       "sortOrder"
                     ],
                     "properties": {
@@ -8306,6 +8522,50 @@
                       "value": {
                         "description": "Valeur (ex. « M », « Rouge »).",
                         "type": "string"
+                      },
+                      "metadata": {
+                        "nullable": true,
+                        "anyOf": [
+                          {
+                            "description": "Couleur oklch canonique (type=color).",
+                            "type": "object",
+                            "required": [
+                              "l",
+                              "c",
+                              "h",
+                              "alpha"
+                            ],
+                            "properties": {
+                              "l": {
+                                "minimum": 0,
+                                "maximum": 1,
+                                "description": "Lightness 0–1.",
+                                "type": "number"
+                              },
+                              "c": {
+                                "minimum": 0,
+                                "maximum": 0.4,
+                                "description": "Chroma (garde-fou 0–0.4).",
+                                "type": "number"
+                              },
+                              "h": {
+                                "minimum": 0,
+                                "maximum": 360,
+                                "description": "Hue 0–360.",
+                                "type": "number"
+                              },
+                              "alpha": {
+                                "minimum": 0,
+                                "maximum": 1,
+                                "description": "Opacité 0–1.",
+                                "type": "number"
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "sortOrder": {
                         "description": "Ordre d'affichage.",

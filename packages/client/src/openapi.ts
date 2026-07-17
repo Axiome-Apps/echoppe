@@ -896,6 +896,8 @@ export interface components {
                 page: number;
                 limit: number;
                 totalPages: number;
+                hasNextPage: boolean;
+                hasPrevPage: boolean;
             };
         };
         CountryList: {
@@ -1073,6 +1075,8 @@ export interface components {
                 page: number;
                 limit: number;
                 totalPages: number;
+                hasNextPage: boolean;
+                hasPrevPage: boolean;
             };
         };
         Page: {
@@ -1189,6 +1193,8 @@ export interface components {
                 id: string;
                 /** @description Nom de l'option (ex. « Taille », « Couleur »). */
                 name: string;
+                /** @enum {string} */
+                type: "string" | "color";
                 /** @description Ordre d'affichage de l'option. */
                 sortOrder: number;
                 /** @description Valeurs possibles de l'option. */
@@ -1205,6 +1211,16 @@ export interface components {
                     option: string;
                     /** @description Valeur (ex. « M », « Rouge »). */
                     value: string;
+                    metadata: ({
+                        /** @description Lightness 0–1. */
+                        l: number;
+                        /** @description Chroma (garde-fou 0–0.4). */
+                        c: number;
+                        /** @description Hue 0–360. */
+                        h: number;
+                        /** @description Opacité 0–1. */
+                        alpha: number;
+                    } | null) | null;
                     /** @description Ordre d'affichage. */
                     sortOrder: number;
                 }[];
@@ -1251,12 +1267,27 @@ export interface components {
                 } | null) | null;
                 /** @description Galerie ordonnée (image principale en tête) — survol, miniatures. */
                 images: string[];
+                /** @description Axe couleur (option type=color) — pastilles, vide si aucune. */
+                swatches: {
+                    /**
+                     * Format: uuid
+                     * @description UUID de la valeur d'option (couleur).
+                     */
+                    optionValueId: string;
+                    /** @description Libellé de la couleur (ex. « Rouge »). */
+                    label: string;
+                    /** @description Couleur CSS oklch prête au rendu (ex. « oklch(0.65 0.12 220 / 1) »). */
+                    color: string;
+                    image: (string | null) | null;
+                }[];
             }[];
             meta: {
                 total: number;
                 page: number;
                 limit: number;
                 totalPages: number;
+                hasNextPage: boolean;
+                hasPrevPage: boolean;
             };
         };
         ProductWithVariants: {
@@ -1327,6 +1358,8 @@ export interface components {
                 id: string;
                 /** @description Nom de l'option (ex. « Taille », « Couleur »). */
                 name: string;
+                /** @enum {string} */
+                type: "string" | "color";
                 /** @description Ordre d'affichage de l'option. */
                 sortOrder: number;
                 /** @description Valeurs possibles de l'option. */
@@ -1343,6 +1376,16 @@ export interface components {
                     option: string;
                     /** @description Valeur (ex. « M », « Rouge »). */
                     value: string;
+                    metadata: ({
+                        /** @description Lightness 0–1. */
+                        l: number;
+                        /** @description Chroma (garde-fou 0–0.4). */
+                        c: number;
+                        /** @description Hue 0–360. */
+                        h: number;
+                        /** @description Opacité 0–1. */
+                        alpha: number;
+                    } | null) | null;
                     /** @description Ordre d'affichage. */
                     sortOrder: number;
                 }[];
@@ -1423,7 +1466,7 @@ export interface operations {
                 minPrice?: string | number;
                 maxPrice?: string | number;
                 inStock?: boolean | string;
-                sort?: "price" | "name" | "date";
+                sort?: "price" | "name" | "dateCreated";
                 order?: "asc" | "desc";
             };
             header?: never;
