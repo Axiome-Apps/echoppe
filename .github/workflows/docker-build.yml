@@ -10,7 +10,30 @@ env:
   IMAGE_PREFIX: axiomeapp/echoppe
 
 jobs:
+  # Gate de publication : construit l'image `api` (le Dockerfile réellement publié) et la
+  # valide en base vierge ET en upgrade AVANT tout push (T2–T5 du runbook). Si un seul échoue,
+  # `build-and-push` ne tourne pas → aucune image cassée ne part sur le registre.
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Construit `echoppe-api:integration` (via l'orchestrateur) + T2 (fresh) / T3 (upgrade
+      # depuis :latest publié) / T4 (parité contrat) / T5 (idempotence). Docker dispo sur le runner.
+      - name: Integration gate (image T2–T5)
+        run: bun run --cwd apps/api test:integration
+
   build-and-push:
+    needs: integration
     runs-on: ubuntu-latest
 
     strategy:

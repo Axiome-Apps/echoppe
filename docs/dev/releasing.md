@@ -75,12 +75,24 @@ bun run --cwd packages/client generate   # regénère openapi.json + types + fa�
 Comme le SDK **dérive** du contrat, corriger l'API réaligne toute la chaîne : un SDK
 « en avance » sur des migrations en retard n'est pas un bug SDK, c'est un bug API.
 
+## Gate automatique (rien à lancer à la main)
+
+La CI **bloque la publication d'image** si les tests échouent :
+
+- `ci.yml` (push/PR) : `type-check`, `lint`, **drift-guard** (schéma == migrations), smoke
+  source-level.
+- `docker-build.yml` (sur tag) : job `integration` **dont dépend `build-and-push`** — build
+  l'image `api` puis la valide en **base vierge** (T2), **upgrade depuis `:latest`** (T3),
+  **parité contrat** (T4), **idempotence** (T5). Aucune image ne part si un test casse.
+
+Pour reproduire le gate en local : `bun run --cwd apps/api test:integration`.
+
 ## Checklist de release
 
 - [ ] Schéma changé → `db:generate` + migration committée (**jamais** `push` en prod).
 - [ ] Donnée requise en prod → seed **idempotent** dans une migration (pas le `db:seed`).
 - [ ] `db:generate` de contrôle → « No schema changes » (aucune dérive résiduelle).
-- [ ] Base vierge migrée → `/products/` `200`, `/countries/` non vide.
+- [ ] Gate d'intégration vert (`test:integration`) — ou laisser la CI le jouer sur le tag.
 - [ ] SDK régénéré depuis l'OpenAPI, `type-check` + `build` verts.
 - [ ] Changeset ajouté (bump `@echoppe/client`).
 - [ ] Push `main` (ouvre la PR « Version Packages ») **et** tag `v x.y.z` (déclenche Docker), même version.

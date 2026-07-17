@@ -38,27 +38,30 @@ dérive de l'OpenAPI, juste en avance sur les migrations).
 
 ## Plan de durcissement (tests à ajouter)
 
-Priorité décroissante. T1 aurait attrapé l'incident directement.
+Tous implémentés. T1 aurait attrapé l'incident directement.
 
-- **T1 — Garde anti-dérive (pré-build, unitaire, rapide).** En CI, échouer si
-  `schéma ≠ migrations committées` : après `db:generate`, `git diff --exit-code`
-  sur `packages/core/drizzle/` doit être propre (ou `drizzle-kit check`). Bannir
-  `db:push` de la CI.
-- **T2 — Smoke « base vierge depuis l'image ».** Postgres éphémère → image buildée
-  (migrate au boot) → mini-seed d'un produit à option `color` → assert `/products/`
-  `200` (images/swatches non vides), `/products/by-slug/{slug}` `200` avec
-  `values[].type` / `.metadata`, `/countries/` `200` non vide.
-- **T3 — Chemin upgrade.** Restaurer un dump `n-1` (fixture `db-<prev>.sql`) → booter
-  la nouvelle image → migrations forward OK → rejouer T2. Empêche « marche en fresh,
-  casse en upgrade ».
-- **T4 — Parité contrat.** OpenAPI de l'image buildée == SDK publié ; valider la
-  forme des réponses réelles contre le schéma (attrape « champ promis, non fourni »).
-- **T5 — Idempotence seeds.** Rejouer boot/migrate 2× → ni erreur ni doublon
-  (`country` upsert).
+- **T1 — Garde anti-dérive (`ci.yml`, job `quality`).** Après `db:generate`,
+  `git diff --exit-code` sur `packages/core/drizzle/` doit être propre → échoue si
+  `schéma ≠ migrations committées`. La CI n'utilise jamais `db:push`.
+- **T2 — Smoke « base vierge depuis l'image » (`apps/api/scripts/integration.ts`).**
+  Postgres jetable → image `api` buildée (migrate au boot) → seed démo (produit `color`)
+  → assert `/products/` `200` (images/swatches non vides), `/products/by-slug/{slug}`
+  `200` avec `options[].type` / `values[].metadata`, `/countries/` `200` non vide.
+- **T3 — Chemin upgrade (même orchestrateur).** La base n-1 est créée par l'**image
+  publiée précédente** (`PREV_IMAGE`, défaut `:latest` → migrations 0000-N + journal
+  réel), puis la nouvelle image applique les migrations forward au boot → on rejoue T2.
+  Pas de fixture SQL à maintenir. Empêche « marche en fresh, casse en upgrade ».
+- **T4 — Parité contrat (même orchestrateur).** SDK régénéré depuis l'OpenAPI de
+  l'image → `git diff` sur les fichiers de **types** (`src/openapi.ts`/`models.ts`/
+  `facade.ts`). On ne gate pas `openapi.json` : l'émission de `additionalProperties`
+  par TypeBox y varie de façon cosmétique (types identiques) → faux positifs sinon.
+- **T5 — Idempotence seeds (même orchestrateur).** Re-boot de l'image (migrate rejoué)
+  → healthy + `country` toujours à 1 France (upsert idempotent).
 
-**Branchement.** T1 en check unitaire (bloquant, pré-build). T2–T5 en job
-d'intégration après build image, avant publication (`docker-build.yml` /
-`release.yml`).
+**Branchement.** T1 dans `ci.yml` (push/PR) + smoke source-level (`test:smoke`). T2–T5
+dans `docker-build.yml`, job `integration` **dont dépend `build-and-push`** (`needs`) :
+aucune image ne part sur le registre si le gate échoue. Local : `bun run --cwd apps/api
+test:integration` (auto-provisionne tout, `INTEGRATION_IMAGE` pour réutiliser un build).
 
 ## Garde-fous environnement
 
