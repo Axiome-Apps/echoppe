@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import ProductMediaGallery from '@/components/organisms/ProductMediaGallery.vue';
 import VariantModal from '@/components/organisms/VariantModal.vue';
 import ProductHeader from '@/components/organisms/product/ProductHeader.vue';
@@ -19,6 +19,11 @@ const productVariants = useProductVariants({
   variantThumbnails: productForm.variantThumbnails,
   onReload: productForm.loadProduct,
 });
+
+// Onglets de l'éditeur (produit existant uniquement — variantes/médias créés après enregistrement).
+type EditorTab = 'general' | 'variantes';
+const activeTab = ref<EditorTab>('general');
+const variantCount = computed(() => productForm.variants.value.length);
 
 // Handle media changes
 async function handleMediaChange() {
@@ -64,36 +69,76 @@ onMounted(async () => {
       class="flex gap-6"
     >
       <!-- Left: Main content -->
-      <div class="flex-1 min-w-0 space-y-6">
+      <div class="flex-1 min-w-0">
+        <!-- Nouveau produit : pas d'onglets (médias/variantes créés après enregistrement) -->
         <ProductInfoCard
+          v-if="productForm.isNew.value"
           v-model:name="productForm.form.value.name"
           v-model:description="productForm.form.value.description"
         />
 
-        <!-- Media section (only for existing products) -->
-        <div
-          v-if="!productForm.isNew.value"
-          class="bg-white rounded-lg shadow p-6"
-        >
-          <ProductMediaGallery
-            v-if="productForm.productId.value"
-            :product-id="productForm.productId.value"
-            :variants="productForm.variants.value"
-            :product-media="productForm.productMedia.value"
-            :media-cache="productForm.mediaCache.value"
-            @media-change="handleMediaChange"
-          />
-        </div>
+        <!-- Produit existant : onglets Général / Variantes -->
+        <template v-else>
+          <div class="border-b border-gray-200 mb-6">
+            <nav class="-mb-px flex gap-6">
+              <button
+                type="button"
+                class="pb-3 text-sm font-medium transition-colors cursor-pointer"
+                :class="
+                  activeTab === 'general'
+                    ? 'border-b-2 border-indigo-500 text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                "
+                @click="activeTab = 'general'"
+              >
+                Général
+              </button>
+              <button
+                type="button"
+                class="pb-3 text-sm font-medium transition-colors cursor-pointer"
+                :class="
+                  activeTab === 'variantes'
+                    ? 'border-b-2 border-indigo-500 text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                "
+                @click="activeTab = 'variantes'"
+              >
+                Variantes
+                <span class="ml-1 text-xs text-gray-400">{{ variantCount }}</span>
+              </button>
+            </nav>
+          </div>
 
-        <!-- Variants section (only for existing products) -->
-        <ProductVariantsCard
-          v-if="!productForm.isNew.value"
-          :variants="productVariants.variantsData.value"
-          :columns="productVariants.variantColumns.value"
-          :row-id="productVariants.getVariantRowId"
-          :on-reorder="productVariants.handleVariantReorder"
-          @add="productVariants.handleAddVariant"
-        />
+          <div
+            v-show="activeTab === 'general'"
+            class="space-y-6"
+          >
+            <ProductInfoCard
+              v-model:name="productForm.form.value.name"
+              v-model:description="productForm.form.value.description"
+            />
+            <div class="bg-white rounded-lg shadow p-6">
+              <ProductMediaGallery
+                v-if="productForm.productId.value"
+                :product-id="productForm.productId.value"
+                :variants="productForm.variants.value"
+                :product-media="productForm.productMedia.value"
+                :media-cache="productForm.mediaCache.value"
+                @media-change="handleMediaChange"
+              />
+            </div>
+          </div>
+
+          <div v-show="activeTab === 'variantes'">
+            <ProductVariantsCard
+              :variants="productVariants.variantsData.value"
+              :columns="productVariants.variantColumns.value"
+              :row-id="productVariants.getVariantRowId"
+              :on-reorder="productVariants.handleVariantReorder"
+              @add="productVariants.handleAddVariant"
+            />
+          </div>
+        </template>
       </div>
 
       <!-- Right: Sidebar -->
