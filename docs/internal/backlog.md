@@ -33,42 +33,18 @@ pas contourner ce manque côté client.
 
 ---
 
-## 2. Options typées & swatches (pastilles)
-
-**Besoin.** Rendu des pastilles sur les cartes produit : couleur (rond coloré) et/ou image
-par variante. Aujourd'hui impossible proprement :
-
-- `option` n'a **pas de `type`** → impossible d'identifier l'axe « couleur » autrement que par
-  le nom (`"Couleur"`, fragile, i18n).
-- `optionValue` stocke une **simple chaîne** (`"Red"`) → pas de valeur couleur exploitable.
-- L'image par variante existe déjà en base (`productMedia.featuredForVariant`) → swatch image
-  faisable sans migration, mais l'axe reste non identifié.
-
-**Direction de design retenue — système d'options extensible discriminé par type.**
-
-- `option.type` : enum (`'string'` par défaut, `'color'`, extensible → styles avancés futurs).
-- Le `type` pilote **deux bouts** d'un coup :
-  - **Admin** : le widget de saisie (`color` → colorPicker renvoyant une couleur, `string` →
-    input texte, types futurs → leur widget).
-  - **Storefront** : le rendu (`color` → pastille, `string` → pill texte…).
-- Valeur enrichie sur `optionValue` via un **`metadata` jsonb dont la forme est discriminée
-  par `option.type`**, validée par Zod à la frontière (aligné SSOT : union discriminée, parse
-  à la frontière). Pour `color` : stocker une **chaîne couleur CSS brute** — hex *ou* rgba *ou*
-  oklch, le navigateur rend n'importe quelle couleur CSS valide, donc un seul champ couvre les
-  trois sans se lier à un format. `string` : pas de metadata.
-- Un type avancé futur = une variante d'enum + son schéma metadata + son widget admin + son
-  rendu, sans toucher aux autres.
-
-**Impacts.** Migration (`option.type`, `optionValue.metadata`) + UI admin (colorPicker) +
-enrichissement de `enrichProductCards` (exposer variants + valeurs d'option + image par variante
-sur la carte) + rendu storefront.
-
-**Décision en attente.** À rediscuter — valider l'enum de types de départ et la forme des
-`metadata` par type avant d'écrire la migration.
-
----
-
 ## Livré (contexte)
+
+- **Options typées & swatches (pastilles)** — *livré 2026-07-16.* `option.type` (`string` | `color`)
+  + `optionValue.metadata` jsonb. Couleur = **oklch canonique** `{ l, c, h, alpha }` — forme
+  **structurée** retenue (pas la chaîne CSS brute envisagée au départ) ; SSOT `ColorMetadata` dans
+  core + garde-fou TypeBox à la frontière API. Ressource globale **`/option-axes`** (catalogue
+  d'axes ; renommée depuis `/options` car `options` est un **verbe HTTP réservé par Eden Treaty**)
+  + association product-scoped. Admin : onglet **Options** (CRUD axes/valeurs), **ColorPicker**
+  multi-mode (picker visuel / hex / RGBA / OKLCH + pipette écran), flux variante **catalog-driven**
+  (axes existants seuls, pastilles, picker inline) + onglet **Variantes**. `enrichProductCards`
+  expose `swatches[]` (couleur oklch rendue + image de variante). **Reste** : rendu pastilles
+  **storefront**.
 
 - **`images[]` sur la carte produit** — galerie ordonnée (image principale en tête) exposée par
   les 3 endpoints de listing, pour le survol (2ᵉ image) et les miniatures. Aucune migration.
