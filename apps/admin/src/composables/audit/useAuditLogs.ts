@@ -1,13 +1,7 @@
 import { ref, reactive } from 'vue';
 import { api } from '@/lib/api';
+import type { PaginationMeta } from '@/composables/usePagination';
 import type { AuditLog, AuditFilters } from './types';
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
 
 export function useAuditLogs() {
   // ---------------------------------------------------------------------------
