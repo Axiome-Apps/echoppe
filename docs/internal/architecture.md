@@ -1,0 +1,59 @@
+# Architecture Échoppe — vue d'ensemble
+
+Point d'entrée pour comprendre le système. Les **décisions** sont dans les
+[ADR](./adr/README.md) ; les **conventions de code** dans [PATTERNS.md](./PATTERNS.md) ; le détail
+des routes dans [api.md](./api.md).
+
+## Nature du produit
+
+Framework e-commerce clé en main « à la Medusa » : un **backend déployable** (API + Admin, images
+Docker) + un **front agnostique** que le dev construit par-dessus via l'API + une **CLI** de
+scaffolding. La boutique réelle vit **hors** du monorepo (consommateur, pas morceau du framework).
+→ [ADR-0002](./adr/ADR-0002-distribution.md).
+
+## Couches
+
+| Couche | Techno | Rôle | Distribution |
+|--------|--------|------|--------------|
+| `apps/api` | Elysia (Bun) | API REST + OpenAPI, auth, RBAC, paiement, migrations au boot | image Docker |
+| `apps/admin` | Vue 3 | Dashboard admin (Eden Treaty, co-versionné) | image Docker |
+| `apps/store` | Astro + îlots Vue | **Exemple** storefront dogfooding le SDK | non distribué |
+| `packages/core` | Drizzle | Schéma DB (SSOT), migrations, adapters | interne |
+| `packages/client` | openapi-typescript/fetch | **SDK** storefront figé sur `openapi.json` | npm |
+| `packages/create-echoppe` | @clack/prompts | CLI de scaffolding boutique | npm |
+| `packages/shared` | — | utilitaires transverses | interne |
+
+## Contrats (deux surfaces)
+
+- **Interne (admin)** : **Eden Treaty** sur les types de l'API, couplage fort assumé (monorepo).
+- **Externe (storefront)** : **SDK OpenAPI** figé, généré depuis `/docs/json`, surface **publique
+  uniquement**. → [ADR-0007](./adr/ADR-0007-contrat-sdk.md).
+
+La SSOT du contrat = les schémas **TypeBox** (`apps/api/src/models/*`). Les projections publiques
+(`variantPublicSchema`, `productDetailSchema`…) filtrent ce qui fuit vers le SDK.
+→ [ADR-0006](./adr/ADR-0006-visibilite-catalogue.md).
+
+## Runtime & déploiement
+
+- Runtime API = **Bun** (binaire compilé), front = **Node** ; PM **agnostique** (lockfile canonique
+  `bun.lock`). → [ADR-0003](./adr/ADR-0003-runtime-pm.md).
+- L'API **migre au boot** (`RUN_MIGRATIONS`) ; dev = `db:push`, prod = migrations drizzle versionnées.
+  Validation release en deux temps (sources → artefact). → [ADR-0004](./adr/ADR-0004-migrations-release.md).
+- ⚠️ **Ops** : ne jamais toucher les conteneurs `dpc-*` (prod boutique réelle). Tests = base jetable
+  éphémère sur port libre, jamais 5432 partagé.
+
+## Flux transverses
+
+- **Auth** : sessions **Postgres** + cookie HTTP-only, pas de JWT ; RBAC `resource:action` +
+  `adminOnly`. → [ADR-0008](./adr/ADR-0008-auth-sessions.md).
+- **Panier & paiement** : panier serveur, checkout Stripe hosted, **capture manuelle + garde stock
+  atomique Postgres** (pièces uniques), idempotence webhook. → [ADR-0005](./adr/ADR-0005-panier-stock.md).
+- **Storefront front** : Astro hybrid, îlots Vue, topologie B (BFF + server islands).
+  → [ADR-0001](./adr/ADR-0001-stack-storefront.md).
+
+## Conventions de code
+
+Détail dans [PATTERNS.md](./PATTERNS.md) : atomic design (`atoms/molecules/organisms`), slicing
+vertical par concept métier, **imports directs** des composants Vue (pas de barrel), types **inférés
+depuis Eden** (jamais d'interface manuelle pour les données API), validation à la **frontière unique**.
+Piège à connaître : **Eden réserve les verbes HTTP** comme noms de segment (cf. ADR-0007).
