@@ -96,6 +96,16 @@ export function resolvePersonalization(
   return { value: Object.keys(result).length > 0 ? result : null, addonPriceHt };
 }
 
+// Supplément d'une ligne déjà validée : somme des priceHt des champs effectivement remplis.
+// Primitive de tarification partagée (affichage panier + totaux checkout) — `resolvePersonalization`
+// couvre le chemin d'ajout (validation + supplément), celle-ci le chemin de relecture (sans revalider).
+export function calculateAddonPrice(
+  fields: PersonalizationFieldRow[],
+  values: Record<string, string> | null,
+): number {
+  return fields.filter((f) => values?.[f.id]).reduce((sum, f) => sum + parseFloat(f.priceHt), 0);
+}
+
 // Projette la personnalisation stockée ({fieldId: valeur}) en lignes d'affichage ordonnées
 // (label + valeur), pour la lecture panier/commande.
 export function displayPersonalization(

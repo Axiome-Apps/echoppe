@@ -19,7 +19,7 @@ import {
   taxRate,
   variant,
 } from '@echoppe/core';
-import { getPersonalizationFieldsByProduct } from '../utils/personalization';
+import { calculateAddonPrice, getPersonalizationFieldsByProduct } from '../utils/personalization';
 
 // ============================================================================
 // TYPES
@@ -178,9 +178,7 @@ export async function calculateOrderTotals(items: CartItemWithDetails[]): Promis
   const productIds = [...new Set(items.map((item) => item.product.id))];
   const fieldsByProduct = await getPersonalizationFieldsByProduct(productIds);
   const addonFor = (productId: string, value: Record<string, string> | null) =>
-    (fieldsByProduct.get(productId) ?? [])
-      .filter((f) => value?.[f.id])
-      .reduce((sum, f) => sum + parseFloat(f.priceHt), 0);
+    calculateAddonPrice(fieldsByProduct.get(productId) ?? [], value);
 
   let subtotalHt = 0;
   const orderItems: OrderItemData[] = [];

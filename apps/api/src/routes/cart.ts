@@ -20,6 +20,7 @@ import {
 import { Elysia, t } from 'elysia';
 import { models } from '../models';
 import {
+  calculateAddonPrice,
   displayPersonalization,
   getPersonalizationFields,
   getPersonalizationFieldsByProduct,
@@ -181,10 +182,8 @@ async function getCartWithItems(cartId: string) {
 
   // Champs de personnalisation par produit → supplément de ligne (autoritaire back) + affichage.
   const fieldsByProduct = await getPersonalizationFieldsByProduct(productIds);
-  const addonFor = (productId: string, value: Record<string, string> | null) => {
-    const fields = fieldsByProduct.get(productId) ?? [];
-    return fields.filter((f) => value?.[f.id]).reduce((sum, f) => sum + parseFloat(f.priceHt), 0);
-  };
+  const addonFor = (productId: string, value: Record<string, string> | null) =>
+    calculateAddonPrice(fieldsByProduct.get(productId) ?? [], value);
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalHt = items
