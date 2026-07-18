@@ -139,12 +139,15 @@ function confirmDeleteSelected() {
 }
 
 async function deleteSelectedProducts() {
+  let failed = 0;
   for (const product of selectedProducts.value) {
-    await api.products({ id: product.id }).delete();
+    const { error } = await api.products({ id: product.id }).delete();
+    if (error) failed++;
   }
   deleteModalOpen.value = false;
   selectedProducts.value = [];
   await loadProducts();
+  if (failed > 0) toast.error(`Échec de la suppression de ${failed} produit(s)`);
 }
 
 function cancelDelete() {
@@ -263,11 +266,14 @@ function handleSelectionChange(selected: Product[]) {
 }
 
 async function setProductsStatus(status: 'draft' | 'published' | 'archived') {
+  let failed = 0;
   for (const p of selectedProducts.value) {
-    await api.products({ id: p.id }).patch({ status });
+    const { error } = await api.products({ id: p.id }).patch({ status });
+    if (error) failed++;
   }
   selectedProducts.value = [];
   await loadProducts();
+  if (failed > 0) toast.error(`Échec du changement de statut de ${failed} produit(s)`);
 }
 
 function handleBatchAction(actionId: string) {

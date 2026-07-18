@@ -184,9 +184,13 @@ async function confirmStatusChange() {
 
   saving.value = true;
   try {
-    await api.orders({ id: orderId.value }).status.patch({
+    const { error } = await api.orders({ id: orderId.value }).status.patch({
       status: newStatus.value as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded',
     });
+    if (error) {
+      toast.error('Erreur lors de la mise à jour');
+      return;
+    }
     toast.success('Statut mis à jour');
     showStatusModal.value = false;
     await loadOrder();
@@ -202,13 +206,17 @@ async function saveNotes() {
 
   saving.value = true;
   try {
-    await api.orders({ id: orderId.value }).notes.patch({
+    const { error } = await api.orders({ id: orderId.value }).notes.patch({
       internalNote: internalNote.value,
     });
+    if (error) {
+      toast.error("Erreur lors de l'enregistrement");
+      return;
+    }
     toast.success('Notes enregistrées');
     notesEdited.value = false;
   } catch {
-    toast.error('Erreur lors de l\'enregistrement');
+    toast.error("Erreur lors de l'enregistrement");
   } finally {
     saving.value = false;
   }

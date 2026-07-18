@@ -106,9 +106,13 @@ async function confirmStatusChange() {
 
   saving.value = true;
   try {
-    await api.customers({ id: customerId.value }).status.patch({
+    const { error } = await api.customers({ id: customerId.value }).status.patch({
       isActive: newStatus.value,
     });
+    if (error) {
+      toast.error('Erreur lors de la mise à jour');
+      return;
+    }
     toast.success(newStatus.value ? 'Client activé' : 'Client désactivé');
     showStatusModal.value = false;
     await loadCustomer();
@@ -122,7 +126,11 @@ async function confirmStatusChange() {
 async function confirmDelete() {
   saving.value = true;
   try {
-    await api.customers({ id: customerId.value }).delete();
+    const { error } = await api.customers({ id: customerId.value }).delete();
+    if (error) {
+      toast.error('Erreur lors de la suppression');
+      return;
+    }
     toast.success('Client anonymisé (RGPD)');
     router.push('/clients');
   } catch {

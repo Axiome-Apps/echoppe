@@ -220,12 +220,15 @@ function handleSelectionChange(selected: Order[]) {
 
 async function setOrdersStatus(status: 'processing' | 'shipped' | 'cancelled') {
   try {
+    let failed = 0;
     for (const o of selectedOrders.value) {
-      await api.orders({ id: o.id }).status.patch({ status });
+      const { error } = await api.orders({ id: o.id }).status.patch({ status });
+      if (error) failed++;
     }
-    toast.success(`${selectedOrders.value.length} commande(s) mise(s) à jour`);
     selectedOrders.value = [];
     await loadOrders();
+    if (failed > 0) toast.error(`Échec de la mise à jour de ${failed} commande(s)`);
+    else toast.success('Commande(s) mise(s) à jour');
   } catch {
     toast.error('Erreur lors de la mise à jour');
   }

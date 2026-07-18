@@ -398,13 +398,16 @@ function handleSelectionChange(selected: User[]) {
 
 async function setUsersStatus(isActive: boolean) {
   try {
+    let failed = 0;
     for (const u of selectedUsers.value) {
       if (u.isOwner) continue;
-      await api.users({ id: u.id }).status.patch({ isActive });
+      const { error } = await api.users({ id: u.id }).status.patch({ isActive });
+      if (error) failed++;
     }
-    toast.success(`${selectedUsers.value.length} utilisateur(s) mis à jour`);
     selectedUsers.value = [];
     await loadUsers();
+    if (failed > 0) toast.error(`Échec de la mise à jour de ${failed} utilisateur(s)`);
+    else toast.success('Utilisateur(s) mis à jour');
   } catch {
     toast.error('Erreur lors de la mise à jour');
   }
@@ -423,7 +426,11 @@ async function confirmDeleteUser() {
 
   deletingUser.value = true;
   try {
-    await api.users({ id: userToDelete.value.id }).delete();
+    const { error } = await api.users({ id: userToDelete.value.id }).delete();
+    if (error) {
+      toast.error('Erreur lors de la suppression');
+      return;
+    }
     toast.success('Utilisateur supprimé');
     showUserDeleteModal.value = false;
     userToDelete.value = null;

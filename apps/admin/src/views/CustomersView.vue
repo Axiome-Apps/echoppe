@@ -218,12 +218,15 @@ function handleSelectionChange(selected: Customer[]) {
 
 async function setCustomersStatus(isActive: boolean) {
   try {
+    let failed = 0;
     for (const c of selectedCustomers.value) {
-      await api.customers({ id: c.id }).status.patch({ isActive });
+      const { error } = await api.customers({ id: c.id }).status.patch({ isActive });
+      if (error) failed++;
     }
-    toast.success(`${selectedCustomers.value.length} client(s) mis à jour`);
     selectedCustomers.value = [];
     await loadCustomers();
+    if (failed > 0) toast.error(`Échec de la mise à jour de ${failed} client(s)`);
+    else toast.success('Client(s) mis à jour');
   } catch {
     toast.error('Erreur lors de la mise à jour');
   }

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { api } from '@/lib/api';
+import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import MediaPicker from '@/components/molecules/MediaPicker.vue';
 import type { ApiData } from '@/types/api';
+
+const toast = useToast();
 
 // Type inféré depuis Eden (response paginée)
 type CollectionsResponse = ApiData<ReturnType<typeof api.collections.get>>;
@@ -71,13 +74,16 @@ async function save() {
     isVisible: form.value.isVisible,
   };
 
-  if (editing.value) {
-    await api.collections({ id: editing.value.id }).put(payload);
-  } else {
-    await api.collections.post(payload);
-  }
+  const { error } = editing.value
+    ? await api.collections({ id: editing.value.id }).put(payload)
+    : await api.collections.post(payload);
 
   saving.value = false;
+  if (error) {
+    toast.error("Erreur lors de l'enregistrement de la collection");
+    return;
+  }
+
   showForm.value = false;
   await loadCollections();
 }
@@ -89,7 +95,11 @@ function confirmDelete(collection: Collection) {
 
 async function deleteCollection() {
   if (!collectionToDelete.value) return;
-  await api.collections({ id: collectionToDelete.value.id }).delete();
+  const { error } = await api.collections({ id: collectionToDelete.value.id }).delete();
+  if (error) {
+    toast.error('Erreur lors de la suppression de la collection');
+    return;
+  }
   deleteModalOpen.value = false;
   collectionToDelete.value = null;
   await loadCollections();
