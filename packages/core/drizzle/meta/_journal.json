@@ -50,6 +50,13 @@
       "when": 1784293216265,
       "tag": "0006_option_type_metadata_country_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784382920058,
+      "tag": "0007_sweet_saracen",
+      "breakpoints": true
     }
   ]
 }

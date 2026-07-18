@@ -31,10 +31,24 @@ const variantInCartSchema = t.Object({
   ),
 });
 
+const personalizationLineSchema = t.Array(
+  t.Object({
+    fieldId: t.String({ format: 'uuid', description: 'UUID du champ de personnalisation.' }),
+    label: t.String({ description: 'Libellé du champ (ex. « Prénom »).' }),
+    value: t.String({ description: 'Valeur saisie par le client.' }),
+  }),
+  { description: 'Valeurs de personnalisation de la ligne (ADR-0010), vide si aucune.' },
+);
+
 const cartItemSchema = t.Object({
   id: t.String({ format: 'uuid', description: 'UUID de la ligne de panier.' }),
   variant: variantInCartSchema,
   quantity: t.Number({ description: 'Quantité commandée.' }),
+  personalization: personalizationLineSchema,
+  addonPriceHt: t.String({
+    description:
+      'Supplément de personnalisation HT (unitaire), décimal en chaîne. « 0.00 » si aucun.',
+  }),
   dateAdded: t.Date({ description: 'Date d’ajout au panier.' }),
 });
 

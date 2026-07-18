@@ -9,6 +9,7 @@ import {
   eq,
   gt,
   inArray,
+  isNull,
   option,
   optionValue,
   product,
@@ -18,6 +19,12 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { models } from '../models';
+import {
+  displayPersonalization,
+  getPersonalizationFields,
+  getPersonalizationFieldsByProduct,
+  resolvePersonalization,
+} from '../utils/personalization';
 import {
   badRequestResponse,
   forbiddenResponse,
@@ -117,6 +124,7 @@ async function getCartWithItems(cartId: string) {
       id: cartItem.id,
       quantity: cartItem.quantity,
       dateAdded: cartItem.dateAdded,
+      personalization: cartItem.personalization,
       variant: {
         id: variant.id,
         sku: variant.sku,
@@ -171,9 +179,20 @@ async function getCartWithItems(cartId: string) {
     optionValuesMap.set(row.variant, list);
   }
 
+  // Champs de personnalisation par produit → supplément de ligne (autoritaire back) + affichage.
+  const fieldsByProduct = await getPersonalizationFieldsByProduct(productIds);
+  const addonFor = (productId: string, value: Record<string, string> | null) => {
+    const fields = fieldsByProduct.get(productId) ?? [];
+    return fields.filter((f) => value?.[f.id]).reduce((sum, f) => sum + parseFloat(f.priceHt), 0);
+  };
+
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalHt = items
-    .reduce((sum, item) => sum + parseFloat(item.variant.priceHt) * item.quantity, 0)
+    .reduce((sum, item) => {
+      const unit =
+        parseFloat(item.variant.priceHt) + addonFor(item.product.id, item.personalization);
+      return sum + unit * item.quantity;
+    }, 0)
     .toFixed(2);
 
   return {
@@ -193,6 +212,11 @@ async function getCartWithItems(cartId: string) {
         },
       },
       quantity: item.quantity,
+      personalization: displayPersonalization(
+        fieldsByProduct.get(item.product.id) ?? [],
+        item.personalization,
+      ),
+      addonPriceHt: addonFor(item.product.id, item.personalization).toFixed(2),
       dateAdded: item.dateAdded,
     })),
     itemCount,
@@ -262,6 +286,7 @@ export const cartRoutes = new Elysia({
       const [variantData] = await db
         .select({
           id: variant.id,
+          product: variant.product,
           quantity: variant.quantity,
           status: variant.status,
         })
@@ -281,6 +306,14 @@ export const cartRoutes = new Elysia({
         return status(400, { message: `Stock insuffisant (${availableStock} disponible)` });
       }
 
+      // Personnalisation (ADR-0010) : valide contre les champs déclarés du produit ; le supplément
+      // de prix est calculé côté back, jamais fourni par le client.
+      const fields = await getPersonalizationFields(variantData.product);
+      const resolved = resolvePersonalization(fields, body.personalization);
+      if (resolved.error) {
+        return status(400, { message: resolved.error });
+      }
+
       // Get or create cart
       const { cartId } = await getOrCreateCart(customerId, cartSessionId, (sessionId) => {
         cookie[CART_COOKIE_NAME].set({
@@ -293,11 +326,20 @@ export const cartRoutes = new Elysia({
         });
       });
 
-      // Check if item already in cart
-      const [existingItem] = await db
-        .select({ id: cartItem.id, quantity: cartItem.quantity })
-        .from(cartItem)
-        .where(and(eq(cartItem.cart, cartId), eq(cartItem.variant, body.variantId)));
+      // Merge uniquement les lignes SANS personnalisation (une ligne personnalisée est unique) :
+      // deux prénoms d'une même variante = deux lignes distinctes.
+      const [existingItem] = resolved.value
+        ? []
+        : await db
+            .select({ id: cartItem.id, quantity: cartItem.quantity })
+            .from(cartItem)
+            .where(
+              and(
+                eq(cartItem.cart, cartId),
+                eq(cartItem.variant, body.variantId),
+                isNull(cartItem.personalization),
+              ),
+            );
 
       if (existingItem) {
         // Update quantity
@@ -316,6 +358,7 @@ export const cartRoutes = new Elysia({
           cart: cartId,
           variant: body.variantId,
           quantity: body.quantity,
+          personalization: resolved.value,
         });
       }
 
@@ -329,6 +372,9 @@ export const cartRoutes = new Elysia({
       body: t.Object({
         variantId: t.String({ format: 'uuid' }),
         quantity: t.Number({ minimum: 1 }),
+        // Valeurs de personnalisation (ADR-0010) : { <personalizationFieldId>: valeur }. Validées
+        // contre les champs déclarés du produit ; le supplément de prix est calculé côté back.
+        personalization: t.Optional(t.Record(t.String(), t.String())),
       }),
       cookie: cookieSchema,
       response: {

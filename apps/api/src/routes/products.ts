@@ -34,6 +34,7 @@ import {
 import { permissionGuard } from '../plugins/rbac';
 import { selectDefaultVariants } from '../utils/default-variant';
 import { buildEqFilters, buildListResponse, getPaginationParams } from '../utils/pagination';
+import { getPersonalizationFields } from '../utils/personalization';
 import { enrichProductCards } from '../utils/product-cards';
 import {
   conflictResponse,
@@ -369,12 +370,19 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         }),
       );
 
+      // Personnalisation (ADR-0010) : champs déclarés si le produit l'accepte.
+      const personalizationFields = found.personalizationEnabled
+        ? await getPersonalizationFields(found.id)
+        : [];
+
       return {
         ...found,
         featuredImage: featuredMedia?.mediaId ?? null,
         images: allMedia.map((m) => m.mediaId),
         variants: variantsWithOptions,
         options: filteredOptions,
+        personalizationEnabled: found.personalizationEnabled,
+        personalizationFields,
       };
     },
     {

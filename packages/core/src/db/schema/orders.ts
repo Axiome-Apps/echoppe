@@ -42,6 +42,10 @@ export const orderItem = pgTable('order_item', {
   label: varchar('label', { length: 255 }).notNull(), // Moon Ring — Silver / 52
   quantity: integer('quantity').notNull(),
   unitPriceHt: decimal('unit_price_ht', { precision: 10, scale: 2 }).notNull(),
+  // Personnalisation (ADR-0010) : valeurs saisies + supplément unitaire snapshoté. addonPriceHt
+  // s'ajoute à unitPriceHt dans les totaux de ligne.
+  personalization: jsonb('personalization').$type<Record<string, string>>(),
+  addonPriceHt: decimal('addon_price_ht', { precision: 10, scale: 2 }).notNull().default('0.00'),
   taxRate: decimal('tax_rate', { precision: 5, scale: 2 }).notNull(),
   totalHt: decimal('total_ht', { precision: 10, scale: 2 }).notNull(),
   totalTtc: decimal('total_ttc', { precision: 10, scale: 2 }).notNull(),

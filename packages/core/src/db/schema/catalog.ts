@@ -13,7 +13,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { optionTypeEnum, productStatusEnum } from './enums';
+import { optionTypeEnum, personalizationFieldTypeEnum, productStatusEnum } from './enums';
 import { media } from './media';
 import { taxRate } from './referential';
 
@@ -50,6 +50,8 @@ export const product = pgTable('product', {
   slug: varchar('slug', { length: 255 }).unique().notNull(),
   description: text('description'),
   status: productStatusEnum('status').notNull().default('draft'),
+  // Personnalisation optionnelle (ADR-0010) : false → aucune, true → champs déclarés ci-dessous.
+  personalizationEnabled: boolean('personalization_enabled').notNull().default(false),
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -174,6 +176,22 @@ export const variant = pgTable('variant', {
   sortOrder: integer('sort_order').notNull().default(0),
   quantity: integer('quantity').notNull().default(0),
   lowStockThreshold: integer('low_stock_threshold').default(5),
+});
+
+// Champ de personnalisation déclaré par un produit (ADR-0010). Présent uniquement si
+// `product.personalizationEnabled`. Symétrique des options : la déclaration vit au catalogue, la
+// valeur saisie vit sur la ligne (`cart_item`/`order_item`). Le supplément `priceHt` est autoritaire.
+export const personalizationField = pgTable('personalization_field', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  product: uuid('product')
+    .notNull()
+    .references(() => product.id, { onDelete: 'cascade' }),
+  label: varchar('label', { length: 100 }).notNull(), // « Prénom »
+  type: personalizationFieldTypeEnum('type').notNull().default('text'),
+  required: boolean('required').notNull().default(false),
+  maxLength: integer('max_length'), // garde-fou texte (null = illimité)
+  priceHt: decimal('price_ht', { precision: 10, scale: 2 }).notNull().default('0.00'), // supplément
+  sortOrder: integer('sort_order').notNull().default(0),
 });
 
 export const variantOptionValue = pgTable(

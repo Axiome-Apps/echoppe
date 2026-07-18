@@ -787,6 +787,20 @@ export interface components {
                 };
                 /** @description Quantité commandée. */
                 quantity: number;
+                /** @description Valeurs de personnalisation de la ligne (ADR-0010), vide si aucune. */
+                personalization: {
+                    /**
+                     * Format: uuid
+                     * @description UUID du champ de personnalisation.
+                     */
+                    fieldId: string;
+                    /** @description Libellé du champ (ex. « Prénom »). */
+                    label: string;
+                    /** @description Valeur saisie par le client. */
+                    value: string;
+                }[];
+                /** @description Supplément de personnalisation HT (unitaire), décimal en chaîne. « 0.00 » si aucun. */
+                addonPriceHt: string;
                 /** @description Date d’ajout au panier. */
                 dateAdded: Record<string, never> | string | number;
             }[];
@@ -1229,6 +1243,25 @@ export interface components {
             featuredImage: (string | null) | null;
             /** @description Galerie de médias du produit. */
             images: string[];
+            /** @description Le produit accepte une personnalisation (ADR-0010). */
+            personalizationEnabled: boolean;
+            /** @description Champs de personnalisation déclarés, vide si aucun. */
+            personalizationFields: {
+                /**
+                 * Format: uuid
+                 * @description UUID du champ de personnalisation.
+                 */
+                id: string;
+                /** @description Libellé (ex. « Prénom »). */
+                label: string;
+                /** @enum {string} */
+                type: "text" | "textarea";
+                /** @description Saisie obligatoire. */
+                required: boolean;
+                maxLength: (number | null) | null;
+                /** @description Supplément HT si rempli, décimal en chaîne (ex. « 5.00 »). */
+                priceHt: string;
+            }[];
         };
         ProductList: {
             data: {
@@ -2389,16 +2422,25 @@ export interface operations {
                     /** Format: uuid */
                     variantId: string;
                     quantity: number;
+                    personalization?: {
+                        [key: string]: string;
+                    };
                 };
                 "application/x-www-form-urlencoded": {
                     /** Format: uuid */
                     variantId: string;
                     quantity: number;
+                    personalization?: {
+                        [key: string]: string;
+                    };
                 };
                 "multipart/form-data": {
                     /** Format: uuid */
                     variantId: string;
                     quantity: number;
+                    personalization?: {
+                        [key: string]: string;
+                    };
                 };
             };
         };

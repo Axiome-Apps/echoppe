@@ -19,6 +19,7 @@ import {
   taxRate,
   variant,
 } from '@echoppe/core';
+import { getPersonalizationFieldsByProduct } from '../utils/personalization';
 
 // ============================================================================
 // TYPES
@@ -51,6 +52,7 @@ export interface AddressSnapshot {
 export interface CartItemWithDetails {
   id: string;
   quantity: number;
+  personalization: Record<string, string> | null;
   variant: {
     id: string;
     priceHt: string;
@@ -69,6 +71,8 @@ interface OrderItemData {
   label: string;
   quantity: number;
   unitPriceHt: number;
+  personalization: Record<string, string> | null;
+  addonPriceHt: number;
   taxRateValue: number;
   totalHt: number;
   totalTtc: number;
@@ -133,6 +137,7 @@ export async function getCartItems(cartId: string): Promise<CartItemWithDetails[
     .select({
       id: cartItem.id,
       quantity: cartItem.quantity,
+      personalization: cartItem.personalization,
       variant: {
         id: variant.id,
         priceHt: variant.priceHt,
@@ -169,13 +174,22 @@ export async function calculateOrderTotals(items: CartItemWithDetails[]): Promis
     .where(inArray(taxRate.id, taxRateIds));
   const taxRateMap = new Map(taxRates.map((tr) => [tr.id, parseFloat(tr.rate)]));
 
+  // Supplément de personnalisation par produit (ADR-0010) : autoritaire back, ajouté au prix unitaire.
+  const productIds = [...new Set(items.map((item) => item.product.id))];
+  const fieldsByProduct = await getPersonalizationFieldsByProduct(productIds);
+  const addonFor = (productId: string, value: Record<string, string> | null) =>
+    (fieldsByProduct.get(productId) ?? [])
+      .filter((f) => value?.[f.id])
+      .reduce((sum, f) => sum + parseFloat(f.priceHt), 0);
+
   let subtotalHt = 0;
   const orderItems: OrderItemData[] = [];
 
   for (const item of items) {
     const unitPriceHt = parseFloat(item.variant.priceHt);
+    const addonPriceHt = addonFor(item.product.id, item.personalization);
     const taxRateValue = taxRateMap.get(item.product.taxRateId) ?? 20;
-    const totalHt = unitPriceHt * item.quantity;
+    const totalHt = (unitPriceHt + addonPriceHt) * item.quantity;
     const totalTtc = totalHt * (1 + taxRateValue / 100);
 
     subtotalHt += totalHt;
@@ -189,6 +203,8 @@ export async function calculateOrderTotals(items: CartItemWithDetails[]): Promis
       label,
       quantity: item.quantity,
       unitPriceHt,
+      personalization: item.personalization,
+      addonPriceHt,
       taxRateValue,
       totalHt,
       totalTtc,
@@ -237,6 +253,8 @@ export async function createOrder(
       label: item.label,
       quantity: item.quantity,
       unitPriceHt: item.unitPriceHt.toFixed(2),
+      personalization: item.personalization,
+      addonPriceHt: item.addonPriceHt.toFixed(2),
       taxRate: item.taxRateValue.toFixed(2),
       totalHt: item.totalHt.toFixed(2),
       totalTtc: item.totalTtc.toFixed(2),

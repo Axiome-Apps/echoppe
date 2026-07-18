@@ -213,8 +213,18 @@ export const productMediaSchema = t.Object({
   ),
 });
 
+// Champ de personnalisation déclaré par un produit (ADR-0010) — projection storefront.
+export const personalizationFieldSchema = t.Object({
+  id: t.String({ format: 'uuid', description: 'UUID du champ de personnalisation.' }),
+  label: t.String({ description: 'Libellé (ex. « Prénom »).' }),
+  type: t.Union([t.Literal('text'), t.Literal('textarea')], { description: 'Type de saisie.' }),
+  required: t.Boolean({ description: 'Saisie obligatoire.' }),
+  maxLength: t.Nullable(t.Number({ description: 'Longueur max, ou null (illimité).' })),
+  priceHt: t.String({ description: 'Supplément HT si rempli, décimal en chaîne (ex. « 5.00 »).' }),
+});
+
 // Fiche produit détaillée storefront (GET /products/by-slug/:slug) :
-// ci-dessus + image mise en avant + galerie.
+// ci-dessus + image mise en avant + galerie + personnalisation.
 export const productDetailSchema = t.Composite([
   productWithVariantsSchema,
   t.Object({
@@ -223,6 +233,12 @@ export const productDetailSchema = t.Composite([
     ),
     images: t.Array(t.String({ format: 'uuid', description: "UUID d'un média de la galerie." }), {
       description: 'Galerie de médias du produit.',
+    }),
+    personalizationEnabled: t.Boolean({
+      description: 'Le produit accepte une personnalisation (ADR-0010).',
+    }),
+    personalizationFields: t.Array(personalizationFieldSchema, {
+      description: 'Champs de personnalisation déclarés, vide si aucun.',
     }),
   }),
 ]);

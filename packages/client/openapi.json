@@ -1932,6 +1932,14 @@
                   "quantity": {
                     "minimum": 1,
                     "type": "number"
+                  },
+                  "personalization": {
+                    "type": "object",
+                    "patternProperties": {
+                      "^(.*)$": {
+                        "type": "string"
+                      }
+                    }
                   }
                 }
               }
@@ -1951,6 +1959,14 @@
                   "quantity": {
                     "minimum": 1,
                     "type": "number"
+                  },
+                  "personalization": {
+                    "type": "object",
+                    "patternProperties": {
+                      "^(.*)$": {
+                        "type": "string"
+                      }
+                    }
                   }
                 }
               }
@@ -1970,6 +1986,14 @@
                   "quantity": {
                     "minimum": 1,
                     "type": "number"
+                  },
+                  "personalization": {
+                    "type": "object",
+                    "patternProperties": {
+                      "^(.*)$": {
+                        "type": "string"
+                      }
+                    }
                   }
                 }
               }
@@ -6016,6 +6040,8 @@
                 "id",
                 "variant",
                 "quantity",
+                "personalization",
+                "addonPriceHt",
                 "dateAdded"
               ],
               "properties": {
@@ -6132,6 +6158,37 @@
                 "quantity": {
                   "description": "Quantité commandée.",
                   "type": "number"
+                },
+                "personalization": {
+                  "description": "Valeurs de personnalisation de la ligne (ADR-0010), vide si aucune.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "fieldId",
+                      "label",
+                      "value"
+                    ],
+                    "properties": {
+                      "fieldId": {
+                        "format": "uuid",
+                        "description": "UUID du champ de personnalisation.",
+                        "type": "string"
+                      },
+                      "label": {
+                        "description": "Libellé du champ (ex. « Prénom »).",
+                        "type": "string"
+                      },
+                      "value": {
+                        "description": "Valeur saisie par le client.",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "addonPriceHt": {
+                  "description": "Supplément de personnalisation HT (unitaire), décimal en chaîne. « 0.00 » si aucun.",
+                  "type": "string"
                 },
                 "dateAdded": {
                   "description": "Date d’ajout au panier.",
@@ -7496,7 +7553,9 @@
           "variants",
           "options",
           "featuredImage",
-          "images"
+          "images",
+          "personalizationEnabled",
+          "personalizationFields"
         ],
         "properties": {
           "id": {
@@ -7884,6 +7943,63 @@
               "format": "uuid",
               "description": "UUID d'un média de la galerie.",
               "type": "string"
+            }
+          },
+          "personalizationEnabled": {
+            "description": "Le produit accepte une personnalisation (ADR-0010).",
+            "type": "boolean"
+          },
+          "personalizationFields": {
+            "description": "Champs de personnalisation déclarés, vide si aucun.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "label",
+                "type",
+                "required",
+                "maxLength",
+                "priceHt"
+              ],
+              "properties": {
+                "id": {
+                  "format": "uuid",
+                  "description": "UUID du champ de personnalisation.",
+                  "type": "string"
+                },
+                "label": {
+                  "description": "Libellé (ex. « Prénom »).",
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "textarea"
+                  ]
+                },
+                "required": {
+                  "description": "Saisie obligatoire.",
+                  "type": "boolean"
+                },
+                "maxLength": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "description": "Longueur max, ou null (illimité).",
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "priceHt": {
+                  "description": "Supplément HT si rempli, décimal en chaîne (ex. « 5.00 »).",
+                  "type": "string"
+                }
+              }
             }
           }
         },

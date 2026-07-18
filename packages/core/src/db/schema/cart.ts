@@ -1,4 +1,4 @@
-import { integer, pgTable, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
+import { integer, jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { variant } from './catalog';
 import { customer } from './customer';
 import { cartStatusEnum } from './enums';
@@ -12,18 +12,18 @@ export const cart = pgTable('cart', {
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const cartItem = pgTable(
-  'cart_item',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    cart: uuid('cart')
-      .notNull()
-      .references(() => cart.id),
-    variant: uuid('variant')
-      .notNull()
-      .references(() => variant.id),
-    quantity: integer('quantity').notNull(),
-    dateAdded: timestamp('date_added', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [unique().on(table.cart, table.variant)],
-);
+export const cartItem = pgTable('cart_item', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  cart: uuid('cart')
+    .notNull()
+    .references(() => cart.id),
+  variant: uuid('variant')
+    .notNull()
+    .references(() => variant.id),
+  quantity: integer('quantity').notNull(),
+  // Valeurs de personnalisation saisies (ADR-0010) : { <personalizationFieldId>: "Lucie" }. null si
+  // aucune. Pas de unique(cart, variant) : deux personnalisations d'une même variante = deux lignes ;
+  // le merge par variante ne s'applique qu'aux lignes SANS personnalisation (géré dans la route).
+  personalization: jsonb('personalization').$type<Record<string, string>>(),
+  dateAdded: timestamp('date_added', { withTimezone: true }).notNull().defaultNow(),
+});

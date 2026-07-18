@@ -20,7 +20,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 | Item | État | ADR | Notes |
 |------|------|-----|-------|
 | B1. `variant.featuredImage` sur le détail | ✅ 🔒 | [0009](./adr/ADR-0009-variante-defaut-image.md) | `by-slug` + `/:id`, SDK régénéré |
-| B2. Properties de ligne panier + addon (prénom +5 €) | ⬜ | *à créer* | ⚠️ décision : addon = variante dédiée vs surcharge de ligne |
+| B2. Personnalisation produit (prénom +5 €) | 🟡 🔒 | [0010](./adr/ADR-0010-personnalisation-produit.md) | Backend fait (schéma + validation + pricing + snapshot + SDK), verrouillé (`cart-personalization.test.ts`). **Reste : UI admin** (toggle + onglet champs) |
 | B3. Tags produit storefront (couplé B2) | ⬜ | — | table `tag` + `product_tag`, `tags: string[]` liste+détail |
 
 ### P2 — complétude catalogue
