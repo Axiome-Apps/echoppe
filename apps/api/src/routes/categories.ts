@@ -7,12 +7,14 @@ import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
 import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
+  notFound,
   successSchema,
   withAuthErrors,
   withCrudErrors,
   withNotFound,
   withReadErrors,
 } from '../utils/responses';
+import { visibilityFilter } from '../utils/visibility';
 
 // Schéma d'entité catégorie → src/models/category.ts
 
@@ -71,7 +73,7 @@ export const categoriesRoutes = new Elysia({
       return db
         .select()
         .from(category)
-        .where(all ? undefined : eq(category.isVisible, true))
+        .where(visibilityFilter(category.isVisible, all))
         .orderBy(category.sortOrder);
     },
     { response: withReadErrors({ 200: 'CategoryList' }) },
@@ -88,12 +90,8 @@ export const categoriesRoutes = new Elysia({
       const [found] = await db
         .select()
         .from(category)
-        .where(
-          all
-            ? eq(category.id, params.id)
-            : and(eq(category.id, params.id), eq(category.isVisible, true)),
-        );
-      if (!found) return status(404, { message: 'Category not found' });
+        .where(and(eq(category.id, params.id), visibilityFilter(category.isVisible, all)));
+      if (!found) return status(404, notFound('Category'));
       return found;
     },
     {
@@ -113,12 +111,8 @@ export const categoriesRoutes = new Elysia({
       const [found] = await db
         .select()
         .from(category)
-        .where(
-          all
-            ? eq(category.slug, params.slug)
-            : and(eq(category.slug, params.slug), eq(category.isVisible, true)),
-        );
-      if (!found) return status(404, { message: 'Category not found' });
+        .where(and(eq(category.slug, params.slug), visibilityFilter(category.isVisible, all)));
+      if (!found) return status(404, notFound('Category'));
       return found;
     },
     {
@@ -138,12 +132,8 @@ export const categoriesRoutes = new Elysia({
       const [categoryExists] = await db
         .select({ id: category.id })
         .from(category)
-        .where(
-          all
-            ? eq(category.id, params.id)
-            : and(eq(category.id, params.id), eq(category.isVisible, true)),
-        );
-      if (!categoryExists) return status(404, { message: 'Category not found' });
+        .where(and(eq(category.id, params.id), visibilityFilter(category.isVisible, all)));
+      if (!categoryExists) return status(404, notFound('Category'));
 
       const { page, limit, offset } = getPaginationParams(query);
 
@@ -232,7 +222,7 @@ export const categoriesRoutes = new Elysia({
         })
         .where(eq(category.id, params.id))
         .returning();
-      if (!updated) return status(404, { message: 'Category not found' });
+      if (!updated) return status(404, notFound('Category'));
 
       logAudit({
         userId: currentUser?.id,
@@ -283,7 +273,7 @@ export const categoriesRoutes = new Elysia({
     '/:id',
     async ({ params, status, currentUser, request }) => {
       const [deleted] = await db.delete(category).where(eq(category.id, params.id)).returning();
-      if (!deleted) return status(404, { message: 'Category not found' });
+      if (!deleted) return status(404, notFound('Category'));
 
       logAudit({
         userId: currentUser?.id,

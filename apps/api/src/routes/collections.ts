@@ -7,12 +7,14 @@ import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
 import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
+  notFound,
   successSchema,
   withAuthErrors,
   withCrudErrors,
   withNotFound,
   withReadErrors,
 } from '../utils/responses';
+import { visibilityFilter } from '../utils/visibility';
 
 // Schéma d'entité collection → src/models/collection.ts
 
@@ -54,20 +56,20 @@ export const collectionsRoutes = new Elysia({
         cookie as Record<string, { value?: string }>,
         headers.authorization,
       );
-      const visibilityFilter = all ? undefined : eq(collection.isVisible, true);
+      const visible = visibilityFilter(collection.isVisible, all);
 
       const [collections, [{ total }]] = await Promise.all([
         db
           .select()
           .from(collection)
-          .where(visibilityFilter)
+          .where(visible)
           .orderBy(collection.dateCreated)
           .limit(limit)
           .offset(offset),
         db
           .select({ total: count(collection.id) })
           .from(collection)
-          .where(visibilityFilter),
+          .where(visible),
       ]);
 
       return buildListResponse(collections, total, page, limit);
@@ -86,12 +88,8 @@ export const collectionsRoutes = new Elysia({
       const [found] = await db
         .select()
         .from(collection)
-        .where(
-          all
-            ? eq(collection.id, params.id)
-            : and(eq(collection.id, params.id), eq(collection.isVisible, true)),
-        );
-      if (!found) return status(404, { message: 'Collection non trouvee' });
+        .where(and(eq(collection.id, params.id), visibilityFilter(collection.isVisible, all)));
+      if (!found) return status(404, notFound('Collection'));
       return found;
     },
     {
@@ -111,12 +109,8 @@ export const collectionsRoutes = new Elysia({
       const [found] = await db
         .select()
         .from(collection)
-        .where(
-          all
-            ? eq(collection.slug, params.slug)
-            : and(eq(collection.slug, params.slug), eq(collection.isVisible, true)),
-        );
-      if (!found) return status(404, { message: 'Collection not found' });
+        .where(and(eq(collection.slug, params.slug), visibilityFilter(collection.isVisible, all)));
+      if (!found) return status(404, notFound('Collection'));
       return found;
     },
     {
@@ -136,12 +130,8 @@ export const collectionsRoutes = new Elysia({
       const [collectionExists] = await db
         .select({ id: collection.id })
         .from(collection)
-        .where(
-          all
-            ? eq(collection.id, params.id)
-            : and(eq(collection.id, params.id), eq(collection.isVisible, true)),
-        );
-      if (!collectionExists) return status(404, { message: 'Collection not found' });
+        .where(and(eq(collection.id, params.id), visibilityFilter(collection.isVisible, all)));
+      if (!collectionExists) return status(404, notFound('Collection'));
 
       const { page, limit, offset } = getPaginationParams(query);
 
@@ -235,7 +225,7 @@ export const collectionsRoutes = new Elysia({
         })
         .where(eq(collection.id, params.id))
         .returning();
-      if (!updated) return status(404, { message: 'Collection non trouvee' });
+      if (!updated) return status(404, notFound('Collection'));
 
       logAudit({
         userId: currentUser?.id,
@@ -262,7 +252,7 @@ export const collectionsRoutes = new Elysia({
     '/:id',
     async ({ params, status, currentUser, request }) => {
       const [deleted] = await db.delete(collection).where(eq(collection.id, params.id)).returning();
-      if (!deleted) return status(404, { message: 'Collection non trouvee' });
+      if (!deleted) return status(404, notFound('Collection'));
 
       logAudit({
         userId: currentUser?.id,

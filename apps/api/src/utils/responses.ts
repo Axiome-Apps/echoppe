@@ -23,6 +23,12 @@ export const messageSchema = t.Object({
   message: t.String({ description: 'Message de confirmation' }),
 });
 
+// Corps 404 uniforme (UI FR, accents corrects) : `status(404, notFound('Collection'))`. Évite les
+// messages disparates (« Collection non trouvee » sans accent / « Collection not found » en anglais).
+export function notFound(entity: string): { message: string } {
+  return { message: `${entity} introuvable` };
+}
+
 // ============================================
 // Réponses d'erreur HTTP communes
 // ============================================
