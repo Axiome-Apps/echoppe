@@ -305,17 +305,6 @@ export function checkPermission(
   };
 }
 
-// Plugin RBAC - dérive le contexte d'auth avec permissions
-export const rbacPlugin = new Elysia({ name: 'rbac' }).derive(
-  async ({ cookie, headers }): Promise<{ authContext: RbacAuthContext }> => {
-    const authContext = await getAuthContext(
-      cookie as Record<string, { value?: string }>,
-      headers.authorization,
-    );
-    return { authContext };
-  },
-);
-
 /**
  * Crée un guard de permission pour une ressource et action.
  * Usage: .use(permissionGuard('product', 'create'))
