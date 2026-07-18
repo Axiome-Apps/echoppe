@@ -1920,6 +1920,8 @@ export interface operations {
             query?: {
                 page?: string | number;
                 limit?: string | number;
+                sort?: "price" | "name" | "dateCreated";
+                order?: "asc" | "desc";
             };
             header?: never;
             path: {
@@ -2144,6 +2146,8 @@ export interface operations {
             query?: {
                 page?: string | number;
                 limit?: string | number;
+                sort?: "price" | "name" | "dateCreated";
+                order?: "asc" | "desc";
             };
             header?: never;
             path: {

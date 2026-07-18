@@ -1,11 +1,9 @@
-import { and, category, count, db, eq, product } from '@echoppe/core';
+import { and, category, db, eq, product } from '@echoppe/core';
 import { slugify } from '@echoppe/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
 import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
-import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
-import { enrichProductCards } from '../utils/product-cards';
 import {
   notFound,
   successSchema,
@@ -15,6 +13,7 @@ import {
   withReadErrors,
 } from '../utils/responses';
 import { visibilityFilter } from '../utils/visibility';
+import { productSubListQuery, queryProductCards } from './products/shared';
 
 // Schéma d'entité catégorie → src/models/category.ts
 
@@ -135,34 +134,18 @@ export const categoriesRoutes = new Elysia({
         .where(and(eq(category.id, params.id), visibilityFilter(category.isVisible, all)));
       if (!categoryExists) return status(404, notFound('Category'));
 
-      const { page, limit, offset } = getPaginationParams(query);
-
-      // Liste publique : produits PUBLIÉS de la catégorie uniquement.
-      const publishedInCategory = and(
-        eq(product.category, params.id),
-        eq(product.status, 'published'),
+      // Liste publique : produits PUBLIÉS de la catégorie. Recherche/filtres/tri/pagination
+      // délégués à la projection unique des cartes (queryProductCards) ; l'appartenance catégorie
+      // est injectée en condition supplémentaire.
+      return queryProductCards(
+        query,
+        [eq(product.status, 'published')],
+        [eq(product.category, params.id)],
       );
-      const [products, [{ total }]] = await Promise.all([
-        db
-          .select()
-          .from(product)
-          .where(publishedInCategory)
-          .orderBy(product.dateCreated)
-          .limit(limit)
-          .offset(offset),
-        db
-          .select({ total: count(product.id) })
-          .from(product)
-          .where(publishedInCategory),
-      ]);
-
-      const enrichedProducts = await enrichProductCards(products);
-
-      return buildListResponse(enrichedProducts, total, page, limit);
     },
     {
       params: categoryParams,
-      query: paginationQuery,
+      query: productSubListQuery,
       response: withNotFound({ 200: 'ProductList' }),
     },
   )

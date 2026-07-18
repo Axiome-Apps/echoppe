@@ -26,7 +26,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 ### P2 — complétude catalogue
 | Item | État | Notes |
 |------|------|-------|
-| B4. `sort`/`order` sur `/categories\|collections/{id}/products` | ⬜ | réutiliser `queryProductCards`/`enrichProductCards` |
+| B4. `sort`/`order` sur `/categories\|collections/{id}/products` | ✅ 🔒 | les 2 routes délèguent à `queryProductCards` (+ param `extraConditions` pour l'appartenance) au lieu du tri `dateCreated` figé ; `sort=price\|name\|dateCreated` + `order`. ⚠️ tri par défaut : `dateCreated` **DESC** (récent d'abord, aligné sur `/products/`) au lieu de l'ancien ASC. SDK régénéré. Verrou : `category-collection-sort.test.ts` |
 | B5. Resize média `/assets/{id}?width=` | ⬜ | lib d'image + cache disque ; ADR (choix lib) |
 
 ### P3 — compte & engagement

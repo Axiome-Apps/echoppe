@@ -5,7 +5,6 @@ import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
 import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
 import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
-import { enrichProductCards } from '../utils/product-cards';
 import {
   notFound,
   successSchema,
@@ -15,6 +14,7 @@ import {
   withReadErrors,
 } from '../utils/responses';
 import { visibilityFilter } from '../utils/visibility';
+import { productSubListQuery, queryProductCards } from './products/shared';
 
 // Schéma d'entité collection → src/models/collection.ts
 
@@ -133,43 +133,29 @@ export const collectionsRoutes = new Elysia({
         .where(and(eq(collection.id, params.id), visibilityFilter(collection.isVisible, all)));
       if (!collectionExists) return status(404, notFound('Collection'));
 
-      const { page, limit, offset } = getPaginationParams(query);
-
-      // Get product IDs in this collection
+      // Appartenance à la collection (jonction many-to-many).
       const productIds = await db
         .select({ productId: productCollection.product })
         .from(productCollection)
         .where(eq(productCollection.collection, params.id));
-
       const ids = productIds.map((p) => p.productId);
 
       if (ids.length === 0) {
+        const { page, limit } = getPaginationParams(query);
         return buildListResponse([], 0, page, limit);
       }
 
-      // Liste publique : produits PUBLIÉS de la collection uniquement.
-      const publishedInCollection = and(inArray(product.id, ids), eq(product.status, 'published'));
-      const [products, [{ total }]] = await Promise.all([
-        db
-          .select()
-          .from(product)
-          .where(publishedInCollection)
-          .orderBy(product.dateCreated)
-          .limit(limit)
-          .offset(offset),
-        db
-          .select({ total: count(product.id) })
-          .from(product)
-          .where(publishedInCollection),
-      ]);
-
-      const enrichedProducts = await enrichProductCards(products);
-
-      return buildListResponse(enrichedProducts, total, page, limit);
+      // Liste publique : produits PUBLIÉS de la collection. Recherche/filtres/tri/pagination
+      // délégués à queryProductCards ; l'appartenance est injectée en condition supplémentaire.
+      return queryProductCards(
+        query,
+        [eq(product.status, 'published')],
+        [inArray(product.id, ids)],
+      );
     },
     {
       params: collectionParams,
-      query: paginationQuery,
+      query: productSubListQuery,
       response: withNotFound({ 200: 'ProductList' }),
     },
   )

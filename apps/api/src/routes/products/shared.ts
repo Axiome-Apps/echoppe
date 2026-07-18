@@ -2,7 +2,12 @@ import type { SQL } from '@echoppe/core';
 import { and, asc, count, db, desc, eq, ilike, inArray, or, product } from '@echoppe/core';
 import { t } from 'elysia';
 import { selectDefaultVariants } from '../../utils/default-variant';
-import { buildEqFilters, buildListResponse, getPaginationParams } from '../../utils/pagination';
+import {
+  buildEqFilters,
+  buildListResponse,
+  getPaginationParams,
+  paginationQuery,
+} from '../../utils/pagination';
 import { enrichProductCards } from '../../utils/product-cards';
 
 // Éléments partagés par les sous-routes produits (public ↔ admin) : params, schémas de recherche et
@@ -32,6 +37,17 @@ export const productAdminSearchQuery = t.Composite([
   t.Object({ status: t.Optional(t.String()) }),
 ]);
 
+// Query des sous-listes produit (catégorie/collection) : pagination + tri, même vocabulaire de tri
+// que la liste globale. L'appartenance est portée par la route (extraConditions), pas par la query ;
+// recherche/prix/stock ne sont pas exposés ici (hors scope de la sous-liste).
+export const productSubListQuery = t.Composite([
+  paginationQuery,
+  t.Object({
+    sort: t.Optional(t.Union([t.Literal('price'), t.Literal('name'), t.Literal('dateCreated')])),
+    order: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
+  }),
+]);
+
 interface ProductCardsQuery {
   page?: number;
   limit?: number;
@@ -47,11 +63,15 @@ interface ProductCardsQuery {
 // Liste de cartes produit enrichies, partagée public/admin. Mêmes recherche/filtres
 // prix-stock/tri/pagination ; seule la VISIBILITÉ par statut diffère et est injectée
 // par l'appelant via `statusConditions` (public = published forcé ; admin = filtre libre).
-export async function queryProductCards(query: ProductCardsQuery, statusConditions: SQL[]) {
+export async function queryProductCards(
+  query: ProductCardsQuery,
+  statusConditions: SQL[],
+  extraConditions: SQL[] = [],
+) {
   const { page, limit, offset } = getPaginationParams(query);
   const { search, category, minPrice, maxPrice, inStock, sort, order } = query;
 
-  const conditions: SQL[] = [...statusConditions];
+  const conditions: SQL[] = [...statusConditions, ...extraConditions];
 
   if (search) {
     const searchPattern = `%${search}%`;
