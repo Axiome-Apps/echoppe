@@ -1,17 +1,25 @@
 import { BrevoClient } from '@getbrevo/brevo';
-import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
+import type { BrevoCredentials } from './config';
 import { renderTemplate } from './templates';
-import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
+import type {
+  CommunicationAdapter,
+  CommunicationCredentialStore,
+  EmailMessage,
+  SendResult,
+} from './types';
 
 export class BrevoAdapter implements CommunicationAdapter {
   readonly provider = 'brevo' as const;
   private client: BrevoClient | null = null;
   private initialized = false;
 
+  // DIP : credentials + config d'envoi injectés (registre = base ; test = stub).
+  constructor(private readonly store: CommunicationCredentialStore<BrevoCredentials>) {}
+
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
-    const credentials = await getProviderCredentials('brevo');
+    const credentials = await this.store.getCredentials();
     if (credentials) {
       this.client = new BrevoClient({ apiKey: credentials.apiKey });
     }
@@ -19,8 +27,7 @@ export class BrevoAdapter implements CommunicationAdapter {
   }
 
   async isConfigured(): Promise<boolean> {
-    const status = await getProviderStatus('brevo');
-    return status.isConfigured && status.isEnabled;
+    return (await this.store.getCredentials()) !== null;
   }
 
   async verify(): Promise<boolean> {
@@ -45,7 +52,7 @@ export class BrevoAdapter implements CommunicationAdapter {
       return { success: false, error: 'Brevo is not configured.' };
     }
 
-    const config = await getProviderConfig('brevo');
+    const config = await this.store.getConfig();
     if (!config) {
       return { success: false, error: 'Email configuration is missing.' };
     }

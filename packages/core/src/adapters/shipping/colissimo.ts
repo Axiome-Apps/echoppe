@@ -1,4 +1,5 @@
-import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
+import type { CredentialStore } from '../credential-store';
+import type { ColissimoCredentials } from './config';
 import type {
   CreateLabelParams,
   GetRatesParams,
@@ -25,10 +26,13 @@ export class ColissimoAdapter implements ShippingAdapter {
   private password: string | null = null;
   private initialized = false;
 
+  // DIP : la source des credentials est injectée (registre = base ; test = stub).
+  constructor(private readonly credentials: CredentialStore<ColissimoCredentials>) {}
+
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
-    const credentials = await getShippingProviderCredentials('colissimo');
+    const credentials = await this.credentials.get();
     if (credentials) {
       this.contractNumber = credentials.contractNumber;
       this.password = credentials.password;
@@ -37,8 +41,7 @@ export class ColissimoAdapter implements ShippingAdapter {
   }
 
   async isConfigured(): Promise<boolean> {
-    const status = await getShippingProviderStatus('colissimo');
-    return status.isConfigured && status.isEnabled;
+    return (await this.credentials.get()) !== null;
   }
 
   async getRates(params: GetRatesParams): Promise<ShippingRate[]> {

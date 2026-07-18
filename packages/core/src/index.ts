@@ -52,6 +52,8 @@ export {
   saveProviderCredentials as saveCommunicationProviderCredentials,
   setProviderEnabled as setCommunicationProviderEnabled,
 } from './adapters/communication';
+// Abstraction d'injection des credentials (DIP) partagée par les familles d'adapters
+export type { CredentialStore } from './adapters/credential-store';
 // Payment adapters
 export * from './adapters/payment';
 // Shipping adapters

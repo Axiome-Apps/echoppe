@@ -1,18 +1,26 @@
 import type { Transporter } from 'nodemailer';
 import nodemailer from 'nodemailer';
-import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
+import type { SmtpCredentials } from './config';
 import { renderTemplate } from './templates';
-import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
+import type {
+  CommunicationAdapter,
+  CommunicationCredentialStore,
+  EmailMessage,
+  SendResult,
+} from './types';
 
 export class SmtpAdapter implements CommunicationAdapter {
   readonly provider = 'smtp' as const;
   private transporter: Transporter | null = null;
   private initialized = false;
 
+  // DIP : credentials + config d'envoi injectés (registre = base ; test = stub).
+  constructor(private readonly store: CommunicationCredentialStore<SmtpCredentials>) {}
+
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
-    const credentials = await getProviderCredentials('smtp');
+    const credentials = await this.store.getCredentials();
     if (credentials) {
       this.transporter = nodemailer.createTransport({
         host: credentials.host,
@@ -28,8 +36,7 @@ export class SmtpAdapter implements CommunicationAdapter {
   }
 
   async isConfigured(): Promise<boolean> {
-    const status = await getProviderStatus('smtp');
-    return status.isConfigured && status.isEnabled;
+    return (await this.store.getCredentials()) !== null;
   }
 
   async verify(): Promise<boolean> {
@@ -54,7 +61,7 @@ export class SmtpAdapter implements CommunicationAdapter {
       return { success: false, error: 'SMTP is not configured.' };
     }
 
-    const config = await getProviderConfig('smtp');
+    const config = await this.store.getConfig();
     if (!config) {
       return { success: false, error: 'Email configuration is missing.' };
     }

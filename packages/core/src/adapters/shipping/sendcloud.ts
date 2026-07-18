@@ -1,4 +1,5 @@
-import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
+import type { CredentialStore } from '../credential-store';
+import type { SendcloudCredentials } from './config';
 import type {
   CreateLabelParams,
   GetRatesParams,
@@ -32,10 +33,13 @@ export class SendcloudAdapter implements ShippingAdapter {
   private authHeader: string | null = null;
   private initialized = false;
 
+  // DIP : la source des credentials est injectée (registre = base ; test = stub).
+  constructor(private readonly credentials: CredentialStore<SendcloudCredentials>) {}
+
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
-    const credentials = await getShippingProviderCredentials('sendcloud');
+    const credentials = await this.credentials.get();
     if (credentials) {
       const auth = Buffer.from(`${credentials.apiKey}:${credentials.apiSecret}`).toString('base64');
       this.authHeader = `Basic ${auth}`;
@@ -44,8 +48,7 @@ export class SendcloudAdapter implements ShippingAdapter {
   }
 
   async isConfigured(): Promise<boolean> {
-    const status = await getShippingProviderStatus('sendcloud');
-    return status.isConfigured && status.isEnabled;
+    return (await this.credentials.get()) !== null;
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

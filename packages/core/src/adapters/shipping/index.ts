@@ -22,7 +22,7 @@ export type {
 } from './types';
 
 import { ColissimoAdapter } from './colissimo';
-import { getShippingProviderStatus } from './config';
+import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 import { MondialRelayAdapter } from './mondialrelay';
 import { SendcloudAdapter } from './sendcloud';
 import type { ShippingAdapter, ShippingProvider } from './types';
@@ -39,19 +39,25 @@ export function getShippingAdapter(provider: ShippingProvider): ShippingAdapter 
   switch (provider) {
     case 'sendcloud':
       if (!sendcloudAdapter) {
-        sendcloudAdapter = new SendcloudAdapter();
+        sendcloudAdapter = new SendcloudAdapter({
+          get: () => getShippingProviderCredentials('sendcloud'),
+        });
       }
       return sendcloudAdapter;
 
     case 'colissimo':
       if (!colissimoAdapter) {
-        colissimoAdapter = new ColissimoAdapter();
+        colissimoAdapter = new ColissimoAdapter({
+          get: () => getShippingProviderCredentials('colissimo'),
+        });
       }
       return colissimoAdapter;
 
     case 'mondialrelay':
       if (!mondialrelayAdapter) {
-        mondialrelayAdapter = new MondialRelayAdapter();
+        mondialrelayAdapter = new MondialRelayAdapter({
+          get: () => getShippingProviderCredentials('mondialrelay'),
+        });
       }
       return mondialrelayAdapter;
 

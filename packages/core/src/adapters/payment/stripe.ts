@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
-import { getProviderCredentials, getProviderStatus } from './config';
+import type { CredentialStore } from '../credential-store';
+import type { StripeCredentials } from './config';
 import type {
   CaptureResult,
   CheckoutParams,
@@ -15,10 +16,13 @@ export class StripeAdapter implements PaymentAdapter {
   private webhookSecret: string | null = null;
   private initialized = false;
 
+  // DIP : la source des credentials est injectée (registre = base ; test = stub).
+  constructor(private readonly credentials: CredentialStore<StripeCredentials>) {}
+
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
-    const credentials = await getProviderCredentials('stripe');
+    const credentials = await this.credentials.get();
     if (credentials) {
       this.client = new Stripe(credentials.secretKey);
       this.webhookSecret = credentials.webhookSecret;
@@ -27,8 +31,7 @@ export class StripeAdapter implements PaymentAdapter {
   }
 
   async isConfigured(): Promise<boolean> {
-    const status = await getProviderStatus('stripe');
-    return status.isConfigured && status.isEnabled;
+    return (await this.credentials.get()) !== null;
   }
 
   async createCheckout(params: CheckoutParams): Promise<CheckoutSession> {

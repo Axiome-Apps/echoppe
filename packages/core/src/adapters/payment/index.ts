@@ -20,7 +20,7 @@ export type {
 } from './types';
 export { isPaymentProvider, PAYMENT_PROVIDERS } from './types';
 
-import { getProviderStatus } from './config';
+import { getProviderCredentials, getProviderStatus } from './config';
 import { PayPalAdapter } from './paypal';
 import { StripeAdapter } from './stripe';
 import { PAYMENT_PROVIDERS, type PaymentAdapter, type PaymentProvider } from './types';
@@ -36,13 +36,14 @@ export function getPaymentAdapter(provider: PaymentProvider): PaymentAdapter {
   switch (provider) {
     case 'stripe':
       if (!stripeAdapter) {
-        stripeAdapter = new StripeAdapter();
+        // Store réel adossé à la base (credentials déchiffrés) — injection DIP.
+        stripeAdapter = new StripeAdapter({ get: () => getProviderCredentials('stripe') });
       }
       return stripeAdapter;
 
     case 'paypal':
       if (!paypalAdapter) {
-        paypalAdapter = new PayPalAdapter();
+        paypalAdapter = new PayPalAdapter({ get: () => getProviderCredentials('paypal') });
       }
       return paypalAdapter;
 

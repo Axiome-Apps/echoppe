@@ -1,17 +1,25 @@
 import { Resend } from 'resend';
-import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
+import type { ResendCredentials } from './config';
 import { renderTemplate } from './templates';
-import type { CommunicationAdapter, EmailMessage, SendResult } from './types';
+import type {
+  CommunicationAdapter,
+  CommunicationCredentialStore,
+  EmailMessage,
+  SendResult,
+} from './types';
 
 export class ResendAdapter implements CommunicationAdapter {
   readonly provider = 'resend' as const;
   private client: Resend | null = null;
   private initialized = false;
 
+  // DIP : credentials + config d'envoi injectés (registre = base ; test = stub).
+  constructor(private readonly store: CommunicationCredentialStore<ResendCredentials>) {}
+
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
-    const credentials = await getProviderCredentials('resend');
+    const credentials = await this.store.getCredentials();
     if (credentials) {
       this.client = new Resend(credentials.apiKey);
     }
@@ -19,8 +27,7 @@ export class ResendAdapter implements CommunicationAdapter {
   }
 
   async isConfigured(): Promise<boolean> {
-    const status = await getProviderStatus('resend');
-    return status.isConfigured && status.isEnabled;
+    return (await this.store.getCredentials()) !== null;
   }
 
   async verify(): Promise<boolean> {
@@ -46,7 +53,7 @@ export class ResendAdapter implements CommunicationAdapter {
       return { success: false, error: 'Resend is not configured.' };
     }
 
-    const config = await getProviderConfig('resend');
+    const config = await this.store.getConfig();
     if (!config) {
       return { success: false, error: 'Email configuration is missing.' };
     }

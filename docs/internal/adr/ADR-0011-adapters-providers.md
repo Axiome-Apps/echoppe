@@ -49,3 +49,18 @@ rappelle), la config/statut/refund admin.
   identique (`/payments/webhook/stripe`), donc aucune URL webhook déjà configurée ne casse.
 - **Rate-limit** : `webhookRateLimitOptions` (60/min/IP, fail-open sans Redis) sur une sous-instance
   `scoped` → borne la surface DoS de l'endpoint public sans affecter les routes admin voisines.
+
+## Injection des credentials — DIP (2026-07-18)
+
+Les adapters ne dépendent plus du module `config` concret (qui importe `db`) mais d'une abstraction
+`CredentialStore<T>` (`get(): Promise<T | null>`) injectée au constructeur. Le registre injecte le
+store réel (adossé à la base, credentials déchiffrés) ; un test injecte un stub.
+
+- Débloque la **testabilité** de la couche adapter (paiement/livraison/communication) **sans base de
+  données** — auparavant structurellement impossible (chaque adapter importait `config → db`).
+  Premier verrou : `payment/stripe.test.ts` (isConfigured + webhook, aucune DB).
+- `isConfigured()` s'appuie désormais sur `credentials.get() !== null` (les credentials ne sont non
+  nuls que si le provider est activé ET déchiffrable) — légèrement plus strict que l'ancien
+  `getProviderStatus` (qui ne déchiffrait pas).
+- La communication reçoit `CommunicationCredentialStore` (credentials **+** config d'envoi), les deux
+  autres familles le `CredentialStore<T>` générique.

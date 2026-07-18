@@ -16,6 +16,7 @@ export { renderTemplate } from './templates';
 export type {
   CommunicationAdapter,
   CommunicationConfig,
+  CommunicationCredentialStore,
   CommunicationProvider,
   EmailMessage,
   EmailStatus,
@@ -24,7 +25,7 @@ export type {
 } from './types';
 
 import { BrevoAdapter } from './brevo';
-import { getProviderStatus } from './config';
+import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
 import { ResendAdapter } from './resend';
 import { SmtpAdapter } from './smtp';
 import type { CommunicationAdapter, CommunicationProvider } from './types';
@@ -41,19 +42,28 @@ export function getCommunicationAdapter(provider: CommunicationProvider): Commun
   switch (provider) {
     case 'resend':
       if (!resendAdapter) {
-        resendAdapter = new ResendAdapter();
+        resendAdapter = new ResendAdapter({
+          getCredentials: () => getProviderCredentials('resend'),
+          getConfig: () => getProviderConfig('resend'),
+        });
       }
       return resendAdapter;
 
     case 'brevo':
       if (!brevoAdapter) {
-        brevoAdapter = new BrevoAdapter();
+        brevoAdapter = new BrevoAdapter({
+          getCredentials: () => getProviderCredentials('brevo'),
+          getConfig: () => getProviderConfig('brevo'),
+        });
       }
       return brevoAdapter;
 
     case 'smtp':
       if (!smtpAdapter) {
-        smtpAdapter = new SmtpAdapter();
+        smtpAdapter = new SmtpAdapter({
+          getCredentials: () => getProviderCredentials('smtp'),
+          getConfig: () => getProviderConfig('smtp'),
+        });
       }
       return smtpAdapter;
 

@@ -1,6 +1,7 @@
 // @ts-expect-error - No official types for PayPal SDK
 import paypal from '@paypal/checkout-server-sdk';
-import { getProviderCredentials, getProviderStatus } from './config';
+import type { CredentialStore } from '../credential-store';
+import type { PayPalCredentials } from './config';
 import type {
   CheckoutParams,
   CheckoutSession,
@@ -14,10 +15,13 @@ export class PayPalAdapter implements PaymentAdapter {
   private client: paypal.core.PayPalHttpClient | null = null;
   private initialized = false;
 
+  // DIP : la source des credentials est injectée (registre = base ; test = stub).
+  constructor(private readonly credentials: CredentialStore<PayPalCredentials>) {}
+
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
-    const credentials = await getProviderCredentials('paypal');
+    const credentials = await this.credentials.get();
     if (credentials) {
       const environment =
         credentials.mode === 'live'
@@ -30,8 +34,7 @@ export class PayPalAdapter implements PaymentAdapter {
   }
 
   async isConfigured(): Promise<boolean> {
-    const status = await getProviderStatus('paypal');
-    return status.isConfigured && status.isEnabled;
+    return (await this.credentials.get()) !== null;
   }
 
   async createCheckout(params: CheckoutParams): Promise<CheckoutSession> {
@@ -112,7 +115,7 @@ export class PayPalAdapter implements PaymentAdapter {
     }
 
     // Vérifier la signature via l'API PayPal
-    const credentials = await getProviderCredentials('paypal');
+    const credentials = await this.credentials.get();
     if (!credentials?.webhookId) {
       throw new Error('PayPal webhook ID not configured');
     }
@@ -197,7 +200,7 @@ export class PayPalAdapter implements PaymentAdapter {
     headers: Record<string, string>,
     webhookId: string,
   ): Promise<boolean> {
-    const credentials = await getProviderCredentials('paypal');
+    const credentials = await this.credentials.get();
     if (!credentials) {
       throw new Error('PayPal credentials not found');
     }

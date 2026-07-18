@@ -27,6 +27,14 @@ export interface CommunicationConfig {
   replyTo?: string;
 }
 
+// Source injectée (DIP) : un adapter de communication a besoin de ses credentials (clé API / SMTP)
+// ET de la config d'envoi (expéditeur, reply-to). Le registre l'adosse à la base (déchiffrement) ;
+// un test la stub → adapter testable sans base de données.
+export interface CommunicationCredentialStore<T> {
+  getCredentials(): Promise<T | null>;
+  getConfig(): Promise<CommunicationConfig | null>;
+}
+
 export interface CommunicationAdapter {
   readonly provider: CommunicationProvider;
 
