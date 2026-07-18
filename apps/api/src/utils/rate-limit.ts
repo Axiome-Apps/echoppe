@@ -133,6 +133,18 @@ export const checkoutRateLimitOptions = createRateLimitOptions({
   message: 'Trop de tentatives de paiement. Veuillez réessayer dans une minute.',
 });
 
+/**
+ * Webhook rate limit : 60 requêtes/minute par IP. Endpoint public appelé par le provider —
+ * limite généreuse (les providers émettent des bursts) mais borne la surface DoS (vérification
+ * de signature = coût crypto/API). Fail-open sans Redis, comme les autres limites.
+ */
+export const webhookRateLimitOptions = createRateLimitOptions({
+  prefix: 'rl:webhook:',
+  duration: 60_000,
+  max: 60,
+  message: 'Trop de requêtes webhook. Veuillez réessayer dans une minute.',
+});
+
 /** Contact form rate limit: 3 requests per 10 minutes */
 export const contactRateLimitOptions = createRateLimitOptions({
   prefix: 'rl:contact:',

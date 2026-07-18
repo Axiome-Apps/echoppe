@@ -86,15 +86,16 @@ export class StripeAdapter implements PaymentAdapter {
     };
   }
 
-  async verifyWebhook(
-    payload: string,
-    signature: string,
-    _headers?: Record<string, string>,
-  ): Promise<PaymentResult> {
+  async verifyWebhook(payload: string, headers: Record<string, string>): Promise<PaymentResult> {
     await this.ensureInitialized();
 
     if (!this.client || !this.webhookSecret) {
       throw new Error('Stripe webhook is not configured.');
+    }
+
+    const signature = headers['stripe-signature'];
+    if (!signature) {
+      throw new Error('Missing stripe-signature header');
     }
 
     const event = this.client.webhooks.constructEvent(payload, signature, this.webhookSecret);

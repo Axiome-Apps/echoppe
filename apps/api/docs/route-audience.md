@@ -120,8 +120,7 @@ Routes admin **au sein de groupes mixtes** :
 
 | Méthode | Path | Vérification |
 |---|---|---|
-| POST | `/payments/webhook/stripe` | `stripe-signature` |
-| POST | `/payments/webhook/paypal` | headers PayPal + signature |
+| POST | `/payments/webhook/:provider` | signature vérifiée par l'adapter du provider (`stripe`, `paypal`, …) — rate-limit IP dédié |
 
 ## Angles morts identifiés (→ backlog features API)
 

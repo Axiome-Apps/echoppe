@@ -1,4 +1,13 @@
-export type PaymentProvider = 'stripe' | 'paypal';
+// SSOT des providers de paiement — ajouter un provider = l'inscrire ici (+ son adapter + ses
+// credentials). La route webhook (`/webhook/:provider`) et les listings sont pilotés par cette
+// liste, jamais par un enum codé en dur route par route.
+export const PAYMENT_PROVIDERS = ['stripe', 'paypal'] as const;
+export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
+
+export function isPaymentProvider(value: string): value is PaymentProvider {
+  return (PAYMENT_PROVIDERS as readonly string[]).includes(value);
+}
+
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 
 export interface CheckoutSession {
@@ -53,16 +62,13 @@ export interface PaymentAdapter {
   createCheckout(params: CheckoutParams): Promise<CheckoutSession>;
 
   /**
-   * Vérifie et parse un webhook entrant
+   * Vérifie et parse un webhook entrant. Chaque adapter extrait/valide LUI-MÊME les headers de
+   * signature qui le concernent (stripe-signature, paypal-transmission-*…) → la route reste
+   * agnostique du provider.
    * @param payload - Le body brut du webhook
-   * @param signature - La signature (stripe-signature ou paypal-transmission-sig)
-   * @param headers - Headers additionnels (requis pour PayPal)
+   * @param headers - Tous les headers de la requête (clés en minuscules)
    */
-  verifyWebhook(
-    payload: string,
-    signature: string,
-    headers?: Record<string, string>,
-  ): Promise<PaymentResult>;
+  verifyWebhook(payload: string, headers: Record<string, string>): Promise<PaymentResult>;
 
   /**
    * Effectue un remboursement (total ou partiel)

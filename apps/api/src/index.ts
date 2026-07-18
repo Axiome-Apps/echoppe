@@ -27,15 +27,38 @@ initAdmin().catch((err) => {
   console.error('[Init] Admin creation error:', err);
 });
 
-// Run cleanup job every 15 minutes
+// Job de nettoyage des commandes expirées : au boot puis toutes les 15 min. Le cycle de vie du
+// timer est borné et on refuse de démarrer un run pendant l'extinction (cf. typescript.md §7 —
+// dispose des timers/souscriptions).
 const CLEANUP_INTERVAL_MS = 15 * 60 * 1000;
-setInterval(() => {
-  cleanupExpiredOrders().catch((err) => {
-    console.error('[Cleanup] Error:', err);
-  });
-}, CLEANUP_INTERVAL_MS);
+const shutdown = new AbortController();
 
-// Run once at startup
-cleanupExpiredOrders().catch((err) => {
-  console.error('[Cleanup] Initial run error:', err);
-});
+function runCleanup(context: string): void {
+  if (shutdown.signal.aborted) return;
+  cleanupExpiredOrders().catch((err) => {
+    console.error(`[Cleanup] ${context} error:`, err);
+  });
+}
+
+const cleanupTimer = setInterval(() => runCleanup('interval'), CLEANUP_INTERVAL_MS);
+runCleanup('initial');
+
+// Arrêt gracieux : stoppe le timer et le serveur HTTP à réception d'un signal d'extinction
+// (SIGTERM en Docker, SIGINT en dev) plutôt qu'une coupure brutale.
+async function dispose(signal: string): Promise<void> {
+  if (shutdown.signal.aborted) return;
+  shutdown.abort();
+  clearInterval(cleanupTimer);
+  console.log(`[Shutdown] ${signal} reçu — arrêt gracieux`);
+  await app.stop();
+  process.exit(0);
+}
+
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.on(signal, () => {
+    dispose(signal).catch((err) => {
+      console.error('[Shutdown] Error:', err);
+      process.exit(1);
+    });
+  });
+}

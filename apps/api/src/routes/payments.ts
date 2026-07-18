@@ -9,6 +9,7 @@ import {
   getProviderStatus,
   gte,
   isEncryptionConfigured,
+  isPaymentProvider,
   order,
   orderItem,
   payment,
@@ -21,8 +22,10 @@ import {
   variant,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { rateLimit } from 'elysia-rate-limit';
 import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
 import { permissionGuard } from '../plugins/rbac';
+import { webhookRateLimitOptions } from '../utils/rate-limit';
 import { errorSchema, successSchema } from '../utils/responses';
 import { validateCheckoutUrls } from '../utils/url-validation';
 
@@ -324,104 +327,51 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     },
   )
 
-  // POST /payments/webhook/stripe - Webhook Stripe (public)
-  .post(
-    '/webhook/stripe',
-    async ({ request, status }) => {
-      const signature = request.headers.get('stripe-signature');
-      if (!signature) {
-        console.warn('[Webhook Stripe] Missing signature header', {
-          timestamp: new Date().toISOString(),
-        });
-        return status(400, { message: 'Missing signature' });
-      }
-
-      const payload = await request.text();
-      const adapter = getPaymentAdapter('stripe');
-
-      try {
-        const result = await adapter.verifyWebhook(payload, signature);
-
-        console.log('[Webhook Stripe] Event received', {
-          orderId: result.orderId ?? 'N/A',
-          status: result.status,
-          transactionId: result.transactionId,
-          timestamp: new Date().toISOString(),
-        });
-
-        if (result.orderId && result.status !== 'pending') {
-          await handlePaymentResult(result.orderId, 'stripe', result);
+  // Webhooks providers (publics) : UNE route paramétrique — ajouter un provider = un adapter, zéro
+  // route. Chaque adapter extrait/valide ses propres headers de signature (route agnostique).
+  // Rate-limit IP dédié dans une sous-instance `scoped` → n'affecte pas les routes admin suivantes.
+  .use(
+    new Elysia().use(rateLimit(webhookRateLimitOptions)).post(
+      '/webhook/:provider',
+      async ({ params, request, status }) => {
+        if (!isPaymentProvider(params.provider)) {
+          return status(404, { message: `Unknown payment provider: ${params.provider}` });
         }
 
-        return { received: true };
-      } catch (error) {
-        console.error('[Webhook Stripe] Verification failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString(),
-        });
-        return status(400, { message: 'Webhook verification failed' });
-      }
-    },
-    { response: { 200: webhookReceivedSchema, 400: errorSchema } },
-  )
+        const payload = await request.text();
+        const headers = Object.fromEntries(request.headers);
+        const adapter = getPaymentAdapter(params.provider);
 
-  // POST /payments/webhook/paypal - Webhook PayPal (public)
-  .post(
-    '/webhook/paypal',
-    async ({ request, status }) => {
-      const payload = await request.text();
-      const adapter = getPaymentAdapter('paypal');
+        try {
+          const result = await adapter.verifyWebhook(payload, headers);
 
-      // Extraire tous les headers PayPal nécessaires à la vérification
-      const paypalHeaders: Record<string, string> = {
-        'paypal-auth-algo': request.headers.get('paypal-auth-algo') ?? '',
-        'paypal-cert-url': request.headers.get('paypal-cert-url') ?? '',
-        'paypal-transmission-id': request.headers.get('paypal-transmission-id') ?? '',
-        'paypal-transmission-sig': request.headers.get('paypal-transmission-sig') ?? '',
-        'paypal-transmission-time': request.headers.get('paypal-transmission-time') ?? '',
-      };
+          console.log('[Webhook] Event received', {
+            provider: params.provider,
+            orderId: result.orderId ?? 'N/A',
+            status: result.status,
+            transactionId: result.transactionId,
+            timestamp: new Date().toISOString(),
+          });
 
-      // Vérifier que tous les headers requis sont présents
-      const missingHeaders = Object.entries(paypalHeaders)
-        .filter(([, value]) => !value)
-        .map(([key]) => key);
+          if (result.orderId && result.status !== 'pending') {
+            await handlePaymentResult(result.orderId, params.provider, result);
+          }
 
-      if (missingHeaders.length > 0) {
-        console.warn('[Webhook PayPal] Missing headers', {
-          missing: missingHeaders,
-          timestamp: new Date().toISOString(),
-        });
-        return status(400, { message: `Missing headers: ${missingHeaders.join(', ')}` });
-      }
-
-      try {
-        const result = await adapter.verifyWebhook(
-          payload,
-          paypalHeaders['paypal-transmission-sig'],
-          paypalHeaders,
-        );
-
-        console.log('[Webhook PayPal] Event received', {
-          orderId: result.orderId ?? 'N/A',
-          status: result.status,
-          transactionId: result.transactionId,
-          timestamp: new Date().toISOString(),
-        });
-
-        if (result.orderId && result.status !== 'pending') {
-          await handlePaymentResult(result.orderId, 'paypal', result);
+          return { received: true };
+        } catch (error) {
+          console.error('[Webhook] Verification failed', {
+            provider: params.provider,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
+          });
+          return status(400, { message: 'Webhook verification failed' });
         }
-
-        return { received: true };
-      } catch (error) {
-        console.error('[Webhook PayPal] Verification failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString(),
-        });
-        return status(400, { message: 'Webhook verification failed' });
-      }
-    },
-    { response: { 200: webhookReceivedSchema, 400: errorSchema } },
+      },
+      {
+        params: t.Object({ provider: t.String() }),
+        response: { 200: webhookReceivedSchema, 400: errorSchema, 404: errorSchema },
+      },
+    ),
   )
 
   // === ORDER READ (payment status) ===

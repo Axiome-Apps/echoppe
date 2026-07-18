@@ -104,11 +104,7 @@ export class PayPalAdapter implements PaymentAdapter {
     };
   }
 
-  async verifyWebhook(
-    payload: string,
-    _signature: string,
-    headers?: Record<string, string>,
-  ): Promise<PaymentResult> {
+  async verifyWebhook(payload: string, headers: Record<string, string>): Promise<PaymentResult> {
     await this.ensureInitialized();
 
     if (!this.client) {
@@ -121,8 +117,17 @@ export class PayPalAdapter implements PaymentAdapter {
       throw new Error('PayPal webhook ID not configured');
     }
 
-    if (!headers) {
-      throw new Error('PayPal webhook headers are required for signature verification');
+    // Headers de signature PayPal requis (l'adapter valide les siens, la route reste agnostique).
+    const required = [
+      'paypal-auth-algo',
+      'paypal-cert-url',
+      'paypal-transmission-id',
+      'paypal-transmission-sig',
+      'paypal-transmission-time',
+    ];
+    const missing = required.filter((h) => !headers[h]);
+    if (missing.length > 0) {
+      throw new Error(`Missing PayPal webhook headers: ${missing.join(', ')}`);
     }
 
     // Appeler l'API PayPal pour vérifier la signature

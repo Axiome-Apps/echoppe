@@ -31,3 +31,21 @@ Un **adapter par famille**, structure uniforme sous `packages/core/src/adapters/
 - La configuration provider (activation, secrets chiffrés) est administrable ; la CLI génère
   `ENCRYPTION_KEY` au scaffolding (cf. ADR-0002).
 - Le contrat storefront ne dépend d'aucun provider (checkout via l'API, cf. ADR-0005).
+
+## Frontière HTTP paiement — route webhook agnostique (2026-07-18)
+
+Précision suite à revue : `apps/api/src/routes/payments.ts` n'est **pas** « le paiement » mais la
+**frontière HTTP mince** entre nos acteurs et le provisionner (adapters). L'exécution du paiement est
+entièrement déléguée au provider. Trois surfaces sont irréductiblement des routes : la création de
+session checkout (clé secrète serveur + montant autoritaire), les webhooks (le provider NOUS
+rappelle), la config/statut/refund admin.
+
+- **SSOT providers** : `PAYMENT_PROVIDERS` (+ garde `isPaymentProvider`) dans
+  `adapters/payment/types.ts` pilote listings et validation de route — plus d'enum codé en dur.
+- **Webhook paramétrique** : une seule route `POST /payments/webhook/:provider` (au lieu d'une par
+  provider). Chaque adapter **extrait et vérifie lui-même** ses headers de signature via
+  `verifyWebhook(payload, headers)` — la route reste agnostique. Ajouter un provider (ex. Wero) =
+  un adapter + une entrée dans `PAYMENT_PROVIDERS`, **zéro route**. Le chemin par provider reste
+  identique (`/payments/webhook/stripe`), donc aucune URL webhook déjà configurée ne casse.
+- **Rate-limit** : `webhookRateLimitOptions` (60/min/IP, fail-open sans Redis) sur une sous-instance
+  `scoped` → borne la surface DoS de l'endpoint public sans affecter les routes admin voisines.

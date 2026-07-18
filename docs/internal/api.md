@@ -421,8 +421,7 @@ Gestion stock automatique : pending→confirmed décrémente, cancelled/refunded
 | `PUT` | `/payments/providers/paypal` | Oui | Configurer PayPal |
 | `POST` | `/payments/checkout` | Non | Créer session paiement |
 | `GET` | `/payments/:orderId` | Oui | Statut paiement |
-| `POST` | `/payments/webhook/stripe` | Non | Webhook Stripe |
-| `POST` | `/payments/webhook/paypal` | Non | Webhook PayPal |
+| `POST` | `/payments/webhook/:provider` | Non | Webhook provider (`stripe`, `paypal`, …) |
 | `POST` | `/payments/:orderId/refund` | Oui | Rembourser |
 
 Providers : `stripe`, `paypal`

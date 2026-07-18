@@ -18,11 +18,12 @@ export type {
   PaymentStatus,
   RefundResult,
 } from './types';
+export { isPaymentProvider, PAYMENT_PROVIDERS } from './types';
 
 import { getProviderStatus } from './config';
 import { PayPalAdapter } from './paypal';
 import { StripeAdapter } from './stripe';
-import type { PaymentAdapter, PaymentProvider } from './types';
+import { PAYMENT_PROVIDERS, type PaymentAdapter, type PaymentProvider } from './types';
 
 // Singleton instances (lazy-initialized)
 let stripeAdapter: StripeAdapter | null = null;
@@ -54,10 +55,9 @@ export function getPaymentAdapter(provider: PaymentProvider): PaymentAdapter {
  * Retourne la liste des providers configurés et activés
  */
 export async function getAvailablePaymentProviders(): Promise<PaymentProvider[]> {
-  const providers: PaymentProvider[] = ['stripe', 'paypal'];
   const available: PaymentProvider[] = [];
 
-  for (const provider of providers) {
+  for (const provider of PAYMENT_PROVIDERS) {
     const status = await getProviderStatus(provider);
     if (status.isConfigured && status.isEnabled) {
       available.push(provider);
