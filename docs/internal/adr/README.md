@@ -30,11 +30,20 @@ Statut : accepté | proposé | remplacé par ADR-00YY   ·   Date
 | [0008](./ADR-0008-auth-sessions.md) | Auth : sessions Postgres (pas JWT), cookies HTTP-only, RBAC | accepté | [api-keys.md](../api-keys.md) |
 | [0009](./ADR-0009-variante-defaut-image.md) | Variante par défaut (exclusivité + fallback publié) & `featuredImage` | accepté | — |
 | [0010](./ADR-0010-personnalisation-produit.md) | Personnalisation produit (champs déclarés, optionnelle par produit) | accepté | — |
+| [0011](./ADR-0011-adapters-providers.md) | Adapters de providers externes (paiement/livraison/communication) + secrets chiffrés | accepté | — |
+| [0012](./ADR-0012-module-contenu.md) | Module contenu / page-builder headless (`@echoppe/content`) | accepté | [content-module.md](../content-module.md) |
+| [0013](./ADR-0013-modele-rbac.md) | Modèle RBAC (rôles/permissions, rôles système, owner bypass) | accepté | [audit-rbac-plan.md](../audit-rbac-plan.md) |
+| [0014](./ADR-0014-cles-api-machine.md) | Authentification machine (clés d'API, scopes sur `RESOURCE_LIST`) | accepté | [api-keys.md](../api-keys.md) |
+| [0015](./ADR-0015-validation-typebox.md) | Validation à la frontière : TypeBox/Elysia (pas Zod) | accepté | — |
+| [0016](./ADR-0016-conventions-front-admin.md) | Conventions front admin (atomic, imports directs, types Eden) | accepté | [PATTERNS.md](../PATTERNS.md) |
+| [0017](./ADR-0017-documents-typst.md) | Génération de documents (factures/reçus via Typst) | accepté | — |
+| [0018](./ADR-0018-stockage-media.md) | Stockage média (disque local, arbre de dossiers) | accepté | — |
 
 ## Conventions (non-ADR)
 
-Règles de code et pièges récurrents — documentés à part, référencés par les ADR mais sans décision
-d'architecture à trancher :
-- [`PATTERNS.md`](../PATTERNS.md) — atomic design, slicing vertical, imports directs Vue, types Eden.
+Pièges récurrents — documentés à part, référencés par les ADR mais sans décision d'architecture à
+trancher :
 - **Eden verbe réservé** — ne jamais nommer un segment de route comme un verbe HTTP (`options`,
   `get`…) si le client Eden passe un param dessus (casse la forme appel). Cf. ADR-0007.
+- `PATTERNS.md` (conventions front, désormais actées en ADR-0016) et `ports.md` (allocation des ports
+  dev) restent des références détaillées.

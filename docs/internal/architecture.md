@@ -51,6 +51,21 @@ La SSOT du contrat = les schémas **TypeBox** (`apps/api/src/models/*`). Les pro
 - **Storefront front** : Astro hybrid, îlots Vue, topologie B (BFF + server islands).
   → [ADR-0001](./adr/ADR-0001-stack-storefront.md).
 
+## Sous-systèmes transverses
+
+- **Providers externes** : adapters par famille (paiement/livraison/communication), config-driven,
+  secrets chiffrés au repos. → [ADR-0011](./adr/ADR-0011-adapters-providers.md).
+- **Contenu / page-builder** : `@echoppe/content`, blocs déclarés par le dev, validateur générique,
+  typage par inférence. → [ADR-0012](./adr/ADR-0012-module-contenu.md).
+- **RBAC** : rôles/permissions administrables, rôles système, owner bypass, cache.
+  → [ADR-0013](./adr/ADR-0013-modele-rbac.md) · **Clés d'API machine** →
+  [ADR-0014](./adr/ADR-0014-cles-api-machine.md).
+- **Validation** : TypeBox/Elysia à la frontière, `models/*.ts` = SSOT du contrat (pas Zod).
+  → [ADR-0015](./adr/ADR-0015-validation-typebox.md).
+- **Documents** : factures/reçus via Typst + numérotation. →
+  [ADR-0017](./adr/ADR-0017-documents-typst.md) · **Média** : disque local + dossiers →
+  [ADR-0018](./adr/ADR-0018-stockage-media.md).
+
 ## Conventions de code
 
 Détail dans [PATTERNS.md](./PATTERNS.md) : atomic design (`atoms/molecules/organisms`), slicing
