@@ -39,6 +39,7 @@ Statut : accepté | proposé | remplacé par ADR-00YY   ·   Date
 | [0017](./ADR-0017-documents-typst.md) | Génération de documents (factures/reçus via Typst) | accepté | — |
 | [0018](./ADR-0018-stockage-media.md) | Stockage média (disque local, arbre de dossiers) | accepté | — |
 | [0019](./ADR-0019-tags-produit.md) | Tags produit (entité gérée + slug, surface storefront) | accepté | — |
+| [0020](./ADR-0020-colormetadata-double-representation.md) | ColorMetadata : représentation double verrouillée (interface core + TypeBox api + guard) | accepté | — |
 
 ## Conventions (non-ADR)
 

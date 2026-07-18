@@ -68,7 +68,9 @@ La SSOT du contrat = les schémas **TypeBox** (`apps/api/src/models/*`). Les pro
 
 ## Conventions de code
 
-Détail dans [PATTERNS.md](./PATTERNS.md) : atomic design (`atoms/molecules/organisms`), slicing
-vertical par concept métier, **imports directs** des composants Vue (pas de barrel), types **inférés
-depuis Eden** (jamais d'interface manuelle pour les données API), validation à la **frontière unique**.
-Piège à connaître : **Eden réserve les verbes HTTP** comme noms de segment (cf. ADR-0007).
+Conventions projet (seuils, structure `core`, pattern d'erreurs, tests) →
+[conventions.md](./conventions.md). Conventions front admin détaillées → [PATTERNS.md](./PATTERNS.md) :
+atomic design (`atoms/molecules/organisms`), **imports directs** des composants Vue (pas de barrel),
+types **inférés depuis Eden** (jamais d'interface manuelle pour les données API), validation à la
+**frontière unique**. Piège à connaître : **Eden réserve les verbes HTTP** comme noms de segment
+(cf. ADR-0007).
