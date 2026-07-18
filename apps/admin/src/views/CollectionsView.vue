@@ -1,23 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { api } from '@/lib/api';
+import { useCollections, type Collection } from '@/composables/useCollections';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import MediaPicker from '@/components/molecules/MediaPicker.vue';
-import type { ApiData } from '@/types/api';
 
 const toast = useToast();
+const { collections, loading, saving, load, saveCollection, deleteCollection: removeCollection } =
+  useCollections();
 
-// Type inféré depuis Eden (response paginée)
-type CollectionsResponse = ApiData<ReturnType<typeof api.collections.get>>;
-type Collection = CollectionsResponse['data'][number];
-
-const collections = ref<Collection[]>([]);
-const loading = ref(true);
 const showForm = ref(false);
 const editing = ref<Collection | null>(null);
-const saving = ref(false);
 const deleteModalOpen = ref(false);
 const collectionToDelete = ref<Collection | null>(null);
 
@@ -33,14 +27,7 @@ const form = ref<{
   isVisible: true,
 });
 
-async function loadCollections() {
-  loading.value = true;
-  const { data } = await api.collections.get({ query: { limit: 100 } });
-  if (data?.data) collections.value = data.data;
-  loading.value = false;
-}
-
-onMounted(loadCollections);
+onMounted(load);
 
 function openCreate() {
   editing.value = null;
@@ -65,27 +52,20 @@ function openEdit(collection: Collection) {
 }
 
 async function save() {
-  saving.value = true;
-
-  const payload = {
-    name: form.value.name,
-    description: form.value.description || undefined,
-    image: form.value.image || undefined,
-    isVisible: form.value.isVisible,
-  };
-
-  const { error } = editing.value
-    ? await api.collections({ id: editing.value.id }).put(payload)
-    : await api.collections.post(payload);
-
-  saving.value = false;
-  if (error) {
+  const ok = await saveCollection(
+    {
+      name: form.value.name,
+      description: form.value.description || undefined,
+      image: form.value.image || undefined,
+      isVisible: form.value.isVisible,
+    },
+    editing.value?.id,
+  );
+  if (!ok) {
     toast.error("Erreur lors de l'enregistrement de la collection");
     return;
   }
-
   showForm.value = false;
-  await loadCollections();
 }
 
 function confirmDelete(collection: Collection) {
@@ -95,14 +75,13 @@ function confirmDelete(collection: Collection) {
 
 async function deleteCollection() {
   if (!collectionToDelete.value) return;
-  const { error } = await api.collections({ id: collectionToDelete.value.id }).delete();
-  if (error) {
+  const ok = await removeCollection(collectionToDelete.value.id);
+  if (!ok) {
     toast.error('Erreur lors de la suppression de la collection');
     return;
   }
   deleteModalOpen.value = false;
   collectionToDelete.value = null;
-  await loadCollections();
 }
 
 function cancelDelete() {
