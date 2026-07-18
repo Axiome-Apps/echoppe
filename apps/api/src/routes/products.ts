@@ -13,6 +13,7 @@ import {
   option,
   optionValue,
   or,
+  personalizationField,
   product,
   productMedia,
   productOption,
@@ -61,6 +62,7 @@ const productUpdateBody = t.Object({
   category: t.String({ format: 'uuid' }),
   taxRate: t.String({ format: 'uuid' }),
   status: t.Optional(t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')])),
+  personalizationEnabled: t.Optional(t.Boolean()),
 });
 
 const productPatchBody = t.Object({
@@ -70,6 +72,22 @@ const productPatchBody = t.Object({
   category: t.Optional(t.String({ format: 'uuid' })),
   taxRate: t.Optional(t.String({ format: 'uuid' })),
   status: t.Optional(t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')])),
+  personalizationEnabled: t.Optional(t.Boolean()),
+});
+
+// Champ de personnalisation (ADR-0010) — corps CRUD admin.
+const personalizationFieldBody = t.Object({
+  label: t.String({ minLength: 1, maxLength: 100 }),
+  type: t.Optional(t.Union([t.Literal('text'), t.Literal('textarea')])),
+  required: t.Optional(t.Boolean()),
+  maxLength: t.Optional(t.Nullable(t.Number({ minimum: 1 }))),
+  priceHt: t.Optional(t.Number({ minimum: 0 })),
+  sortOrder: t.Optional(t.Number()),
+});
+
+const personalizationFieldParams = t.Object({
+  id: t.String({ format: 'uuid' }),
+  fieldId: t.String({ format: 'uuid' }),
 });
 
 const productParams = t.Object({
@@ -533,6 +551,7 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
           category: body.category,
           taxRate: body.taxRate,
           status: body.status,
+          personalizationEnabled: body.personalizationEnabled,
           dateUpdated: new Date(),
         })
         .where(eq(product.id, params.id))
@@ -570,6 +589,8 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       if (body.category !== undefined) updateData.category = body.category;
       if (body.taxRate !== undefined) updateData.taxRate = body.taxRate;
       if (body.status !== undefined) updateData.status = body.status;
+      if (body.personalizationEnabled !== undefined)
+        updateData.personalizationEnabled = body.personalizationEnabled;
 
       const [updated] = await db
         .update(product)
@@ -821,12 +842,113 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         }),
       );
 
-      return { ...found, variants: variantsWithOptions, options: optionsWithValues };
+      const personalizationFields = await db
+        .select()
+        .from(personalizationField)
+        .where(eq(personalizationField.product, params.id))
+        .orderBy(personalizationField.sortOrder);
+
+      return {
+        ...found,
+        variants: variantsWithOptions,
+        options: optionsWithValues,
+        personalizationEnabled: found.personalizationEnabled,
+        personalizationFields,
+      };
     },
     {
       permission: true,
       params: productParams,
       response: withNotFound({ 200: 'ProductAdminWithVariants' }),
+    },
+  )
+
+  // === PERSONNALISATION (ADR-0010) ===
+
+  // POST /products/:id/personalization-fields
+  .use(permissionGuard('product', 'update'))
+  .post(
+    '/:id/personalization-fields',
+    async ({ params, body, status }) => {
+      const [productExists] = await db.select().from(product).where(eq(product.id, params.id));
+      if (!productExists) return status(404, { message: 'Product not found' });
+
+      const [created] = await db
+        .insert(personalizationField)
+        .values({
+          product: params.id,
+          label: body.label,
+          type: body.type ?? 'text',
+          required: body.required ?? false,
+          maxLength: body.maxLength ?? null,
+          priceHt: body.priceHt ? String(body.priceHt) : '0.00',
+          sortOrder: body.sortOrder ?? 0,
+        })
+        .returning();
+      return created;
+    },
+    {
+      permission: true,
+      params: productParams,
+      body: personalizationFieldBody,
+      response: withCrudErrors({ 200: 'PersonalizationField' }),
+    },
+  )
+
+  // PUT /products/:id/personalization-fields/:fieldId
+  .use(permissionGuard('product', 'update'))
+  .put(
+    '/:id/personalization-fields/:fieldId',
+    async ({ params, body, status }) => {
+      const [updated] = await db
+        .update(personalizationField)
+        .set({
+          label: body.label,
+          type: body.type ?? 'text',
+          required: body.required ?? false,
+          maxLength: body.maxLength ?? null,
+          priceHt: body.priceHt ? String(body.priceHt) : '0.00',
+          sortOrder: body.sortOrder ?? 0,
+        })
+        .where(
+          and(
+            eq(personalizationField.id, params.fieldId),
+            eq(personalizationField.product, params.id),
+          ),
+        )
+        .returning();
+      if (!updated) return status(404, { message: 'Personalization field not found' });
+      return updated;
+    },
+    {
+      permission: true,
+      params: personalizationFieldParams,
+      body: personalizationFieldBody,
+      response: withCrudErrors({ 200: 'PersonalizationField' }),
+    },
+  )
+
+  // DELETE /products/:id/personalization-fields/:fieldId
+  .use(permissionGuard('product', 'update'))
+  .delete(
+    '/:id/personalization-fields/:fieldId',
+    async ({ params, status }) => {
+      const [deleted] = await db
+        .delete(personalizationField)
+        .where(
+          and(
+            eq(personalizationField.id, params.fieldId),
+            eq(personalizationField.product, params.id),
+          ),
+        )
+        .returning();
+      if (!deleted) return status(404, { message: 'Personalization field not found' });
+      return { success: true };
+    },
+    {
+      permission: true,
+      params: personalizationFieldParams,
+      response: withCrudErrors({ 200: successSchema }),
     },
   )
 

@@ -1,7 +1,15 @@
 import { ref, computed, type Ref, type ComputedRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '@/lib/api';
-import type { Product, ProductDetail, ProductFormState, Variant, Option, ProductMedia } from './types';
+import type {
+  Option,
+  PersonalizationField,
+  Product,
+  ProductDetail,
+  ProductFormState,
+  ProductMedia,
+  Variant,
+} from './types';
 import { type Media } from '@/composables/media';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
@@ -20,6 +28,7 @@ interface UseProductFormReturn {
   form: Ref<ProductFormState>;
   variants: Ref<Variant[]>;
   options: Ref<Option[]>;
+  personalizationFields: Ref<PersonalizationField[]>;
   productMedia: Ref<ProductMedia[]>;
   mediaCache: Ref<Map<string, Media>>;
   variantThumbnails: Ref<Map<string, string>>;
@@ -34,6 +43,7 @@ interface UseProductFormReturn {
   // Actions
   loadProduct: () => Promise<void>;
   loadProductMedia: () => Promise<void>;
+  reloadPersonalizationFields: () => Promise<void>;
   save: () => Promise<void>;
   initNewProduct: (defaultCategory: string, defaultTaxRate: string) => void;
   goBack: () => void;
@@ -57,9 +67,11 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
     taxRate: '',
     collection: '',
     status: 'draft',
+    personalizationEnabled: false,
   });
   const variants = ref<Variant[]>([]);
   const options = ref<Option[]>([]);
+  const personalizationFields = ref<PersonalizationField[]>([]);
   const productMedia = ref<ProductMedia[]>([]);
   const mediaCache = ref<Map<string, Media>>(new Map());
   const variantThumbnails = ref<Map<string, string>>(new Map());
@@ -144,6 +156,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
         taxRate: data.taxRate,
         collection: '',
         status: data.status,
+        personalizationEnabled: data.personalizationEnabled ?? false,
       };
       form.value = formData;
       initialFormState.value = { ...formData };
@@ -154,9 +167,22 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
       if ('options' in data && Array.isArray(data.options)) {
         options.value = data.options;
       }
+      if ('personalizationFields' in data && Array.isArray(data.personalizationFields)) {
+        personalizationFields.value = data.personalizationFields;
+      }
 
       await loadProductMedia();
       config.onProductLoaded?.(data as ProductDetail);
+    }
+  }
+
+  // Recharge UNIQUEMENT les champs de personnalisation (sans toucher au form) — après un CRUD de
+  // champ, pour ne pas écraser l'état du toggle non encore enregistré.
+  async function reloadPersonalizationFields() {
+    if (!productId.value) return;
+    const { data } = await api.products({ id: productId.value }).full.get();
+    if (data && 'personalizationFields' in data && Array.isArray(data.personalizationFields)) {
+      personalizationFields.value = data.personalizationFields;
     }
   }
 
@@ -177,6 +203,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
       category: form.value.category,
       taxRate: form.value.taxRate,
       status: form.value.status,
+      personalizationEnabled: form.value.personalizationEnabled,
     };
 
     try {
@@ -211,6 +238,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
     form,
     variants,
     options,
+    personalizationFields,
     productMedia,
     mediaCache,
     variantThumbnails,
@@ -225,6 +253,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
     // Actions
     loadProduct,
     loadProductMedia,
+    reloadPersonalizationFields,
     save,
     initNewProduct,
     goBack,

@@ -5,8 +5,15 @@ import VariantModal from '@/components/organisms/VariantModal.vue';
 import ProductHeader from '@/components/organisms/product/ProductHeader.vue';
 import ProductInfoCard from '@/components/organisms/product/ProductInfoCard.vue';
 import ProductVariantsCard from '@/components/organisms/product/ProductVariantsCard.vue';
+import ProductPersonalizationCard from '@/components/organisms/product/ProductPersonalizationCard.vue';
+import PersonalizationFieldModal from '@/components/organisms/product/PersonalizationFieldModal.vue';
 import ProductSidebar from '@/components/organisms/product/ProductSidebar.vue';
-import { useProductData, useProductForm, useProductVariants } from '@/composables/product';
+import {
+  useProductData,
+  useProductForm,
+  useProductPersonalization,
+  useProductVariants,
+} from '@/composables/product';
 
 // Composables
 const productData = useProductData();
@@ -20,10 +27,16 @@ const productVariants = useProductVariants({
   onReload: productForm.loadProduct,
 });
 
+const productPersonalization = useProductPersonalization({
+  productId: productForm.productId,
+  onReload: productForm.reloadPersonalizationFields,
+});
+
 // Onglets de l'éditeur (produit existant uniquement — variantes/médias créés après enregistrement).
-type EditorTab = 'general' | 'variantes';
+type EditorTab = 'general' | 'variantes' | 'personnalisation';
 const activeTab = ref<EditorTab>('general');
 const variantCount = computed(() => productForm.variants.value.length);
+const fieldCount = computed(() => productForm.personalizationFields.value.length);
 
 // Handle media changes
 async function handleMediaChange() {
@@ -106,6 +119,22 @@ onMounted(async () => {
                 Variantes
                 <span class="ml-1 text-xs text-gray-400">{{ variantCount }}</span>
               </button>
+              <button
+                type="button"
+                class="pb-3 text-sm font-medium transition-colors cursor-pointer"
+                :class="
+                  activeTab === 'personnalisation'
+                    ? 'border-b-2 border-indigo-500 text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                "
+                @click="activeTab = 'personnalisation'"
+              >
+                Personnalisation
+                <span
+                  v-if="productForm.form.value.personalizationEnabled"
+                  class="ml-1 text-xs text-gray-400"
+                >{{ fieldCount }}</span>
+              </button>
             </nav>
           </div>
 
@@ -136,6 +165,16 @@ onMounted(async () => {
               :row-id="productVariants.getVariantRowId"
               :on-reorder="productVariants.handleVariantReorder"
               @add="productVariants.handleAddVariant"
+            />
+          </div>
+
+          <div v-show="activeTab === 'personnalisation'">
+            <ProductPersonalizationCard
+              v-model:enabled="productForm.form.value.personalizationEnabled"
+              :fields="productForm.personalizationFields.value"
+              @add="productPersonalization.openFieldModal()"
+              @edit="productPersonalization.openFieldModal($event)"
+              @remove="productPersonalization.deleteField($event)"
             />
           </div>
         </template>
@@ -169,6 +208,15 @@ onMounted(async () => {
       :on-close="productVariants.closeVariantModal"
       :on-saved="productVariants.onVariantSaved"
       :on-options-change="productVariants.updateOptions"
+    />
+
+    <!-- Personalization Field Modal -->
+    <PersonalizationFieldModal
+      v-if="productPersonalization.showFieldModal.value && productForm.productId.value"
+      :product-id="productForm.productId.value"
+      :field="productPersonalization.editingField.value"
+      :on-close="productPersonalization.closeFieldModal"
+      :on-saved="productPersonalization.onFieldSaved"
     />
   </div>
 </template>

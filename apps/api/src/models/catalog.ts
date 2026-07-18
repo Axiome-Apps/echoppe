@@ -189,13 +189,30 @@ export const variantAdminDetailSchema = t.Composite([
   }),
 ]);
 
-// Produit + variants COMPLETS + options (retour de GET /products/:id/full, ADMIN). Alimente
-// l'éditeur produit/variants de l'admin (édition de costPrice/lowStockThreshold).
+// Champ de personnalisation — vue ADMIN (avec product + sortOrder). Réponse des routes CRUD +
+// exposé dans la fiche admin (ADR-0010).
+export const personalizationFieldAdminSchema = t.Object({
+  id: t.String({ format: 'uuid', description: 'UUID du champ.' }),
+  product: t.String({ format: 'uuid', description: 'UUID du produit parent.' }),
+  label: t.String({ description: 'Libellé (ex. « Prénom »).' }),
+  type: t.Union([t.Literal('text'), t.Literal('textarea')], { description: 'Type de saisie.' }),
+  required: t.Boolean({ description: 'Saisie obligatoire.' }),
+  maxLength: t.Nullable(t.Number({ description: 'Longueur max, ou null.' })),
+  priceHt: t.String({ description: 'Supplément HT, décimal en chaîne.' }),
+  sortOrder: t.Number({ description: "Ordre d'affichage." }),
+});
+
+// Produit + variants COMPLETS + options + personnalisation (retour de GET /products/:id/full, ADMIN).
+// Alimente l'éditeur produit/variants de l'admin (édition de costPrice/lowStockThreshold).
 export const productAdminWithVariantsSchema = t.Composite([
   productSchema,
   t.Object({
     variants: t.Array(variantAdminDetailSchema, { description: 'Variantes (vue admin complète).' }),
     options: t.Array(optionDetailSchema, { description: 'Options du produit.' }),
+    personalizationEnabled: t.Boolean({ description: 'Le produit accepte une personnalisation.' }),
+    personalizationFields: t.Array(personalizationFieldAdminSchema, {
+      description: 'Champs de personnalisation déclarés, vide si aucun.',
+    }),
   }),
 ]);
 
@@ -254,4 +271,5 @@ export const catalogModels = {
   Variant: variantSchema,
   Option: optionSchema,
   OptionValue: optionValueSchema,
+  PersonalizationField: personalizationFieldAdminSchema,
 };

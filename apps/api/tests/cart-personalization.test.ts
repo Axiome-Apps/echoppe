@@ -6,8 +6,11 @@ import {
   eq,
   personalizationField,
   product,
+  role,
   runMigrations,
+  session,
   taxRate,
+  user,
   variant,
 } from '@echoppe/core';
 import { app } from '../src/app';
@@ -24,6 +27,7 @@ const migrationsFolder = fileURLToPath(new URL('../../../packages/core/drizzle',
 
 let categoryId: string;
 let taxRateId: string;
+let adminCookie: string; // session admin owner injectée (bypass RBAC), cf. variant-default-image.test
 
 async function upsertRef<T extends { id: string }>(rows: T[], find: () => Promise<T[]>) {
   return rows[0] ?? (await find())[0];
@@ -89,6 +93,27 @@ beforeAll(async () => {
       () => db.select().from(taxRate).where(eq(taxRate.name, 'TVA perso')),
     )
   ).id;
+
+  const [adminRole] = await db
+    .insert(role)
+    .values({ name: 'Perso Admin', scope: 'admin' })
+    .returning();
+  const [adminUser] = await db
+    .insert(user)
+    .values({
+      email: 'perso-admin@echoppe.test',
+      passwordHash: 'x',
+      firstName: 'Perso',
+      lastName: 'Admin',
+      role: adminRole.id,
+      isOwner: true,
+    })
+    .returning();
+  const token = crypto.randomUUID().replace(/-/g, '');
+  await db
+    .insert(session)
+    .values({ token, user: adminUser.id, expiresAt: new Date(Date.now() + 3600_000) });
+  adminCookie = `echoppe_admin_session=${token}`;
 });
 
 const postCart = (body: unknown) =>
@@ -167,5 +192,45 @@ describe('B2 — personnalisation produit', () => {
     ]);
     expect(totals.items[0].addonPriceHt).toBe(5);
     expect(totals.items[0].totalHt).toBe(80); // (35 + 5) × 2
+  });
+
+  it('CRUD admin : création d’un champ → exposé au storefront → suppression', async () => {
+    const [p] = await db
+      .insert(product)
+      .values({
+        category: categoryId,
+        taxRate: taxRateId,
+        name: 'perso-crud',
+        slug: 'perso-crud',
+        status: 'published',
+        personalizationEnabled: true,
+      })
+      .returning();
+
+    const base = `http://localhost/products/${p.id}/personalization-fields`;
+    const createRes = await app.handle(
+      new Request(base, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: adminCookie },
+        body: JSON.stringify({ label: 'Gravure', type: 'text', maxLength: 15, priceHt: 3 }),
+      }),
+    );
+    expect(createRes.status).toBe(200);
+    const created = (await createRes.json()) as { id: string; priceHt: string };
+    expect(created.priceHt).toBe('3.00');
+
+    const detail = (await (
+      await app.handle(new Request('http://localhost/products/by-slug/perso-crud'))
+    ).json()) as { personalizationFields: { id: string }[] };
+    expect(detail.personalizationFields.map((f) => f.id)).toContain(created.id);
+
+    const delRes = await app.handle(
+      new Request(`${base}/${created.id}`, { method: 'DELETE', headers: { cookie: adminCookie } }),
+    );
+    expect(delRes.status).toBe(200);
+    const after = (await (
+      await app.handle(new Request('http://localhost/products/by-slug/perso-crud'))
+    ).json()) as { personalizationFields: unknown[] };
+    expect(after.personalizationFields).toHaveLength(0);
   });
 });

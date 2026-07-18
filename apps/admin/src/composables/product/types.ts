@@ -40,6 +40,9 @@ export type ProductMedia = NonNullable<
   Awaited<ReturnType<ReturnType<typeof api.products>['media']['get']>>['data']
 >[number];
 
+// Champ de personnalisation (ADR-0010) — inféré depuis Eden (fiche admin `/full`).
+export type PersonalizationField = ProductDetail['personalizationFields'][number];
+
 // Form state
 export interface ProductFormState {
   name: string;
@@ -49,6 +52,7 @@ export interface ProductFormState {
   taxRate: string;
   collection: string;
   status: 'draft' | 'published' | 'archived';
+  personalizationEnabled: boolean;
 }
 
 // Select option type
