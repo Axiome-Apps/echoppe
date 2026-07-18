@@ -585,13 +585,10 @@ async function handlePaymentResult(
     }
   }
 
-  // Rupture : annuler l'autorisation (capture manuelle) ou rembourser (capture immédiate)
+  // Rupture : restituer les fonds au client. L'adapter décide du geste (Stripe annule
+  // l'autorisation, PayPal rembourse) — l'appelant exprime juste l'intention.
   if (!stockAvailable) {
-    if (adapter.cancelPayment) {
-      await adapter.cancelPayment(result.transactionId);
-    } else {
-      await adapter.refund(result.transactionId);
-    }
+    await adapter.cancelOrRefund(result.transactionId);
     await db
       .update(payment)
       .set({
@@ -604,23 +601,17 @@ async function handlePaymentResult(
       .update(order)
       .set({ status: 'cancelled', dateUpdated: new Date() })
       .where(eq(order.id, orderId));
-    console.warn(
-      `[Payment] Order ${orderId} cancelled — insufficient stock, payment ${adapter.cancelPayment ? 'authorization cancelled' : 'refunded'}`,
-    );
+    console.warn(`[Payment] Order ${orderId} cancelled — insufficient stock, funds released`);
     return;
   }
 
-  // Succès : capturer l'autorisation (capture manuelle). Sans `capturePayment`,
-  // le paiement est déjà capturé (capture immédiate) → rien à faire.
-  if (adapter.capturePayment) {
-    const captured = await adapter.capturePayment(result.transactionId);
-    if (!captured.success) {
-      // Stock décrémenté et commande confirmée mais capture échouée (rare) :
-      // l'autorisation reste valide, à recapturer manuellement. On alerte.
-      console.error(
-        `[Payment] Capture failed for order ${orderId}: ${captured.error ?? 'unknown'}`,
-      );
-    }
+  // Succès : finaliser l'encaissement. L'adapter décide (Stripe capture l'autorisation ;
+  // PayPal no-op car déjà capturé).
+  const captured = await adapter.capture(result.transactionId);
+  if (!captured.success) {
+    // Stock décrémenté et commande confirmée mais capture échouée (rare) : l'autorisation
+    // reste valide, à recapturer manuellement. On alerte.
+    console.error(`[Payment] Capture failed for order ${orderId}: ${captured.error ?? 'unknown'}`);
   }
 
   // Convertir le panier actif et envoyer la confirmation

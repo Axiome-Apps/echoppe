@@ -76,17 +76,18 @@ export interface PaymentAdapter {
   refund(transactionId: string, amount?: number): Promise<RefundResult>;
 
   /**
-   * Capture une autorisation préalable (capture manuelle).
-   * Présent uniquement sur les adapters supportant la capture différée (Stripe).
-   * Son absence signale un adapter en capture immédiate (PayPal).
+   * Finalise l'encaissement des fonds après confirmation de la commande.
+   * Stripe : capture l'autorisation manuelle. PayPal : no-op (déjà capturé à l'approbation).
+   * Toujours présent → l'appelant exprime l'intention sans brancher sur le provider.
    */
-  capturePayment?(transactionId: string): Promise<CaptureResult>;
+  capture(transactionId: string): Promise<CaptureResult>;
 
   /**
-   * Annule une autorisation non capturée → fonds libérés, aucun débit.
-   * Va de pair avec `capturePayment` (capture manuelle uniquement).
+   * Restitue les fonds au client car la commande ne sera pas honorée (rupture de stock).
+   * Stripe : annule l'autorisation non capturée (aucun débit). PayPal : rembourse la capture.
+   * La différence de fonctionnement réelle entre providers vit dans l'adapter, pas chez l'appelant.
    */
-  cancelPayment?(transactionId: string): Promise<CaptureResult>;
+  cancelOrRefund(transactionId: string): Promise<CaptureResult>;
 
   /**
    * Vérifie si l'adapter est configuré (credentials présents et activé)

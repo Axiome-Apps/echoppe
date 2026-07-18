@@ -64,3 +64,21 @@ store réel (adossé à la base, credentials déchiffrés) ; un test injecte un 
   `getProviderStatus` (qui ne déchiffrait pas).
 - La communication reçoit `CommunicationCredentialStore` (credentials **+** config d'envoi), les deux
   autres familles le `CredentialStore<T>` générique.
+
+## Settlement paiement — intention sur l'interface, mécanisme dans l'adapter (2026-07-18)
+
+La différence de fonctionnement entre providers est **réelle** (Stripe autorise puis capture ;
+PayPal encaisse à l'approbation) et doit rester **dans l'adapter** — le framework est agnostique.
+On remplace donc les méthodes optionnelles `capturePayment?`/`cancelPayment?` (sur lesquelles
+l'appelant branchait — violation LSP) par deux méthodes **obligatoires** exprimant l'intention :
+
+- `capture(txId)` — finalise l'encaissement. Stripe : capture l'autorisation manuelle ; PayPal :
+  no-op de succès (déjà capturé).
+- `cancelOrRefund(txId)` — restitue les fonds (commande non honorée). Stripe : annule l'autorisation
+  (aucun débit) ; PayPal : rembourse la capture.
+
+`handlePaymentResult` appelle uniformément `capture`/`cancelOrRefund` sans connaître le provider ;
+`refund(txId, amount?)` reste distinct pour le remboursement admin explicite. **Zéro changement de
+comportement** — pure remise au propre de l'interface. Verrou : `paypal.test.ts` (capture no-op).
+La question d'uniformiser PayPal sur `AUTHORIZE` (capture différée) est écartée : ce serait forcer
+les providers à être identiques, alors que le but est d'assumer leur différence dans l'adapter.

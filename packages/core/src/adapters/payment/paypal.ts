@@ -3,6 +3,7 @@ import paypal from '@paypal/checkout-server-sdk';
 import type { CredentialStore } from '../credential-store';
 import type { PayPalCredentials } from './config';
 import type {
+  CaptureResult,
   CheckoutParams,
   CheckoutSession,
   PaymentAdapter,
@@ -291,5 +292,16 @@ export class PayPalAdapter implements PaymentAdapter {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
+  }
+
+  async capture(_transactionId: string): Promise<CaptureResult> {
+    // PayPal encaisse dès l'approbation (intent CAPTURE) : rien à finaliser côté serveur.
+    return { success: true };
+  }
+
+  async cancelOrRefund(transactionId: string): Promise<CaptureResult> {
+    // Les fonds sont déjà encaissés → restituer = rembourser la capture.
+    const result = await this.refund(transactionId);
+    return { success: result.success, error: result.error };
   }
 }

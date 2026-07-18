@@ -173,7 +173,7 @@ export class StripeAdapter implements PaymentAdapter {
     }
   }
 
-  async capturePayment(transactionId: string): Promise<CaptureResult> {
+  async capture(transactionId: string): Promise<CaptureResult> {
     await this.ensureInitialized();
 
     if (!this.client) {
@@ -191,7 +191,7 @@ export class StripeAdapter implements PaymentAdapter {
     }
   }
 
-  async cancelPayment(transactionId: string): Promise<CaptureResult> {
+  async cancelOrRefund(transactionId: string): Promise<CaptureResult> {
     await this.ensureInitialized();
 
     if (!this.client) {
