@@ -32,7 +32,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "sh scripts/release.sh",
-    "test": "bun run --cwd packages/client test",
+    "test": "bun run --cwd packages/client test && bun run --cwd apps/admin test",
     "test:integration": "bun run --cwd apps/api test:smoke"
   },
   "dependencies": {

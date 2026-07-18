@@ -13,6 +13,7 @@ import ColorPicker from '@/components/molecules/ColorPicker.vue';
 import type { ColorMetadata } from '@/composables/options/useOptionsCatalog';
 import { api } from '@/lib/api';
 import { createOptionValue, getOptionValues, updateVariantOptions } from '@/lib/product-api';
+import { buildVariantPayload } from '@/composables/product/variant-payload';
 import { type Media, getMediaUrl } from '@/composables/media';
 import type {
   GlobalOption,
@@ -251,39 +252,23 @@ async function addExistingOption(optionId: string) {
 async function save() {
   saving.value = true;
 
-  // La route PUT/POST est un remplacement complet : sans isDefault/sortOrder explicites, l'API
-  // les réinitialise. On les propage donc toujours — sortOrder préservé depuis la variante éditée.
-  const payload = {
-    status: form.value.status,
-    quantity: form.value.quantity,
-    priceHt: parseFloat(form.value.priceHt) || 0,
-    costPrice: form.value.costPrice ? parseFloat(form.value.costPrice) : undefined,
-    compareAtPriceHt: form.value.compareAtPriceHt
-      ? parseFloat(form.value.compareAtPriceHt)
-      : undefined,
-    sku: form.value.sku || undefined,
-    barcode: form.value.barcode || undefined,
-    length: form.value.length ? parseFloat(form.value.length) : undefined,
-    width: form.value.width ? parseFloat(form.value.width) : undefined,
-    height: form.value.height ? parseFloat(form.value.height) : undefined,
-    weight: form.value.weight ? parseFloat(form.value.weight) : undefined,
-    isDefault: form.value.isDefault,
-  };
-
   try {
     // Réponse CRUD = VariantMutation (variant complet SANS optionValues) → pas de cast vers Variant.
     let savedVariant: VariantMutation | null = null;
 
     if (isNew.value) {
-      const { data } = await api.products({ id: props.productId }).variants.post(payload);
+      const { data } = await api
+        .products({ id: props.productId })
+        .variants.post(buildVariantPayload(form.value));
       if (data && 'id' in data) {
         savedVariant = data;
       }
     } else if (props.variant) {
+      // sortOrder préservé depuis la variante éditée (route = remplacement complet).
       const { data } = await api
         .products({ id: props.productId })
         .variants({ variantId: props.variant.id })
-        .put({ ...payload, sortOrder: props.variant.sortOrder });
+        .put(buildVariantPayload(form.value, props.variant.sortOrder));
       if (data && 'id' in data) {
         savedVariant = data;
       }

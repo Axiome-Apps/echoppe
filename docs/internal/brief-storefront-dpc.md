@@ -10,8 +10,8 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 
 | Item | État | Vérif |
 |------|------|-------|
-| A1. Rattacher image variante n'écrase plus `isDefault`/`sortOrder` | ✅ | 🔒 test admin (Phase 3) |
-| A2. Admin expose le contrôle « variante par défaut » + exclusivité API | ✅ | 🔒 test API exclusivité (Phase 3) |
+| A1. Rattacher image variante n'écrase plus `isDefault`/`sortOrder` | ✅ 🔒 | `variant-payload.test.ts` (admin, helper pur) |
+| A2. Admin expose le contrôle « variante par défaut » + exclusivité API | ✅ 🔒 | `variant-default-image.test.ts` (A2 exclusivité, session injectée) |
 | A3. `defaultVariant` retombe sur la 1re variante publiée si aucune `isDefault` | ✅ 🔒 | `variant-default-image.test.ts` (A3 ×4) |
 
 ## Partie B — Nouvelles capacités
