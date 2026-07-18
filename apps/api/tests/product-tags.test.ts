@@ -1,35 +1,22 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { fileURLToPath } from 'node:url';
-import {
-  category,
-  db,
-  eq,
-  product,
-  role,
-  runMigrations,
-  session,
-  taxRate,
-  user,
-  variant,
-} from '@echoppe/core';
+import { db, product, variant } from '@echoppe/core';
 import { app } from '../src/app';
+import {
+  createAdminSession,
+  ensureCategory,
+  ensureTaxRate,
+  migrate,
+  requireSmokeDb,
+} from './harness';
 
 // Verrou B3 (tags produit) : le PUT admin remplace l'ensemble des tags (sémantique set, dédup par
 // slug) ; le storefront les expose sur le détail (by-slug) et les cartes (liste), triés par nom.
 // ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-if (process.env.ECHOPPE_SMOKE !== '1') {
-  throw new Error('Test à lancer via `bun run test:smoke` (base jetable).');
-}
-
-const migrationsFolder = fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
+requireSmokeDb();
 
 let categoryId: string;
 let taxRateId: string;
-let adminCookie: string; // session admin owner injectée (bypass RBAC), cf. variant-default-image.test
-
-async function upsertRef<T extends { id: string }>(rows: T[], find: () => Promise<T[]>) {
-  return rows[0] ?? (await find())[0];
-}
+let adminCookie: string; // session admin owner injectée (bypass RBAC), cf. harness.createAdminSession
 
 // Produit publié minimal (1 variante publiée) — support des assertions liste/détail.
 async function publishedProduct(slug: string) {
@@ -59,48 +46,10 @@ const putTags = (p: { id: string; name: string }, tags: string[]) =>
   );
 
 beforeAll(async () => {
-  await runMigrations(migrationsFolder);
-  categoryId = (
-    await upsertRef(
-      await db
-        .insert(category)
-        .values({ name: 'Tags', slug: 'tags-cat' })
-        .onConflictDoNothing()
-        .returning(),
-      () => db.select().from(category).where(eq(category.slug, 'tags-cat')),
-    )
-  ).id;
-  taxRateId = (
-    await upsertRef(
-      await db
-        .insert(taxRate)
-        .values({ name: 'TVA tags', rate: '20.00' })
-        .onConflictDoNothing()
-        .returning(),
-      () => db.select().from(taxRate).where(eq(taxRate.name, 'TVA tags')),
-    )
-  ).id;
-
-  const [adminRole] = await db
-    .insert(role)
-    .values({ name: 'Tags Admin', scope: 'admin' })
-    .returning();
-  const [adminUser] = await db
-    .insert(user)
-    .values({
-      email: 'tags-admin@echoppe.test',
-      passwordHash: 'x',
-      firstName: 'Tags',
-      lastName: 'Admin',
-      role: adminRole.id,
-      isOwner: true,
-    })
-    .returning();
-  const token = crypto.randomUUID().replace(/-/g, '');
-  await db
-    .insert(session)
-    .values({ token, user: adminUser.id, expiresAt: new Date(Date.now() + 3600_000) });
-  adminCookie = `echoppe_admin_session=${token}`;
+  await migrate();
+  categoryId = await ensureCategory();
+  taxRateId = await ensureTaxRate();
+  adminCookie = await createAdminSession();
 });
 
 describe('B3 — tags produit', () => {

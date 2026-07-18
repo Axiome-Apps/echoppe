@@ -1,21 +1,14 @@
 import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
-import { fileURLToPath } from 'node:url';
+import { db, eq, inArray, media, product, productMedia, variant } from '@echoppe/core';
 import {
-  category,
-  db,
-  eq,
-  inArray,
-  media,
-  product,
-  productMedia,
-  role,
-  runMigrations,
-  session,
-  taxRate,
-  user,
-  variant,
-} from '@echoppe/core';
-import { app } from '../src/app';
+  createAdminSession,
+  ensureCategory,
+  ensureTaxRate,
+  getJson,
+  migrate,
+  req,
+  requireSmokeDb,
+} from './harness';
 
 // Verrouille deux comportements storefront (brief DPC A3 + B1), régressions vécues côté boutique :
 //  - A3 : la carte produit doit toujours porter un `defaultVariant` s'il existe ≥1 variante
@@ -23,13 +16,7 @@ import { app } from '../src/app';
 //  - B1 : le détail produit expose `variants[].featuredImage`, sourcé du média featuredForVariant.
 //
 // ⚠️ Même contrat d'exécution que storefront-smoke : base JETABLE via `bun run test:smoke` only.
-if (process.env.ECHOPPE_SMOKE !== '1') {
-  throw new Error(
-    'Test à lancer via `bun run test:smoke` (base jetable). Refus contre une base non balisée.',
-  );
-}
-
-const migrationsFolder = fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
+requireSmokeDb();
 
 // FK partagées (category + taxRate) — la base vierge migrée n'a ni catégorie ni taux.
 let categoryId: string;
@@ -92,61 +79,23 @@ async function insertMediaForVariant(productId: string, variantId: string) {
   return m.id;
 }
 
-const getJson = <T>(url: string): Promise<T> =>
-  app.handle(new Request(url)).then((res) => res.json() as Promise<T>);
-
 interface Card {
   slug: string;
   defaultVariant: { priceHt: string; compareAtPriceHt: string | null; quantity: number } | null;
 }
 
 const cardFor = async (slug: string): Promise<Card> => {
-  const body = await getJson<{ data: Card[] }>('http://localhost/products/?limit=100');
+  const body = await getJson<{ data: Card[] }>('/products/?limit=100');
   const card = body.data.find((p) => p.slug === slug);
   if (!card) throw new Error(`carte introuvable pour le slug ${slug}`);
   return card;
 };
 
 beforeAll(async () => {
-  await runMigrations(migrationsFolder);
-  const [cat] = await db
-    .insert(category)
-    .values({ name: 'Test', slug: 'test-cat' })
-    .onConflictDoNothing()
-    .returning();
-  categoryId =
-    cat?.id ?? (await db.select().from(category).where(eq(category.slug, 'test-cat')))[0].id;
-  const [tax] = await db
-    .insert(taxRate)
-    .values({ name: 'TVA test', rate: '20.00' })
-    .onConflictDoNothing()
-    .returning();
-  taxRateId =
-    tax?.id ?? (await db.select().from(taxRate).where(eq(taxRate.name, 'TVA test')))[0].id;
-
-  // Session admin owner (bypass RBAC) pour les routes auth-gated.
-  const [adminRole] = await db
-    .insert(role)
-    .values({ name: 'Test Admin', scope: 'admin' })
-    .returning();
-  const [adminUser] = await db
-    .insert(user)
-    .values({
-      email: 'test-admin@echoppe.test',
-      passwordHash: 'x',
-      firstName: 'Test',
-      lastName: 'Admin',
-      role: adminRole.id,
-      isOwner: true,
-    })
-    .returning();
-  const token = crypto.randomUUID().replace(/-/g, '');
-  await db.insert(session).values({
-    token,
-    user: adminUser.id,
-    expiresAt: new Date(Date.now() + 60 * 60 * 1000),
-  });
-  adminCookie = `echoppe_admin_session=${token}`;
+  await migrate();
+  categoryId = await ensureCategory();
+  taxRateId = await ensureTaxRate();
+  adminCookie = await createAdminSession();
 });
 
 afterEach(async () => {
@@ -213,7 +162,7 @@ describe('B1 — variant.featuredImage sur le détail', () => {
     const mediaId = await insertMediaForVariant(p.id, variants[0].id);
 
     const detail = await getJson<{ variants: { id: string; featuredImage: string | null }[] }>(
-      'http://localhost/products/by-slug/b1-featured',
+      '/products/by-slug/b1-featured',
     );
     const byId = new Map(detail.variants.map((v) => [v.id, v]));
     expect(byId.get(variants[0].id)?.featuredImage).toBe(mediaId);
@@ -228,19 +177,10 @@ describe('A2 — exclusivité isDefault côté API (transaction)', () => {
       { sku: 'EX-1', priceHt: '32.00', sortOrder: 1, isDefault: false },
     ]);
 
-    const res = await app.handle(
-      new Request(`http://localhost/products/${p.id}/variants/${variants[1].id}`, {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json', cookie: adminCookie },
-        body: JSON.stringify({
-          priceHt: 32,
-          isDefault: true,
-          status: 'published',
-          sortOrder: 1,
-          quantity: 8,
-        }),
-      }),
-    );
+    const res = await req('PUT', `/products/${p.id}/variants/${variants[1].id}`, {
+      cookie: adminCookie,
+      body: { priceHt: 32, isDefault: true, status: 'published', sortOrder: 1, quantity: 8 },
+    });
     expect(res.status).toBe(200);
 
     const rows = await db

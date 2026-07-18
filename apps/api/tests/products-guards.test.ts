@@ -1,56 +1,20 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { fileURLToPath } from 'node:url';
-import { db, role, runMigrations, session, user } from '@echoppe/core';
-import { app } from '../src/app';
+import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 
 // Filet de sécurité AVANT le découpage de products.ts (audit2 #6b) : verrouille la matrice RBAC des
 // routes produits — chaque sous-ressource protégée refuse l'anonyme (403), les publiques passent
 // (200), et l'owner franchit les guards. Si le découpage égare un guard, une route protégée
 // répondra 2xx à un anonyme → ce test casse.
 // ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-if (process.env.ECHOPPE_SMOKE !== '1') {
-  throw new Error('Test à lancer via `bun run test:smoke` (base jetable).');
-}
+requireSmokeDb();
 
-const migrationsFolder = fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
 const UUID = '00000000-0000-4000-8000-000000000000';
 
 let adminCookie: string;
 
-const req = (method: string, path: string, opts: { cookie?: string; body?: unknown } = {}) =>
-  app.handle(
-    new Request(`http://localhost${path}`, {
-      method,
-      headers: {
-        'content-type': 'application/json',
-        ...(opts.cookie ? { cookie: opts.cookie } : {}),
-      },
-      ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
-    }),
-  );
-
 beforeAll(async () => {
-  await runMigrations(migrationsFolder);
-  const [adminRole] = await db
-    .insert(role)
-    .values({ name: 'Guards Admin', scope: 'admin' })
-    .returning();
-  const [adminUser] = await db
-    .insert(user)
-    .values({
-      email: 'guards-admin@echoppe.test',
-      passwordHash: 'x',
-      firstName: 'Guards',
-      lastName: 'Admin',
-      role: adminRole.id,
-      isOwner: true,
-    })
-    .returning();
-  const token = crypto.randomUUID().replace(/-/g, '');
-  await db
-    .insert(session)
-    .values({ token, user: adminUser.id, expiresAt: new Date(Date.now() + 3600_000) });
-  adminCookie = `echoppe_admin_session=${token}`;
+  await migrate();
+  adminCookie = await createAdminSession();
 });
 
 // Corps valides (pour atteindre le guard sans buter sur la validation TypeBox).

@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { fileURLToPath } from 'node:url';
-import { db, eq, option, optionValue, runMigrations } from '@echoppe/core';
+import { db, eq, option, optionValue } from '@echoppe/core';
 import { app } from '../src/app';
+import { migrate, requireSmokeDb } from './harness';
 
 // Smoke « base vierge depuis les migrations » (T2 du runbook). Régression directe de
 // l'incident 0.4.0 : les colonnes option.type / option_value.metadata, poussées en dev
@@ -11,21 +11,15 @@ import { app } from '../src/app';
 //
 // ⚠️ Il ne s'exécute QUE via `bun run test:smoke` (scripts/smoke.ts), qui provisionne une
 // base disposable, injecte un DATABASE_URL explicite (écrasant le .env de dev) et pose le
-// drapeau ci-dessous. Un `bun test` direct hériterait du DATABASE_URL de dev via .env — la
-// migrer serait destructeur, d'où le refus.
+// drapeau requireSmokeDb. Un `bun test` direct hériterait du DATABASE_URL de dev via .env —
+// la migrer serait destructeur, d'où le refus.
 
-if (process.env.ECHOPPE_SMOKE !== '1') {
-  throw new Error(
-    'Smoke test à lancer via `bun run test:smoke` (base jetable). Refus contre une base non balisée.',
-  );
-}
-
-const migrationsFolder = fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
+requireSmokeDb();
 
 const json = (res: Response) => res.json() as Promise<unknown>;
 
 beforeAll(async () => {
-  await runMigrations(migrationsFolder);
+  await migrate();
 });
 
 describe('storefront smoke — base vierge migrée', () => {

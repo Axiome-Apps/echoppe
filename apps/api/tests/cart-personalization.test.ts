@@ -1,37 +1,24 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { fileURLToPath } from 'node:url';
-import {
-  category,
-  db,
-  eq,
-  personalizationField,
-  product,
-  role,
-  runMigrations,
-  session,
-  taxRate,
-  user,
-  variant,
-} from '@echoppe/core';
-import { app } from '../src/app';
+import { db, personalizationField, product, variant } from '@echoppe/core';
 import { calculateOrderTotals } from '../src/services/checkout';
+import {
+  createAdminSession,
+  ensureCategory,
+  ensureTaxRate,
+  getJson,
+  migrate,
+  req,
+  requireSmokeDb,
+} from './harness';
 
 // Verrou B2 (personnalisation produit, ADR-0010) : le détail expose les champs déclarés ; l'ajout
 // panier valide + calcule le supplément côté back (jamais le front) ; la commande le snapshote.
 // ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-if (process.env.ECHOPPE_SMOKE !== '1') {
-  throw new Error('Test à lancer via `bun run test:smoke` (base jetable).');
-}
-
-const migrationsFolder = fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
+requireSmokeDb();
 
 let categoryId: string;
 let taxRateId: string;
-let adminCookie: string; // session admin owner injectée (bypass RBAC), cf. variant-default-image.test
-
-async function upsertRef<T extends { id: string }>(rows: T[], find: () => Promise<T[]>) {
-  return rows[0] ?? (await find())[0];
-}
+let adminCookie: string; // session admin owner injectée (bypass RBAC), cf. harness.createAdminSession
 
 // Produit personnalisable : 1 variante publiée à 35 € + 1 champ « Prénom » requis +5 €.
 async function personalizableProduct(slug: string) {
@@ -72,67 +59,21 @@ async function personalizableProduct(slug: string) {
 }
 
 beforeAll(async () => {
-  await runMigrations(migrationsFolder);
-  categoryId = (
-    await upsertRef(
-      await db
-        .insert(category)
-        .values({ name: 'Perso', slug: 'perso-cat' })
-        .onConflictDoNothing()
-        .returning(),
-      () => db.select().from(category).where(eq(category.slug, 'perso-cat')),
-    )
-  ).id;
-  taxRateId = (
-    await upsertRef(
-      await db
-        .insert(taxRate)
-        .values({ name: 'TVA perso', rate: '20.00' })
-        .onConflictDoNothing()
-        .returning(),
-      () => db.select().from(taxRate).where(eq(taxRate.name, 'TVA perso')),
-    )
-  ).id;
-
-  const [adminRole] = await db
-    .insert(role)
-    .values({ name: 'Perso Admin', scope: 'admin' })
-    .returning();
-  const [adminUser] = await db
-    .insert(user)
-    .values({
-      email: 'perso-admin@echoppe.test',
-      passwordHash: 'x',
-      firstName: 'Perso',
-      lastName: 'Admin',
-      role: adminRole.id,
-      isOwner: true,
-    })
-    .returning();
-  const token = crypto.randomUUID().replace(/-/g, '');
-  await db
-    .insert(session)
-    .values({ token, user: adminUser.id, expiresAt: new Date(Date.now() + 3600_000) });
-  adminCookie = `echoppe_admin_session=${token}`;
+  await migrate();
+  categoryId = await ensureCategory();
+  taxRateId = await ensureTaxRate();
+  adminCookie = await createAdminSession();
 });
 
-const postCart = (body: unknown) =>
-  app.handle(
-    new Request('http://localhost/cart/items', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body),
-    }),
-  );
+const postCart = (body: unknown) => req('POST', '/cart/items', { body });
 
 describe('B2 — personnalisation produit', () => {
   it('le détail by-slug expose personalizationEnabled + les champs', async () => {
     const { field } = await personalizableProduct('perso-detail');
-    const res = await app.handle(new Request('http://localhost/products/by-slug/perso-detail'));
-    const detail = (await res.json()) as {
+    const detail = await getJson<{
       personalizationEnabled: boolean;
       personalizationFields: { id: string; label: string; priceHt: string; required: boolean }[];
-    };
+    }>('/products/by-slug/perso-detail');
     expect(detail.personalizationEnabled).toBe(true);
     expect(detail.personalizationFields).toHaveLength(1);
     expect(detail.personalizationFields[0]).toMatchObject({
@@ -207,30 +148,25 @@ describe('B2 — personnalisation produit', () => {
       })
       .returning();
 
-    const base = `http://localhost/products/${p.id}/personalization-fields`;
-    const createRes = await app.handle(
-      new Request(base, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', cookie: adminCookie },
-        body: JSON.stringify({ label: 'Gravure', type: 'text', maxLength: 15, priceHt: 3 }),
-      }),
-    );
+    const base = `/products/${p.id}/personalization-fields`;
+    const createRes = await req('POST', base, {
+      cookie: adminCookie,
+      body: { label: 'Gravure', type: 'text', maxLength: 15, priceHt: 3 },
+    });
     expect(createRes.status).toBe(200);
     const created = (await createRes.json()) as { id: string; priceHt: string };
     expect(created.priceHt).toBe('3.00');
 
-    const detail = (await (
-      await app.handle(new Request('http://localhost/products/by-slug/perso-crud'))
-    ).json()) as { personalizationFields: { id: string }[] };
+    const detail = await getJson<{ personalizationFields: { id: string }[] }>(
+      '/products/by-slug/perso-crud',
+    );
     expect(detail.personalizationFields.map((f) => f.id)).toContain(created.id);
 
-    const delRes = await app.handle(
-      new Request(`${base}/${created.id}`, { method: 'DELETE', headers: { cookie: adminCookie } }),
-    );
+    const delRes = await req('DELETE', `${base}/${created.id}`, { cookie: adminCookie });
     expect(delRes.status).toBe(200);
-    const after = (await (
-      await app.handle(new Request('http://localhost/products/by-slug/perso-crud'))
-    ).json()) as { personalizationFields: unknown[] };
+    const after = await getJson<{ personalizationFields: unknown[] }>(
+      '/products/by-slug/perso-crud',
+    );
     expect(after.personalizationFields).toHaveLength(0);
   });
 });

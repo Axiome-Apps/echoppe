@@ -1,41 +1,18 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { fileURLToPath } from 'node:url';
-import { collection, db, role, runMigrations, session, user } from '@echoppe/core';
+import { collection, db } from '@echoppe/core';
 import { app } from '../src/app';
+import { createAdminSession, migrate, requireSmokeDb } from './harness';
 
 // Verrou audit2 #3 (visibilityFilter, ADR-0006) : une ressource invisible est 404 pour un anonyme,
 // mais visible pour un principal privilégié (session admin). Le helper porte la règle de sécurité.
 // ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-if (process.env.ECHOPPE_SMOKE !== '1') {
-  throw new Error('Test à lancer via `bun run test:smoke` (base jetable).');
-}
-
-const migrationsFolder = fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
+requireSmokeDb();
 
 let adminCookie: string;
 
 beforeAll(async () => {
-  await runMigrations(migrationsFolder);
-  const [adminRole] = await db
-    .insert(role)
-    .values({ name: 'Visib Admin', scope: 'admin' })
-    .returning();
-  const [adminUser] = await db
-    .insert(user)
-    .values({
-      email: 'visib-admin@echoppe.test',
-      passwordHash: 'x',
-      firstName: 'Visib',
-      lastName: 'Admin',
-      role: adminRole.id,
-      isOwner: true,
-    })
-    .returning();
-  const token = crypto.randomUUID().replace(/-/g, '');
-  await db
-    .insert(session)
-    .values({ token, user: adminUser.id, expiresAt: new Date(Date.now() + 3600_000) });
-  adminCookie = `echoppe_admin_session=${token}`;
+  await migrate();
+  adminCookie = await createAdminSession();
 });
 
 describe('audit2 #3 — filtre de visibilité (ADR-0006)', () => {
