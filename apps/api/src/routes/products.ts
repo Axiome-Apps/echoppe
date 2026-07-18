@@ -6,18 +6,16 @@ import {
   db,
   desc,
   eq,
-  gt,
-  gte,
   ilike,
   inArray,
-  lte,
+  isNotNull,
+  ne,
   option,
   optionValue,
   or,
   product,
   productMedia,
   productOption,
-  sql,
   variant,
   variantOptionValue,
 } from '@echoppe/core';
@@ -34,6 +32,7 @@ import {
   variantPublicSchema,
 } from '../models/catalog';
 import { permissionGuard } from '../plugins/rbac';
+import { selectDefaultVariants } from '../utils/default-variant';
 import { buildEqFilters, buildListResponse, getPaginationParams } from '../utils/pagination';
 import { enrichProductCards } from '../utils/product-cards';
 import {
@@ -207,25 +206,20 @@ async function queryProductCards(query: ProductCardsQuery, statusConditions: SQL
     conditions.push(eq(product.category, category));
   }
 
-  // Filtres prix/stock : passent par le variant par défaut.
+  // Filtres prix/stock : passent par la variante par défaut effective (isDefault, sinon 1re
+  // publiée) — même résolution que les cartes, sinon un produit sans isDefault serait exclu.
   if (minPrice !== undefined || maxPrice !== undefined || inStock) {
-    const variantConditions: SQL[] = [eq(variant.isDefault, true)];
-    if (minPrice !== undefined) {
-      variantConditions.push(gte(sql`CAST(${variant.priceHt} AS DECIMAL)`, minPrice));
-    }
-    if (maxPrice !== undefined) {
-      variantConditions.push(lte(sql`CAST(${variant.priceHt} AS DECIMAL)`, maxPrice));
-    }
-    if (inStock) {
-      variantConditions.push(gt(variant.quantity, 0));
-    }
+    const defaultVariants = await selectDefaultVariants();
+    const filteredProductIds = defaultVariants
+      .filter((v) => {
+        const price = parseFloat(v.priceHt);
+        if (minPrice !== undefined && price < minPrice) return false;
+        if (maxPrice !== undefined && price > maxPrice) return false;
+        if (inStock && v.quantity <= 0) return false;
+        return true;
+      })
+      .map((v) => v.product);
 
-    const matchingVariants = await db
-      .select({ productId: variant.product })
-      .from(variant)
-      .where(and(...variantConditions));
-
-    const filteredProductIds = matchingVariants.map((v) => v.productId);
     if (filteredProductIds.length === 0) {
       return buildListResponse([], 0, page, limit);
     }
@@ -308,10 +302,20 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
 
       // Get all product images
       const allMedia = await db
-        .select({ mediaId: productMedia.media, sortOrder: productMedia.sortOrder })
+        .select({
+          mediaId: productMedia.media,
+          sortOrder: productMedia.sortOrder,
+          featuredForVariant: productMedia.featuredForVariant,
+        })
         .from(productMedia)
         .where(eq(productMedia.product, found.id))
         .orderBy(productMedia.sortOrder);
+
+      // Image mise en avant par variante (média featuredForVariant) → featuredImage du variant.
+      const featuredByVariant = new Map<string, string>();
+      for (const m of allMedia) {
+        if (m.featuredForVariant) featuredByVariant.set(m.featuredForVariant, m.mediaId);
+      }
 
       // Get all option values used by this product's variants
       const variantIds = variants.map((v) => v.id);
@@ -357,7 +361,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
             .select()
             .from(variantOptionValue)
             .where(eq(variantOptionValue.variant, v.id));
-          return { ...v, optionValues: optionValues.map((ov) => ov.optionValue) };
+          return {
+            ...v,
+            optionValues: optionValues.map((ov) => ov.optionValue),
+            featuredImage: featuredByVariant.get(v.id) ?? null,
+          };
         }),
       );
 
@@ -392,6 +400,21 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .where(eq(variant.product, params.id))
         .orderBy(variant.sortOrder);
 
+      // Image mise en avant par variante (média featuredForVariant) → featuredImage du variant.
+      const variantMedia = await db
+        .select({
+          mediaId: productMedia.media,
+          featuredForVariant: productMedia.featuredForVariant,
+        })
+        .from(productMedia)
+        .where(
+          and(eq(productMedia.product, params.id), isNotNull(productMedia.featuredForVariant)),
+        );
+      const featuredByVariant = new Map<string, string>();
+      for (const m of variantMedia) {
+        if (m.featuredForVariant) featuredByVariant.set(m.featuredForVariant, m.mediaId);
+      }
+
       // Get options for this product via junction table
       const productOptions = await db
         .select({
@@ -422,7 +445,11 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
             .select()
             .from(variantOptionValue)
             .where(eq(variantOptionValue.variant, v.id));
-          return { ...v, optionValues: optionValues.map((ov) => ov.optionValue) };
+          return {
+            ...v,
+            optionValues: optionValues.map((ov) => ov.optionValue),
+            featuredImage: featuredByVariant.get(v.id) ?? null,
+          };
         }),
       );
 
@@ -589,26 +616,33 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
       const [productExists] = await db.select().from(product).where(eq(product.id, params.id));
       if (!productExists) return status(404, { message: 'Product not found' });
 
-      const [created] = await db
-        .insert(variant)
-        .values({
-          product: params.id,
-          sku: body.sku,
-          barcode: body.barcode,
-          priceHt: String(body.priceHt),
-          compareAtPriceHt: body.compareAtPriceHt ? String(body.compareAtPriceHt) : null,
-          costPrice: body.costPrice ? String(body.costPrice) : null,
-          weight: body.weight ? String(body.weight) : null,
-          length: body.length ? String(body.length) : null,
-          width: body.width ? String(body.width) : null,
-          height: body.height ? String(body.height) : null,
-          isDefault: body.isDefault ?? false,
-          status: body.status ?? 'draft',
-          sortOrder: body.sortOrder ?? 0,
-          quantity: body.quantity ?? 0,
-          lowStockThreshold: body.lowStockThreshold ?? 5,
-        })
-        .returning();
+      // Une seule variante par défaut par produit : cocher isDefault décoche les autres (atomique).
+      const created = await db.transaction(async (tx) => {
+        if (body.isDefault) {
+          await tx.update(variant).set({ isDefault: false }).where(eq(variant.product, params.id));
+        }
+        const [row] = await tx
+          .insert(variant)
+          .values({
+            product: params.id,
+            sku: body.sku,
+            barcode: body.barcode,
+            priceHt: String(body.priceHt),
+            compareAtPriceHt: body.compareAtPriceHt ? String(body.compareAtPriceHt) : null,
+            costPrice: body.costPrice ? String(body.costPrice) : null,
+            weight: body.weight ? String(body.weight) : null,
+            length: body.length ? String(body.length) : null,
+            width: body.width ? String(body.width) : null,
+            height: body.height ? String(body.height) : null,
+            isDefault: body.isDefault ?? false,
+            status: body.status ?? 'draft',
+            sortOrder: body.sortOrder ?? 0,
+            quantity: body.quantity ?? 0,
+            lowStockThreshold: body.lowStockThreshold ?? 5,
+          })
+          .returning();
+        return row;
+      });
       return created;
     },
     {
@@ -624,26 +658,36 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   .put(
     '/:id/variants/:variantId',
     async ({ params, body, status }) => {
-      const [updated] = await db
-        .update(variant)
-        .set({
-          sku: body.sku,
-          barcode: body.barcode,
-          priceHt: String(body.priceHt),
-          compareAtPriceHt: body.compareAtPriceHt ? String(body.compareAtPriceHt) : null,
-          costPrice: body.costPrice ? String(body.costPrice) : null,
-          weight: body.weight ? String(body.weight) : null,
-          length: body.length ? String(body.length) : null,
-          width: body.width ? String(body.width) : null,
-          height: body.height ? String(body.height) : null,
-          isDefault: body.isDefault ?? false,
-          status: body.status ?? 'draft',
-          sortOrder: body.sortOrder ?? 0,
-          quantity: body.quantity ?? 0,
-          lowStockThreshold: body.lowStockThreshold ?? 5,
-        })
-        .where(and(eq(variant.id, params.variantId), eq(variant.product, params.id)))
-        .returning();
+      // Une seule variante par défaut par produit : cocher isDefault décoche les autres (atomique).
+      const updated = await db.transaction(async (tx) => {
+        if (body.isDefault) {
+          await tx
+            .update(variant)
+            .set({ isDefault: false })
+            .where(and(eq(variant.product, params.id), ne(variant.id, params.variantId)));
+        }
+        const [row] = await tx
+          .update(variant)
+          .set({
+            sku: body.sku,
+            barcode: body.barcode,
+            priceHt: String(body.priceHt),
+            compareAtPriceHt: body.compareAtPriceHt ? String(body.compareAtPriceHt) : null,
+            costPrice: body.costPrice ? String(body.costPrice) : null,
+            weight: body.weight ? String(body.weight) : null,
+            length: body.length ? String(body.length) : null,
+            width: body.width ? String(body.width) : null,
+            height: body.height ? String(body.height) : null,
+            isDefault: body.isDefault ?? false,
+            status: body.status ?? 'draft',
+            sortOrder: body.sortOrder ?? 0,
+            quantity: body.quantity ?? 0,
+            lowStockThreshold: body.lowStockThreshold ?? 5,
+          })
+          .where(and(eq(variant.id, params.variantId), eq(variant.product, params.id)))
+          .returning();
+        return row;
+      });
       if (!updated) return status(404, { message: 'Variant not found' });
       return updated;
     },

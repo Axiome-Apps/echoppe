@@ -7602,7 +7602,8 @@
                 "status",
                 "sortOrder",
                 "quantity",
-                "optionValues"
+                "optionValues",
+                "featuredImage"
               ],
               "properties": {
                 "id": {
@@ -7731,6 +7732,19 @@
                     "description": "UUID d'une valeur d'option sélectionnée.",
                     "type": "string"
                   }
+                },
+                "featuredImage": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "format": "uuid",
+                      "description": "UUID du média de la variante (média `featuredForVariant`), sinon null.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               }
             }
@@ -8242,7 +8256,8 @@
                 "status",
                 "sortOrder",
                 "quantity",
-                "optionValues"
+                "optionValues",
+                "featuredImage"
               ],
               "properties": {
                 "id": {
@@ -8371,6 +8386,19 @@
                     "description": "UUID d'une valeur d'option sélectionnée.",
                     "type": "string"
                   }
+                },
+                "featuredImage": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "format": "uuid",
+                      "description": "UUID du média de la variante (média `featuredForVariant`), sinon null.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               }
             }

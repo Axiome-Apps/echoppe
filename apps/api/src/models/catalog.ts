@@ -149,6 +149,12 @@ export const variantDetailSchema = t.Composite([
       t.String({ format: 'uuid', description: "UUID d'une valeur d'option sélectionnée." }),
       { description: 'Valeurs d’option qui définissent cette variante.' },
     ),
+    featuredImage: t.Nullable(
+      t.String({
+        format: 'uuid',
+        description: 'UUID du média de la variante (média `featuredForVariant`), sinon null.',
+      }),
+    ),
   }),
 ]);
 

@@ -10,6 +10,7 @@ import {
   variant,
   variantOptionValue,
 } from '@echoppe/core';
+import { selectDefaultVariants } from './default-variant';
 
 // Projection « carte produit » storefront — SOURCE UNIQUE partagée par les endpoints de
 // listing (GET /products/, /categories/:id/products, /collections/:id/products). Enrichit
@@ -59,15 +60,8 @@ export async function enrichProductCards<T extends { id: string }>(products: T[]
       })
       .from(productMedia)
       .where(inArray(productMedia.product, productIds)),
-    db
-      .select({
-        product: variant.product,
-        priceHt: variant.priceHt,
-        compareAtPriceHt: variant.compareAtPriceHt,
-        quantity: variant.quantity,
-      })
-      .from(variant)
-      .where(and(inArray(variant.product, productIds), eq(variant.isDefault, true))),
+    // Variante par défaut effective (isDefault, sinon 1re publiée) → jamais de faux OOS.
+    selectDefaultVariants(productIds),
     // Valeurs de l'axe couleur (option type=color) portées par les variantes de ces produits.
     db
       .select({

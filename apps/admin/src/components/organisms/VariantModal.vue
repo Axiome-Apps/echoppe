@@ -5,6 +5,7 @@ import Button from '@/components/atoms/Button.vue';
 import Label from '@/components/atoms/Label.vue';
 import Select from '@/components/atoms/Select.vue';
 import Input from '@/components/atoms/Input.vue';
+import Toggle from '@/components/atoms/Toggle.vue';
 import Combobox from '@/components/atoms/Combobox.vue';
 import type { ComboboxOption } from '@/components/atoms/Combobox.vue';
 import CheckIcon from '@/components/atoms/icons/CheckIcon.vue';
@@ -71,6 +72,7 @@ const form = ref({
   width: '',
   height: '',
   weight: '',
+  isDefault: false,
 });
 
 // Options data (for variant)
@@ -112,6 +114,7 @@ watch(
         width: v.width ?? '',
         height: v.height ?? '',
         weight: v.weight ?? '',
+        isDefault: v.isDefault,
       };
       // Initialize variant options from saved values
       if (v.optionValues && v.optionValues.length > 0) {
@@ -139,6 +142,7 @@ watch(
         width: '',
         height: '',
         weight: '',
+        isDefault: false,
       };
       variantOptions.value = [];
       selectedMediaId.value = null;
@@ -247,6 +251,8 @@ async function addExistingOption(optionId: string) {
 async function save() {
   saving.value = true;
 
+  // La route PUT/POST est un remplacement complet : sans isDefault/sortOrder explicites, l'API
+  // les réinitialise. On les propage donc toujours — sortOrder préservé depuis la variante éditée.
   const payload = {
     status: form.value.status,
     quantity: form.value.quantity,
@@ -261,6 +267,7 @@ async function save() {
     width: form.value.width ? parseFloat(form.value.width) : undefined,
     height: form.value.height ? parseFloat(form.value.height) : undefined,
     weight: form.value.weight ? parseFloat(form.value.weight) : undefined,
+    isDefault: form.value.isDefault,
   };
 
   try {
@@ -276,7 +283,7 @@ async function save() {
       const { data } = await api
         .products({ id: props.productId })
         .variants({ variantId: props.variant.id })
-        .put(payload);
+        .put({ ...payload, sortOrder: props.variant.sortOrder });
       if (data && 'id' in data) {
         savedVariant = data;
       }
@@ -397,6 +404,15 @@ async function save() {
               class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
+        </div>
+        <div class="mt-4 flex items-start justify-between gap-4 rounded border border-gray-200 p-3">
+          <div>
+            <Label>Variante par défaut</Label>
+            <p class="text-xs text-gray-500">
+              Prix et stock affichés sur la fiche produit et dans le catalogue.
+            </p>
+          </div>
+          <Toggle v-model="form.isDefault" />
         </div>
       </section>
 

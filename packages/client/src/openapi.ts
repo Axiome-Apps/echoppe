@@ -1183,6 +1183,7 @@ export interface components {
                 quantity: number;
                 /** @description Valeurs d’option qui définissent cette variante. */
                 optionValues: string[];
+                featuredImage: (string | null) | null;
             }[];
             /** @description Options du produit. */
             options: {
@@ -1348,6 +1349,7 @@ export interface components {
                 quantity: number;
                 /** @description Valeurs d’option qui définissent cette variante. */
                 optionValues: string[];
+                featuredImage: (string | null) | null;
             }[];
             /** @description Options du produit. */
             options: {
