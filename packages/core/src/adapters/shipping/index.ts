@@ -20,74 +20,36 @@ export type {
   ShippingRate,
   TrackingEvent,
 } from './types';
+export { isShippingProvider, SHIPPING_PROVIDERS } from './types';
 
+import { createAdapterRegistry } from '../registry';
 import { ColissimoAdapter } from './colissimo';
 import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 import { MondialRelayAdapter } from './mondialrelay';
 import { SendcloudAdapter } from './sendcloud';
-import type { ShippingAdapter, ShippingProvider } from './types';
+import { SHIPPING_PROVIDERS, type ShippingAdapter, type ShippingProvider } from './types';
 
-// Singleton instances (lazy-initialized)
-let sendcloudAdapter: SendcloudAdapter | null = null;
-let colissimoAdapter: ColissimoAdapter | null = null;
-let mondialrelayAdapter: MondialRelayAdapter | null = null;
+// Registre déclaratif : store réel adossé à la base (credentials déchiffrés) injecté par fabrique.
+const registry = createAdapterRegistry<ShippingProvider, ShippingAdapter>(SHIPPING_PROVIDERS, {
+  colissimo: () => new ColissimoAdapter({ get: () => getShippingProviderCredentials('colissimo') }),
+  mondialrelay: () =>
+    new MondialRelayAdapter({ get: () => getShippingProviderCredentials('mondialrelay') }),
+  sendcloud: () => new SendcloudAdapter({ get: () => getShippingProviderCredentials('sendcloud') }),
+});
 
-/**
- * Retourne l'adapter de livraison pour le provider spécifié
- */
+const isReady = async (provider: ShippingProvider): Promise<boolean> => {
+  const status = await getShippingProviderStatus(provider);
+  return status.isConfigured && status.isEnabled;
+};
+
 export function getShippingAdapter(provider: ShippingProvider): ShippingAdapter {
-  switch (provider) {
-    case 'sendcloud':
-      if (!sendcloudAdapter) {
-        sendcloudAdapter = new SendcloudAdapter({
-          get: () => getShippingProviderCredentials('sendcloud'),
-        });
-      }
-      return sendcloudAdapter;
-
-    case 'colissimo':
-      if (!colissimoAdapter) {
-        colissimoAdapter = new ColissimoAdapter({
-          get: () => getShippingProviderCredentials('colissimo'),
-        });
-      }
-      return colissimoAdapter;
-
-    case 'mondialrelay':
-      if (!mondialrelayAdapter) {
-        mondialrelayAdapter = new MondialRelayAdapter({
-          get: () => getShippingProviderCredentials('mondialrelay'),
-        });
-      }
-      return mondialrelayAdapter;
-
-    default:
-      throw new Error(`Unknown shipping provider: ${provider}`);
-  }
+  return registry.get(provider);
 }
 
-/**
- * Retourne la liste des providers configurés et activés
- */
-export async function getAvailableShippingProviders(): Promise<ShippingProvider[]> {
-  const providers: ShippingProvider[] = ['sendcloud', 'colissimo', 'mondialrelay'];
-  const available: ShippingProvider[] = [];
-
-  for (const provider of providers) {
-    const status = await getShippingProviderStatus(provider);
-    if (status.isConfigured && status.isEnabled) {
-      available.push(provider);
-    }
-  }
-
-  return available;
+export function getAvailableShippingProviders(): Promise<ShippingProvider[]> {
+  return registry.available(isReady);
 }
 
-/**
- * Réinitialise les adapters (utile après mise à jour des credentials)
- */
 export function resetShippingAdapters(): void {
-  sendcloudAdapter = null;
-  colissimoAdapter = null;
-  mondialrelayAdapter = null;
+  registry.reset();
 }

@@ -24,6 +24,7 @@ export {
 export {
   BrevoAdapter,
   type BrevoCredentials,
+  COMMUNICATION_PROVIDERS,
   // Types
   type CommunicationAdapter,
   type CommunicationConfig,
@@ -40,6 +41,7 @@ export {
   // Config (renamed to avoid conflicts)
   getProviderCredentials as getCommunicationProviderCredentials,
   getProviderStatus as getCommunicationProviderStatus,
+  isCommunicationProvider,
   // Adapters
   ResendAdapter,
   type ResendCredentials,

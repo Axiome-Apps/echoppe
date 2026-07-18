@@ -6,6 +6,7 @@ import type {
   SmtpCredentials,
 } from '@echoppe/core';
 import {
+  COMMUNICATION_PROVIDERS,
   communicationLog,
   db,
   getCommunicationAdapter,
@@ -48,6 +49,7 @@ const smtpConfigBody = t.Object({
 });
 
 const testEmailBody = t.Object({
+  // Littéraux explicites (l'inférence Eden exige des TLiteral précis) — garder en phase avec COMMUNICATION_PROVIDERS.
   provider: t.Union([t.Literal('resend'), t.Literal('brevo'), t.Literal('smtp')]),
   to: t.String({ format: 'email' }),
 });
@@ -187,7 +189,7 @@ export const communicationsRoutes = new Elysia({
   .get(
     '/providers',
     async () => {
-      const providers: CommunicationProvider[] = ['resend', 'brevo', 'smtp'];
+      const providers = COMMUNICATION_PROVIDERS;
       const encryptionReady = isEncryptionConfigured();
 
       const result = await Promise.all(

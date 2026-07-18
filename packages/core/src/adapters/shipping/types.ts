@@ -1,4 +1,11 @@
-export type ShippingProvider = 'colissimo' | 'mondialrelay' | 'sendcloud';
+// SSOT des transporteurs — ajouter un transporteur = l'inscrire ici (+ adapter + credentials).
+// Registre, listings et schémas de route en dérivent, jamais de liste codée en dur ailleurs.
+export const SHIPPING_PROVIDERS = ['colissimo', 'mondialrelay', 'sendcloud'] as const;
+export type ShippingProvider = (typeof SHIPPING_PROVIDERS)[number];
+
+export function isShippingProvider(value: string): value is ShippingProvider {
+  return (SHIPPING_PROVIDERS as readonly string[]).includes(value);
+}
 
 export interface Address {
   name: string;

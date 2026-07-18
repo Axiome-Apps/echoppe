@@ -23,93 +23,60 @@ export type {
   EmailTemplate,
   SendResult,
 } from './types';
+export { COMMUNICATION_PROVIDERS, isCommunicationProvider } from './types';
 
+import { createAdapterRegistry } from '../registry';
 import { BrevoAdapter } from './brevo';
 import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
 import { ResendAdapter } from './resend';
 import { SmtpAdapter } from './smtp';
-import type { CommunicationAdapter, CommunicationProvider } from './types';
+import {
+  COMMUNICATION_PROVIDERS,
+  type CommunicationAdapter,
+  type CommunicationProvider,
+} from './types';
 
-// Singleton instances (lazy-initialized)
-let resendAdapter: ResendAdapter | null = null;
-let brevoAdapter: BrevoAdapter | null = null;
-let smtpAdapter: SmtpAdapter | null = null;
+// Registre déclaratif : store réel (credentials + config d'envoi déchiffrés) injecté par fabrique.
+const registry = createAdapterRegistry<CommunicationProvider, CommunicationAdapter>(
+  COMMUNICATION_PROVIDERS,
+  {
+    resend: () =>
+      new ResendAdapter({
+        getCredentials: () => getProviderCredentials('resend'),
+        getConfig: () => getProviderConfig('resend'),
+      }),
+    brevo: () =>
+      new BrevoAdapter({
+        getCredentials: () => getProviderCredentials('brevo'),
+        getConfig: () => getProviderConfig('brevo'),
+      }),
+    smtp: () =>
+      new SmtpAdapter({
+        getCredentials: () => getProviderCredentials('smtp'),
+        getConfig: () => getProviderConfig('smtp'),
+      }),
+  },
+);
 
-/**
- * Retourne l'adapter de communication pour le provider spécifié
- */
+const isReady = async (provider: CommunicationProvider): Promise<boolean> => {
+  const status = await getProviderStatus(provider);
+  return status.isConfigured && status.isEnabled;
+};
+
 export function getCommunicationAdapter(provider: CommunicationProvider): CommunicationAdapter {
-  switch (provider) {
-    case 'resend':
-      if (!resendAdapter) {
-        resendAdapter = new ResendAdapter({
-          getCredentials: () => getProviderCredentials('resend'),
-          getConfig: () => getProviderConfig('resend'),
-        });
-      }
-      return resendAdapter;
-
-    case 'brevo':
-      if (!brevoAdapter) {
-        brevoAdapter = new BrevoAdapter({
-          getCredentials: () => getProviderCredentials('brevo'),
-          getConfig: () => getProviderConfig('brevo'),
-        });
-      }
-      return brevoAdapter;
-
-    case 'smtp':
-      if (!smtpAdapter) {
-        smtpAdapter = new SmtpAdapter({
-          getCredentials: () => getProviderCredentials('smtp'),
-          getConfig: () => getProviderConfig('smtp'),
-        });
-      }
-      return smtpAdapter;
-
-    default:
-      throw new Error(`Unknown communication provider: ${provider}`);
-  }
+  return registry.get(provider);
 }
 
-/**
- * Retourne le premier provider configuré et activé
- */
+// Premier provider configuré et activé (ordre déclaré dans COMMUNICATION_PROVIDERS).
 export async function getActiveCommunicationAdapter(): Promise<CommunicationAdapter | null> {
-  const providers: CommunicationProvider[] = ['resend', 'brevo', 'smtp'];
-
-  for (const provider of providers) {
-    const status = await getProviderStatus(provider);
-    if (status.isConfigured && status.isEnabled) {
-      return getCommunicationAdapter(provider);
-    }
-  }
-
-  return null;
+  const [first] = await registry.available(isReady);
+  return first ? registry.get(first) : null;
 }
 
-/**
- * Retourne la liste des providers configurés et activés
- */
-export async function getAvailableCommunicationProviders(): Promise<CommunicationProvider[]> {
-  const providers: CommunicationProvider[] = ['resend', 'brevo', 'smtp'];
-  const available: CommunicationProvider[] = [];
-
-  for (const provider of providers) {
-    const status = await getProviderStatus(provider);
-    if (status.isConfigured && status.isEnabled) {
-      available.push(provider);
-    }
-  }
-
-  return available;
+export function getAvailableCommunicationProviders(): Promise<CommunicationProvider[]> {
+  return registry.available(isReady);
 }
 
-/**
- * Réinitialise les adapters (utile après mise à jour des credentials)
- */
 export function resetCommunicationAdapters(): void {
-  resendAdapter = null;
-  brevoAdapter = null;
-  smtpAdapter = null;
+  registry.reset();
 }

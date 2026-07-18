@@ -20,58 +20,31 @@ export type {
 } from './types';
 export { isPaymentProvider, PAYMENT_PROVIDERS } from './types';
 
+import { createAdapterRegistry } from '../registry';
 import { getProviderCredentials, getProviderStatus } from './config';
 import { PayPalAdapter } from './paypal';
 import { StripeAdapter } from './stripe';
 import { PAYMENT_PROVIDERS, type PaymentAdapter, type PaymentProvider } from './types';
 
-// Singleton instances (lazy-initialized)
-let stripeAdapter: StripeAdapter | null = null;
-let paypalAdapter: PayPalAdapter | null = null;
+// Registre déclaratif : store réel adossé à la base (credentials déchiffrés) injecté par fabrique.
+const registry = createAdapterRegistry<PaymentProvider, PaymentAdapter>(PAYMENT_PROVIDERS, {
+  stripe: () => new StripeAdapter({ get: () => getProviderCredentials('stripe') }),
+  paypal: () => new PayPalAdapter({ get: () => getProviderCredentials('paypal') }),
+});
 
-/**
- * Retourne l'adapter de paiement pour le provider spécifié
- */
+const isReady = async (provider: PaymentProvider): Promise<boolean> => {
+  const status = await getProviderStatus(provider);
+  return status.isConfigured && status.isEnabled;
+};
+
 export function getPaymentAdapter(provider: PaymentProvider): PaymentAdapter {
-  switch (provider) {
-    case 'stripe':
-      if (!stripeAdapter) {
-        // Store réel adossé à la base (credentials déchiffrés) — injection DIP.
-        stripeAdapter = new StripeAdapter({ get: () => getProviderCredentials('stripe') });
-      }
-      return stripeAdapter;
-
-    case 'paypal':
-      if (!paypalAdapter) {
-        paypalAdapter = new PayPalAdapter({ get: () => getProviderCredentials('paypal') });
-      }
-      return paypalAdapter;
-
-    default:
-      throw new Error(`Unknown payment provider: ${provider}`);
-  }
+  return registry.get(provider);
 }
 
-/**
- * Retourne la liste des providers configurés et activés
- */
-export async function getAvailablePaymentProviders(): Promise<PaymentProvider[]> {
-  const available: PaymentProvider[] = [];
-
-  for (const provider of PAYMENT_PROVIDERS) {
-    const status = await getProviderStatus(provider);
-    if (status.isConfigured && status.isEnabled) {
-      available.push(provider);
-    }
-  }
-
-  return available;
+export function getAvailablePaymentProviders(): Promise<PaymentProvider[]> {
+  return registry.available(isReady);
 }
 
-/**
- * Réinitialise les adapters (utile après mise à jour des credentials)
- */
 export function resetPaymentAdapters(): void {
-  stripeAdapter = null;
-  paypalAdapter = null;
+  registry.reset();
 }

@@ -1,4 +1,11 @@
-export type CommunicationProvider = 'resend' | 'brevo' | 'smtp';
+// SSOT des providers de communication — ajouter un provider = l'inscrire ici (+ adapter +
+// credentials). Registre, listings et schémas de route en dérivent, jamais de liste codée en dur.
+export const COMMUNICATION_PROVIDERS = ['resend', 'brevo', 'smtp'] as const;
+export type CommunicationProvider = (typeof COMMUNICATION_PROVIDERS)[number];
+
+export function isCommunicationProvider(value: string): value is CommunicationProvider {
+  return (COMMUNICATION_PROVIDERS as readonly string[]).includes(value);
+}
 export type EmailStatus = 'sent' | 'failed' | 'bounced';
 export type EmailTemplate =
   | 'order-confirmation'

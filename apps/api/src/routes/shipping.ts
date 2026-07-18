@@ -9,6 +9,7 @@ import {
   order,
   resetShippingAdapters,
   type SendcloudCredentials,
+  SHIPPING_PROVIDERS,
   type ShippingProvider,
   saveShippingProviderCredentials,
   shipment,
@@ -48,6 +49,7 @@ const ratesBody = t.Object({
 const labelBody = t.Object({
   orderId: t.String({ format: 'uuid' }),
   weight: t.Number({ minimum: 1 }),
+  // Littéraux explicites (l'inférence Eden exige des TLiteral précis) — garder en phase avec SHIPPING_PROVIDERS.
   provider: t.Union([t.Literal('colissimo'), t.Literal('mondialrelay'), t.Literal('sendcloud')]),
   service: t.Optional(t.String()),
   sender: t.Object({
@@ -163,7 +165,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
   .get(
     '/providers',
     async () => {
-      const providers: ShippingProvider[] = ['colissimo', 'mondialrelay', 'sendcloud'];
+      const providers = SHIPPING_PROVIDERS;
       const encryptionReady = isEncryptionConfigured();
 
       const result = await Promise.all(
@@ -187,7 +189,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
   .post(
     '/rates',
     async ({ body }) => {
-      const providers: ShippingProvider[] = ['colissimo', 'mondialrelay', 'sendcloud'];
+      const providers = SHIPPING_PROVIDERS;
       const allRates = [];
 
       for (const provider of providers) {
