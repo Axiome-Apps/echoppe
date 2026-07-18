@@ -74,8 +74,16 @@ describe('audit2 #6b — matrice RBAC des routes produits', () => {
       ['GET', `/products/${UUID}/full`], // product:read adminOnly
       ['POST', `/products/${UUID}/personalization-fields`, fieldBody], // product:update
       ['POST', `/products/${UUID}/media`, mediaBody], // product:update
+      ['GET', `/products/${UUID}/media`], // product (lecture admin)
+      ['PUT', `/products/${UUID}/media/${UUID}`, { sortOrder: 1 }], // product:update
       ['DELETE', `/products/${UUID}/media/${UUID}`], // product:delete
+      ['PUT', `/products/${UUID}/personalization-fields/${UUID}`, fieldBody], // product:update
+      ['DELETE', `/products/${UUID}/personalization-fields/${UUID}`], // product:update
+      ['PUT', `/products/${UUID}/variants/${UUID}/options`, { optionValueIds: [] }], // variant:update
+      ['GET', '/products/option-axes'], // option:read
       ['POST', `/products/${UUID}/option-axes`, optionBody], // option:create
+      ['PUT', `/products/${UUID}/option-axes/${UUID}`, optionBody], // option:update
+      ['DELETE', `/products/${UUID}/option-axes/${UUID}`], // option:delete
     ];
     for (const [method, path, body] of cases) {
       const res = await req(method, path, { body });
