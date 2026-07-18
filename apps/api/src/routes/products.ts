@@ -45,6 +45,7 @@ import {
   withNotFound,
   withReadErrors,
 } from '../utils/responses';
+import { getProductTags, setProductTags } from '../utils/tags';
 
 // Schémas d'entité catalogue (product/variant/option…) → src/models/catalog.ts
 
@@ -54,6 +55,7 @@ const productCreateBody = t.Object({
   category: t.String({ format: 'uuid' }),
   taxRate: t.String({ format: 'uuid' }),
   status: t.Optional(t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')])),
+  tags: t.Optional(t.Array(t.String({ maxLength: 50 }))),
 });
 
 const productUpdateBody = t.Object({
@@ -63,6 +65,8 @@ const productUpdateBody = t.Object({
   taxRate: t.String({ format: 'uuid' }),
   status: t.Optional(t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')])),
   personalizationEnabled: t.Optional(t.Boolean()),
+  // Tags (B3) — sémantique set : remplace l'ensemble des tags du produit (noms). Absent = inchangé.
+  tags: t.Optional(t.Array(t.String({ maxLength: 50 }))),
 });
 
 const productPatchBody = t.Object({
@@ -73,6 +77,7 @@ const productPatchBody = t.Object({
   taxRate: t.Optional(t.String({ format: 'uuid' })),
   status: t.Optional(t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')])),
   personalizationEnabled: t.Optional(t.Boolean()),
+  tags: t.Optional(t.Array(t.String({ maxLength: 50 }))),
 });
 
 // Champ de personnalisation (ADR-0010) — corps CRUD admin.
@@ -393,12 +398,15 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         ? await getPersonalizationFields(found.id)
         : [];
 
+      const tags = await getProductTags(found.id);
+
       return {
         ...found,
         featuredImage: featuredMedia?.mediaId ?? null,
         images: allMedia.map((m) => m.mediaId),
         variants: variantsWithOptions,
         options: filteredOptions,
+        tags,
         personalizationEnabled: found.personalizationEnabled,
         personalizationFields,
       };
@@ -479,7 +487,9 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         }),
       );
 
-      return { ...found, variants: variantsWithOptions, options: optionsWithValues };
+      const tags = await getProductTags(found.id);
+
+      return { ...found, variants: variantsWithOptions, options: optionsWithValues, tags };
     },
     { params: productParams, response: withNotFound({ 200: 'ProductWithVariants' }) },
   )
@@ -524,6 +534,9 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         })
         .returning();
 
+      // Tags (B3) : rattache l'ensemble fourni à la création.
+      if (body.tags !== undefined) await setProductTags(created.id, body.tags);
+
       logAudit({
         userId: currentUser?.id,
         action: 'product.create',
@@ -557,6 +570,9 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .where(eq(product.id, params.id))
         .returning();
       if (!updated) return status(404, { message: 'Product not found' });
+
+      // Tags (B3) : remplace l'ensemble si fourni (absent = inchangé).
+      if (body.tags !== undefined) await setProductTags(params.id, body.tags);
 
       logAudit({
         userId: currentUser?.id,
@@ -599,6 +615,10 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .returning();
 
       if (!updated) return status(404, { message: 'Product not found' });
+
+      // Tags (B3) : remplace l'ensemble si fourni (absent = inchangé).
+      if (body.tags !== undefined) await setProductTags(params.id, body.tags);
+
       return updated;
     },
     {
@@ -848,10 +868,13 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
         .where(eq(personalizationField.product, params.id))
         .orderBy(personalizationField.sortOrder);
 
+      const tags = await getProductTags(params.id);
+
       return {
         ...found,
         variants: variantsWithOptions,
         options: optionsWithValues,
+        tags,
         personalizationEnabled: found.personalizationEnabled,
         personalizationFields,
       };

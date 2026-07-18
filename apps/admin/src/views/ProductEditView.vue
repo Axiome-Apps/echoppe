@@ -88,6 +88,7 @@ onMounted(async () => {
           v-if="productForm.isNew.value"
           v-model:name="productForm.form.value.name"
           v-model:description="productForm.form.value.description"
+          v-model:tags="productForm.form.value.tags"
         />
 
         <!-- Produit existant : onglets Général / Variantes -->
@@ -145,6 +146,7 @@ onMounted(async () => {
             <ProductInfoCard
               v-model:name="productForm.form.value.name"
               v-model:description="productForm.form.value.description"
+              v-model:tags="productForm.form.value.tags"
             />
             <div class="bg-white rounded-lg shadow p-6">
               <ProductMediaGallery

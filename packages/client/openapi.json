@@ -7552,6 +7552,7 @@
           "dateUpdated",
           "variants",
           "options",
+          "tags",
           "featuredImage",
           "images",
           "personalizationEnabled",
@@ -7923,6 +7924,14 @@
               }
             }
           },
+          "tags": {
+            "description": "Tags du produit (noms), triés par nom. Vide si aucun.",
+            "type": "array",
+            "items": {
+              "description": "Nom d'un tag.",
+              "type": "string"
+            }
+          },
           "featuredImage": {
             "nullable": true,
             "anyOf": [
@@ -8029,7 +8038,8 @@
                 "featuredImage",
                 "defaultVariant",
                 "images",
-                "swatches"
+                "swatches",
+                "tags"
               ],
               "properties": {
                 "id": {
@@ -8215,6 +8225,14 @@
                       }
                     }
                   }
+                },
+                "tags": {
+                  "description": "Tags du produit (noms), triés par nom. Vide si aucun.",
+                  "type": "array",
+                  "items": {
+                    "description": "Nom d'un tag.",
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -8266,7 +8284,8 @@
           "dateCreated",
           "dateUpdated",
           "variants",
-          "options"
+          "options",
+          "tags"
         ],
         "properties": {
           "id": {
@@ -8632,6 +8651,14 @@
                   }
                 }
               }
+            }
+          },
+          "tags": {
+            "description": "Tags du produit (noms), triés par nom. Vide si aucun.",
+            "type": "array",
+            "items": {
+              "description": "Nom d'un tag.",
+              "type": "string"
             }
           }
         },

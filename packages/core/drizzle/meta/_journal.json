@@ -57,6 +57,13 @@
       "when": 1784382920058,
       "tag": "0007_sweet_saracen",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784386410776,
+      "tag": "0008_quick_smiling_tiger",
+      "breakpoints": true
     }
   ]
 }

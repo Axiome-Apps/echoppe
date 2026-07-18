@@ -1240,6 +1240,8 @@ export interface components {
                     sortOrder: number;
                 }[];
             }[];
+            /** @description Tags du produit (noms), triés par nom. Vide si aucun. */
+            tags: string[];
             featuredImage: (string | null) | null;
             /** @description Galerie de médias du produit. */
             images: string[];
@@ -1314,6 +1316,8 @@ export interface components {
                     color: string;
                     image: (string | null) | null;
                 }[];
+                /** @description Tags du produit (noms), triés par nom. Vide si aucun. */
+                tags: string[];
             }[];
             meta: {
                 total: number;
@@ -1425,6 +1429,8 @@ export interface components {
                     sortOrder: number;
                 }[];
             }[];
+            /** @description Tags du produit (noms), triés par nom. Vide si aucun. */
+            tags: string[];
         };
         TaxRateList: {
             /**

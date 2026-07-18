@@ -10,6 +10,11 @@ const statusEnum = t.Union([t.Literal('draft'), t.Literal('published'), t.Litera
   description: 'Statut de publication.',
 });
 
+// Tags produit (B3) — noms triés, vide si aucun. Partagé cartes / détail / vue admin.
+const tagsSchema = t.Array(t.String({ description: "Nom d'un tag." }), {
+  description: 'Tags du produit (noms), triés par nom. Vide si aucun.',
+});
+
 export const defaultVariantSchema = t.Object({
   priceHt: t.String({ description: 'Prix HT, décimal en chaîne (ex. « 12.90 »).' }),
   compareAtPriceHt: t.Nullable(
@@ -51,6 +56,7 @@ export const productListSchema = t.Object({
   swatches: t.Array(swatchSchema, {
     description: 'Axe couleur (option type=color) — pastilles, vide si aucune.',
   }),
+  tags: tagsSchema,
 });
 
 export const productSchema = t.Object({
@@ -173,6 +179,7 @@ export const productWithVariantsSchema = t.Composite([
   t.Object({
     variants: t.Array(variantDetailSchema, { description: 'Variantes du produit.' }),
     options: t.Array(optionDetailSchema, { description: 'Options du produit.' }),
+    tags: tagsSchema,
   }),
 ]);
 
@@ -209,6 +216,7 @@ export const productAdminWithVariantsSchema = t.Composite([
   t.Object({
     variants: t.Array(variantAdminDetailSchema, { description: 'Variantes (vue admin complète).' }),
     options: t.Array(optionDetailSchema, { description: 'Options du produit.' }),
+    tags: tagsSchema,
     personalizationEnabled: t.Boolean({ description: 'Le produit accepte une personnalisation.' }),
     personalizationFields: t.Array(personalizationFieldAdminSchema, {
       description: 'Champs de personnalisation déclarés, vide si aucun.',

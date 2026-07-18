@@ -11,6 +11,7 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { selectDefaultVariants } from './default-variant';
+import { getTagsByProduct } from './tags';
 
 // Projection « carte produit » storefront — SOURCE UNIQUE partagée par les endpoints de
 // listing (GET /products/, /categories/:id/products, /collections/:id/products). Enrichit
@@ -36,6 +37,7 @@ const emptyCard = {
   defaultVariant: null,
   images: [] as string[],
   swatches: [] as Swatch[],
+  tags: [] as string[],
 };
 
 // Sérialise une couleur oklch stockée en chaîne CSS rendue par le navigateur (gamut-mappée).
@@ -49,7 +51,7 @@ export async function enrichProductCards<T extends { id: string }>(products: T[]
     return products.map((p) => ({ ...p, ...emptyCard }));
   }
 
-  const [media, defaultVariants, colorRows] = await Promise.all([
+  const [media, defaultVariants, colorRows, tagsByProduct] = await Promise.all([
     db
       .select({
         product: productMedia.product,
@@ -77,6 +79,8 @@ export async function enrichProductCards<T extends { id: string }>(products: T[]
       .innerJoin(option, eq(option.id, optionValue.option))
       .where(and(inArray(variant.product, productIds), eq(option.type, 'color')))
       .orderBy(optionValue.sortOrder),
+    // Tags (noms triés) par produit → chips storefront.
+    getTagsByProduct(productIds),
   ]);
 
   // Galerie ordonnée par produit : image featured en premier, puis sortOrder croissant.
@@ -134,5 +138,6 @@ export async function enrichProductCards<T extends { id: string }>(products: T[]
     defaultVariant: defaultVariantByProduct.get(p.id) ?? null,
     images: gallery.get(p.id) ?? [],
     swatches: swatchesByProduct.get(p.id) ?? [],
+    tags: tagsByProduct.get(p.id) ?? [],
   }));
 }

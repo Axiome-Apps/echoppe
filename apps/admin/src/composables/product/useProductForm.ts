@@ -68,6 +68,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
     collection: '',
     status: 'draft',
     personalizationEnabled: false,
+    tags: [],
   });
   const variants = ref<Variant[]>([]);
   const options = ref<Option[]>([]);
@@ -157,6 +158,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
         collection: '',
         status: data.status,
         personalizationEnabled: data.personalizationEnabled ?? false,
+        tags: Array.isArray(data.tags) ? [...data.tags] : [],
       };
       form.value = formData;
       initialFormState.value = { ...formData };
@@ -204,6 +206,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
       taxRate: form.value.taxRate,
       status: form.value.status,
       personalizationEnabled: form.value.personalizationEnabled,
+      tags: form.value.tags,
     };
 
     try {

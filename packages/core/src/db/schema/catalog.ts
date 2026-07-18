@@ -194,6 +194,29 @@ export const personalizationField = pgTable('personalization_field', {
   sortOrder: integer('sort_order').notNull().default(0),
 });
 
+// Tag produit (B3) : étiquette libre gérée comme entité (slug canonique), pas un tableau texte
+// sur le produit — réutilisable, dédupliqué, filtrable. Le `name` est le libellé affiché
+// storefront, le `slug` l'identité stable (upsert au write).
+export const tag = pgTable('tag', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 50 }).notNull(),
+  slug: varchar('slug', { length: 50 }).unique().notNull(),
+});
+
+// Junction produit ↔ tag (sémantique set côté API : le PUT produit remplace l'ensemble).
+export const productTag = pgTable(
+  'product_tag',
+  {
+    product: uuid('product')
+      .notNull()
+      .references(() => product.id, { onDelete: 'cascade' }),
+    tag: uuid('tag')
+      .notNull()
+      .references(() => tag.id, { onDelete: 'cascade' }),
+  },
+  (table) => [primaryKey({ columns: [table.product, table.tag] })],
+);
+
 export const variantOptionValue = pgTable(
   'variant_option_value',
   {

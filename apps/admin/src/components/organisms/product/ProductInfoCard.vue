@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import Label from '@/components/atoms/Label.vue';
 import RichTextEditor from '@/components/atoms/RichTextEditor.vue';
+import TagsInput from '@/components/molecules/TagsInput.vue';
 
 const name = defineModel<string>('name', { required: true });
 const description = defineModel<string>('description', { required: true });
+const tags = defineModel<string[]>('tags', { required: true });
 </script>
 
 <template>
@@ -31,6 +33,15 @@ const description = defineModel<string>('description', { required: true });
           placeholder="Description du produit..."
           min-height="200px"
         />
+      </div>
+
+      <div>
+        <Label>Tags</Label>
+        <TagsInput v-model="tags" />
+        <p class="mt-1 text-xs text-gray-500">
+          Étiquettes storefront (ex. « Nouveauté », « Personnalisable »). Entrée ou virgule pour
+          ajouter.
+        </p>
       </div>
     </div>
   </div>

@@ -21,7 +21,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 |------|------|-----|-------|
 | B1. `variant.featuredImage` sur le détail | ✅ 🔒 | [0009](./adr/ADR-0009-variante-defaut-image.md) | `by-slug` + `/:id`, SDK régénéré |
 | B2. Personnalisation produit (prénom +5 €) | ✅ 🔒 | [0010](./adr/ADR-0010-personnalisation-produit.md) | Backend + UI admin (toggle produit + onglet Personnalisation + CRUD champs). Verrouillé : `cart-personalization.test.ts` (détail, écho panier, validation, snapshot commande, CRUD admin → storefront) |
-| B3. Tags produit storefront (couplé B2) | ⬜ | — | table `tag` + `product_tag`, `tags: string[]` liste+détail |
+| B3. Tags produit storefront (couplé B2) | ✅ 🔒 | [0019](./adr/ADR-0019-tags-produit.md) | table `tag` + `product_tag` ; `tags: string[]` (noms, tri FR) liste+détail ; set-semantics PUT/PATCH ; UI admin (input à puces). Verrou : `product-tags.test.ts` |
 
 ### P2 — complétude catalogue
 | Item | État | Notes |
