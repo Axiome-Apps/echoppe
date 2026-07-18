@@ -27,7 +27,11 @@ Un **adapter par famille**, structure uniforme sous `packages/core/src/adapters/
 
 ## Conséquences
 
-- Ajouter un provider = une implémentation + son enregistrement, sans toucher le métier.
+- Ajouter un provider = une entrée dans la SSOT de la famille (`PAYMENT_PROVIDERS` /
+  `SHIPPING_PROVIDERS` / `COMMUNICATION_PROVIDERS`) + son adapter + une ligne dans la map du registre
+  déclaratif (`createAdapterRegistry`). Les listings et schémas de route dérivent de la SSOT ; plus de
+  `switch`, de singletons manuels ni de liste réénumérée route par route.
+- (Historique) Ajouter un provider = une implémentation + son enregistrement, sans toucher le métier.
 - La configuration provider (activation, secrets chiffrés) est administrable ; la CLI génère
   `ENCRYPTION_KEY` au scaffolding (cf. ADR-0002).
 - Le contrat storefront ne dépend d'aucun provider (checkout via l'API, cf. ADR-0005).
