@@ -43,6 +43,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY} # requis au boot (garde env) ; source .env
       REDIS_URL: redis://redis:6379
       ADMIN_URL: http://localhost:3211
       STORE_URL: http://localhost:3141

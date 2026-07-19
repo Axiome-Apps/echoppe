@@ -166,6 +166,10 @@ async function startApi(image: string = IMAGE): Promise<void> {
     `DATABASE_URL=postgresql://echoppe:echoppe@${DB_C}:5432/echoppe`,
     '-e',
     'RUN_MIGRATIONS=1',
+    // Clé de test (32 octets base64) — requise par le garde-fou env au boot (apps/api/src/env.ts).
+    // Fixe → stable entre les boots T2/T3/T5 sur la même base.
+    '-e',
+    'ENCRYPTION_KEY=ZWNob3BwZS1pbnRlZ3JhdGlvbi10ZXN0LWtleS0zMmI=',
     '-p',
     `${API_HOST_PORT}:7532`,
     image,
