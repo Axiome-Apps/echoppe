@@ -39,7 +39,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 ### P4 — contenu & confort
 | Item | État | Notes |
 |------|------|-------|
-| B9. Bloc prose/richText page-builder | ⬜ | `pages/by-slug` existe ; ajouter type de bloc prose |
+| B9. Bloc prose/richText page-builder | 🅱️ backlog | **Bloqué sur décision format : HTML vs Markdown.** Une partie du contenu est déjà en HTML → choisir Markdown imposerait d'homogénéiser tout l'existant (migration). Trancher ce point AVANT d'implémenter. `pages/by-slug` existe ; ajouter type de bloc prose une fois le format arbitré. |
 | B10. Signal low-stock public | ⬜ | ⚠️ décision : booléen calculé `isLowStock` vs seuil brut ([ADR-0006](./adr/ADR-0006-visibilite-catalogue.md) : seuil masqué) |
 | B11. Source onglets produit (livraison/retours/conseils) | ⬜ | ⚠️ décision : backend vs statique |
 
