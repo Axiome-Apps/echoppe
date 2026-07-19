@@ -97,6 +97,22 @@ La CI **bloque la publication d'image** si les tests échouent :
 
 Pour reproduire le gate en local : `bun run --cwd apps/api test:integration`.
 
+## Raccourci : `bun run ship`
+
+Le niveau de bump est l'**unique curseur** d'une release. `ship` crée le changeset au bon niveau,
+committe et pousse `main` — il ne reste qu'à **merger la PR** :
+
+```bash
+bun run ship "résumé du changelog"             # minor (défaut)
+BUMP=major bun run ship "refonte du contrat"   # major
+BUMP=patch bun run ship "corrige X"            # patch
+bun run ship --dry "…"                         # crée le changeset sans commit/push (aperçu)
+```
+
+Garde-fous : refuse hors branche `main` ou working tree non propre (le travail doit être committé
+avant ; le changeset est le seul ajout embarqué). En 0.x, un **changement cassant = `minor`** (le
+`major` est réservé au passage 1.0).
+
 ## Checklist de release
 
 - [ ] Schéma changé → `db:generate` + migration committée (**jamais** `push` en prod).
