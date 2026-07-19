@@ -41,6 +41,7 @@ Statut : accepté | proposé | remplacé par ADR-00YY   ·   Date
 | [0019](./ADR-0019-tags-produit.md) | Tags produit (entité gérée + slug, surface storefront) | accepté | — |
 | [0020](./ADR-0020-colormetadata-double-representation.md) | ColorMetadata : représentation double verrouillée (interface core + TypeBox api + guard) | accepté | — |
 | [0021](./ADR-0021-strategie-images.md) | Stratégie images : pas de resize serveur, dimensions exposées (imageRef) | accepté | — |
+| [0022](./ADR-0022-produits-lies.md) | Produits liés : curation directionnelle + fallback voisinage | accepté | — |
 
 ## Conventions (non-ADR)
 

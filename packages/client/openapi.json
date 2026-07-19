@@ -698,6 +698,37 @@
         "operationId": "getProductsByIdVariants"
       }
     },
+    "/products/{id}/related": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Produits liés (curés ou fallback voisinage), en cartes ordonnées.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelatedProducts"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getProductsByIdRelated"
+      }
+    },
     "/products/{id}/media": {
       "get": {
         "tags": [
@@ -9140,6 +9171,326 @@
           }
         },
         "$id": "#/components/schemas/ProductWithVariants"
+      },
+      "RelatedProducts": {
+        "description": "Produits liés (curés ou fallback voisinage), en cartes ordonnées.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "category",
+            "taxRate",
+            "name",
+            "slug",
+            "description",
+            "status",
+            "dateCreated",
+            "dateUpdated",
+            "featuredImage",
+            "defaultVariant",
+            "images",
+            "swatches",
+            "tags"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "description": "Identifiant unique du produit.",
+              "type": "string"
+            },
+            "category": {
+              "format": "uuid",
+              "description": "UUID de la catégorie du produit.",
+              "type": "string"
+            },
+            "taxRate": {
+              "format": "uuid",
+              "description": "UUID du taux de TVA appliqué.",
+              "type": "string"
+            },
+            "name": {
+              "description": "Nom du produit.",
+              "type": "string"
+            },
+            "slug": {
+              "description": "Identifiant lisible pour l'URL.",
+              "type": "string"
+            },
+            "description": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "description": "Description du produit.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published",
+                "archived"
+              ]
+            },
+            "dateCreated": {
+              "description": "Date de création.",
+              "anyOf": [
+                {
+                  "description": "Date de création.",
+                  "type": "Date"
+                },
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "dateUpdated": {
+              "description": "Date de dernière modification.",
+              "anyOf": [
+                {
+                  "description": "Date de dernière modification.",
+                  "type": "Date"
+                },
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "featuredImage": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "width",
+                    "height"
+                  ],
+                  "properties": {
+                    "id": {
+                      "format": "uuid",
+                      "description": "UUID du média.",
+                      "type": "string"
+                    },
+                    "width": {
+                      "nullable": true,
+                      "anyOf": [
+                        {
+                          "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "height": {
+                      "nullable": true,
+                      "anyOf": [
+                        {
+                          "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "defaultVariant": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "priceHt",
+                    "compareAtPriceHt",
+                    "quantity"
+                  ],
+                  "properties": {
+                    "priceHt": {
+                      "description": "Prix HT, décimal en chaîne (ex. « 12.90 »).",
+                      "type": "string"
+                    },
+                    "compareAtPriceHt": {
+                      "nullable": true,
+                      "anyOf": [
+                        {
+                          "description": "Prix barré HT (avant remise), décimal en chaîne.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "quantity": {
+                      "description": "Stock disponible.",
+                      "type": "number"
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "images": {
+              "description": "Galerie ordonnée (image principale en tête) — survol, miniatures.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "width",
+                  "height"
+                ],
+                "properties": {
+                  "id": {
+                    "format": "uuid",
+                    "description": "UUID du média.",
+                    "type": "string"
+                  },
+                  "width": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "height": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "swatches": {
+              "description": "Axe couleur (option type=color) — pastilles, vide si aucune.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "optionValueId",
+                  "label",
+                  "color",
+                  "image"
+                ],
+                "properties": {
+                  "optionValueId": {
+                    "format": "uuid",
+                    "description": "UUID de la valeur d'option (couleur).",
+                    "type": "string"
+                  },
+                  "label": {
+                    "description": "Libellé de la couleur (ex. « Rouge »).",
+                    "type": "string"
+                  },
+                  "color": {
+                    "description": "Couleur CSS oklch prête au rendu (ex. « oklch(0.65 0.12 220 / 1) »).",
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "width",
+                          "height"
+                        ],
+                        "properties": {
+                          "id": {
+                            "format": "uuid",
+                            "description": "UUID du média.",
+                            "type": "string"
+                          },
+                          "width": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "height": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "tags": {
+              "description": "Tags du produit (noms), triés par nom. Vide si aucun.",
+              "type": "array",
+              "items": {
+                "description": "Nom d'un tag.",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "$id": "#/components/schemas/RelatedProducts"
       },
       "TaxRateList": {
         "type": "array",

@@ -69,6 +69,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
     status: 'draft',
     personalizationEnabled: false,
     tags: [],
+    relatedProductIds: [],
   });
   const variants = ref<Variant[]>([]);
   const options = ref<Option[]>([]);
@@ -159,6 +160,10 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
         status: data.status,
         personalizationEnabled: data.personalizationEnabled ?? false,
         tags: Array.isArray(data.tags) ? [...data.tags] : [],
+        relatedProductIds:
+          'relatedProductIds' in data && Array.isArray(data.relatedProductIds)
+            ? [...data.relatedProductIds]
+            : [],
       };
       form.value = formData;
       initialFormState.value = { ...formData };
@@ -207,6 +212,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
       status: form.value.status,
       personalizationEnabled: form.value.personalizationEnabled,
       tags: form.value.tags,
+      relatedProductIds: form.value.relatedProductIds,
     };
 
     try {

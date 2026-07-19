@@ -217,6 +217,23 @@ export const productTag = pgTable(
   (table) => [primaryKey({ columns: [table.product, table.tag] })],
 );
 
+// Produits liés (B8) — relation DIRECTIONNELLE curée : sur la fiche `product`, le commerçant
+// choisit et ordonne `relatedProduct`. Asymétrique (A→B n'implique pas B→A). Sémantique set côté
+// API (le PUT produit remplace l'ensemble ordonné). Fallback voisinage si vide, calculé à la lecture.
+export const productRelated = pgTable(
+  'product_related',
+  {
+    product: uuid('product')
+      .notNull()
+      .references(() => product.id, { onDelete: 'cascade' }),
+    relatedProduct: uuid('related_product')
+      .notNull()
+      .references(() => product.id, { onDelete: 'cascade' }),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.product, table.relatedProduct] })],
+);
+
 export const variantOptionValue = pgTable(
   'variant_option_value',
   {

@@ -224,6 +224,9 @@ export const productAdminWithVariantsSchema = t.Composite([
     variants: t.Array(variantAdminDetailSchema, { description: 'Variantes (vue admin complète).' }),
     options: t.Array(optionDetailSchema, { description: 'Options du produit.' }),
     tags: tagsSchema,
+    relatedProductIds: t.Array(t.String({ format: 'uuid' }), {
+      description: 'Produits liés curés (B8), dans l’ordre choisi. Vide si aucun.',
+    }),
     personalizationEnabled: t.Boolean({ description: 'Le produit accepte une personnalisation.' }),
     personalizationFields: t.Array(personalizationFieldAdminSchema, {
       description: 'Champs de personnalisation déclarés, vide si aucun.',
@@ -280,6 +283,9 @@ export const catalogModels = {
   ProductAdminWithVariants: productAdminWithVariantsSchema,
   ProductDetail: productDetailSchema,
   ProductList: listResponse(productListSchema),
+  RelatedProducts: t.Array(productListSchema, {
+    description: 'Produits liés (curés ou fallback voisinage), en cartes ordonnées.',
+  }),
   ProductMedia: productMediaSchema,
   Variant: variantSchema,
   Option: optionSchema,

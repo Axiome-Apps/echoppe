@@ -8,6 +8,7 @@ import ProductVariantsCard from '@/components/organisms/product/ProductVariantsC
 import ProductPersonalizationCard from '@/components/organisms/product/ProductPersonalizationCard.vue';
 import PersonalizationFieldModal from '@/components/organisms/product/PersonalizationFieldModal.vue';
 import ProductSidebar from '@/components/organisms/product/ProductSidebar.vue';
+import RelatedProductsInput from '@/components/organisms/product/RelatedProductsInput.vue';
 import {
   useProductData,
   useProductForm,
@@ -156,6 +157,16 @@ onMounted(async () => {
                 :product-media="productForm.productMedia.value"
                 :media-cache="productForm.mediaCache.value"
                 @media-change="handleMediaChange"
+              />
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+              <h3 class="text-sm font-medium text-gray-900 mb-1">Produits liés</h3>
+              <p class="text-xs text-gray-500 mb-3">
+                Produits recommandés sur la fiche (ordre respecté). Vide = voisinage automatique.
+              </p>
+              <RelatedProductsInput
+                v-model="productForm.form.value.relatedProductIds"
+                :exclude-id="productForm.productId.value ?? undefined"
               />
             </div>
           </div>

@@ -55,6 +55,7 @@ export interface ProductFormState {
   status: 'draft' | 'published' | 'archived';
   personalizationEnabled: boolean;
   tags: string[];
+  relatedProductIds: string[];
 }
 
 // Select option type

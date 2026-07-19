@@ -77,6 +77,7 @@ export function createResources(client: Client<paths>) {
       get: (init: MaybeOptionalInit<paths['/products/{id}'], 'get'>) => client.GET('/products/{id}', init),
       list: (init?: MaybeOptionalInit<paths['/products/'], 'get'>) => client.GET('/products/', init),
       media: (init: MaybeOptionalInit<paths['/products/{id}/media'], 'get'>) => client.GET('/products/{id}/media', init),
+      related: (init: MaybeOptionalInit<paths['/products/{id}/related'], 'get'>) => client.GET('/products/{id}/related', init),
       variants: (init: MaybeOptionalInit<paths['/products/{id}/variants'], 'get'>) => client.GET('/products/{id}/variants', init),
     },
     taxRates: {

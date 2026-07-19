@@ -26,5 +26,6 @@ export type PaymentProviderList = components['schemas']['PaymentProviderList'];
 export type ProductDetail = components['schemas']['ProductDetail'];
 export type ProductList = components['schemas']['ProductList'];
 export type ProductWithVariants = components['schemas']['ProductWithVariants'];
+export type RelatedProducts = components['schemas']['RelatedProducts'];
 export type TaxRateList = components['schemas']['TaxRateList'];
 export type Wishlist = components['schemas']['Wishlist'];

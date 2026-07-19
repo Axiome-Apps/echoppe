@@ -17,6 +17,8 @@ import { models } from '../../models';
 import { variantPublicSchema } from '../../models/catalog';
 import { type ImageRef, imageRef, loadMediaDimensions } from '../../utils/image-ref';
 import { getPersonalizationFields } from '../../utils/personalization';
+import { enrichProductCards } from '../../utils/product-cards';
+import { getFallbackRelatedIds, getRelatedProductIds } from '../../utils/related';
 import { withNotFound, withReadErrors } from '../../utils/responses';
 import { getProductTags } from '../../utils/tags';
 import { productParams, productSearchQuery, queryProductCards } from './shared';
@@ -217,6 +219,35 @@ export const publicProductRoutes = new Elysia()
       return { ...found, variants: variantsWithOptions, options: optionsWithValues, tags };
     },
     { params: productParams, response: withNotFound({ 200: 'ProductWithVariants' }) },
+  )
+
+  // GET /products/:id/related (public) — produits liés curés, sinon fallback voisinage (B8).
+  .get(
+    '/:id/related',
+    async ({ params }) => {
+      const [found] = await db
+        .select({ id: product.id, category: product.category })
+        .from(product)
+        .where(and(eq(product.id, params.id), eq(product.status, 'published')));
+      if (!found) return [];
+
+      const curated = await getRelatedProductIds(found.id);
+      const ids =
+        curated.length > 0 ? curated : await getFallbackRelatedIds(found.id, found.category, 8);
+      if (ids.length === 0) return [];
+
+      // Ne garde que les liés PUBLIÉS, en préservant l'ordre curé.
+      const products = await db
+        .select()
+        .from(product)
+        .where(and(inArray(product.id, ids), eq(product.status, 'published')));
+      const byId = new Map(products.map((p) => [p.id, p]));
+      const ordered = ids
+        .map((id) => byId.get(id))
+        .filter((p): p is (typeof products)[number] => p !== undefined);
+      return enrichProductCards(ordered);
+    },
+    { params: productParams, response: { 200: 'RelatedProducts' } },
   )
 
   // GET /products/:id/variants (public)

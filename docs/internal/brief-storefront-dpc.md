@@ -34,7 +34,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 |------|------|-------|
 | B6. Audit surface compte/checkout (doc) | ✅ | [audit-compte-checkout.md](./audit-compte-checkout.md) : socle connecté complet (auth/profil/adresses CRUD/commandes/checkout/panier). Manques = décisions produit : checkout invité (🔴), RGPD self-service (🟠, déjà anticipé code), double opt-in (🟡). |
 | B7. Wishlist (`GET/POST/DELETE /wishlist`) | ✅ 🔒 | table `wishlist_item` (PK customer+variant) préexistante → routes ajoutées (client authentifié, `customerAuth`). Ajout idempotent, listing enrichi (variant+produit+imageRef), 404 variante inconnue, 401 anonyme. SDK régénéré (namespace `wishlist`). Verrou : `wishlist.test.ts` (5 cas). |
-| B8. Recommandations `/products/{id}/related` | ⬜ | voisins même catégorie/collection |
+| B8. Recommandations `/products/{id}/related` | ✅ 🔒 | **curation directionnelle** (choix admin) + fallback voisinage si vide — cf. [0022](./adr/ADR-0022-produits-lies.md). Table `product_related` (ordonnée), set via body produit (`relatedProductIds`), UI admin `RelatedProductsInput` (recherche+réordonnancement), route publique cartes ordonnées. SDK régénéré. Verrou : `related-products.test.ts`. |
 
 ### P4 — contenu & confort
 | Item | État | Notes |

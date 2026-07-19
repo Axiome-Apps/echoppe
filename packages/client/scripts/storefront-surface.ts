@@ -20,6 +20,7 @@ export const STOREFRONT_SURFACE: ReadonlyArray<readonly [HttpMethod, string]> = 
   ['get', '/products/by-slug/{slug}'],
   ['get', '/products/{id}'],
   ['get', '/products/{id}/variants'],
+  ['get', '/products/{id}/related'],
   ['get', '/products/{id}/media'],
   ['get', '/categories/'],
   ['get', '/categories/{id}'],

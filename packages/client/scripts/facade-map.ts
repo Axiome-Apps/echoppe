@@ -41,6 +41,7 @@ export const METHOD_NAMES: Record<string, string> = {
   getProducts: 'list',
   'getProductsBy-slugBySlug': 'bySlug',
   getProductsById: 'get',
+  getProductsByIdRelated: 'related',
   getProductsByIdMedia: 'media',
   getProductsByIdVariants: 'variants',
   // categories

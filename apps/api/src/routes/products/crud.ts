@@ -14,6 +14,7 @@ import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../../lib/audit';
 import { models } from '../../models';
 import { permissionGuard } from '../../plugins/rbac';
+import { getRelatedProductIds, setRelatedProducts } from '../../utils/related';
 import {
   successSchema,
   withAuthErrors,
@@ -36,6 +37,7 @@ const productCreateBody = t.Object({
   taxRate: t.String({ format: 'uuid' }),
   status: t.Optional(t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')])),
   tags: t.Optional(t.Array(t.String({ maxLength: 50 }))),
+  relatedProductIds: t.Optional(t.Array(t.String({ format: 'uuid' }))),
 });
 
 const productUpdateBody = t.Object({
@@ -47,6 +49,8 @@ const productUpdateBody = t.Object({
   personalizationEnabled: t.Optional(t.Boolean()),
   // Tags (B3) — sémantique set : remplace l'ensemble des tags du produit (noms). Absent = inchangé.
   tags: t.Optional(t.Array(t.String({ maxLength: 50 }))),
+  // Produits liés (B8) — set ordonné d'UUID. Absent = inchangé.
+  relatedProductIds: t.Optional(t.Array(t.String({ format: 'uuid' }))),
 });
 
 const productPatchBody = t.Object({
@@ -58,6 +62,7 @@ const productPatchBody = t.Object({
   status: t.Optional(t.Union([t.Literal('draft'), t.Literal('published'), t.Literal('archived')])),
   personalizationEnabled: t.Optional(t.Boolean()),
   tags: t.Optional(t.Array(t.String({ maxLength: 50 }))),
+  relatedProductIds: t.Optional(t.Array(t.String({ format: 'uuid' }))),
 });
 
 // Produit : CRUD (create/update/patch/delete) + lectures admin (liste tous statuts, fiche complète).
@@ -84,6 +89,9 @@ export const productCrudRoutes = new Elysia()
 
       // Tags (B3) : rattache l'ensemble fourni à la création.
       if (body.tags !== undefined) await setProductTags(created.id, body.tags);
+      // Produits liés (B8) : set ordonné.
+      if (body.relatedProductIds !== undefined)
+        await setRelatedProducts(created.id, body.relatedProductIds);
 
       logAudit({
         userId: currentUser?.id,
@@ -121,6 +129,8 @@ export const productCrudRoutes = new Elysia()
 
       // Tags (B3) : remplace l'ensemble si fourni (absent = inchangé).
       if (body.tags !== undefined) await setProductTags(params.id, body.tags);
+      if (body.relatedProductIds !== undefined)
+        await setRelatedProducts(params.id, body.relatedProductIds);
 
       logAudit({
         userId: currentUser?.id,
@@ -166,6 +176,8 @@ export const productCrudRoutes = new Elysia()
 
       // Tags (B3) : remplace l'ensemble si fourni (absent = inchangé).
       if (body.tags !== undefined) await setProductTags(params.id, body.tags);
+      if (body.relatedProductIds !== undefined)
+        await setRelatedProducts(params.id, body.relatedProductIds);
 
       return updated;
     },
@@ -264,12 +276,14 @@ export const productCrudRoutes = new Elysia()
         .orderBy(personalizationField.sortOrder);
 
       const tags = await getProductTags(params.id);
+      const relatedProductIds = await getRelatedProductIds(params.id);
 
       return {
         ...found,
         variants: variantsWithOptions,
         options: optionsWithValues,
         tags,
+        relatedProductIds,
         personalizationEnabled: found.personalizationEnabled,
         personalizationFields,
       };

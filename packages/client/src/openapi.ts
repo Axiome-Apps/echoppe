@@ -84,6 +84,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/products/{id}/related": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getProductsByIdRelated"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/products/{id}/media": {
         parameters: {
             query?: never;
@@ -1522,6 +1538,84 @@ export interface components {
             /** @description Tags du produit (noms), triés par nom. Vide si aucun. */
             tags: string[];
         };
+        /** @description Produits liés (curés ou fallback voisinage), en cartes ordonnées. */
+        RelatedProducts: {
+            /**
+             * Format: uuid
+             * @description Identifiant unique du produit.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description UUID de la catégorie du produit.
+             */
+            category: string;
+            /**
+             * Format: uuid
+             * @description UUID du taux de TVA appliqué.
+             */
+            taxRate: string;
+            /** @description Nom du produit. */
+            name: string;
+            /** @description Identifiant lisible pour l'URL. */
+            slug: string;
+            description: (string | null) | null;
+            /** @enum {string} */
+            status: "draft" | "published" | "archived";
+            /** @description Date de création. */
+            dateCreated: Record<string, never> | string | number;
+            /** @description Date de dernière modification. */
+            dateUpdated: Record<string, never> | string | number;
+            featuredImage: ({
+                /**
+                 * Format: uuid
+                 * @description UUID du média.
+                 */
+                id: string;
+                width: (number | null) | null;
+                height: (number | null) | null;
+            } | null) | null;
+            defaultVariant: ({
+                /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
+                priceHt: string;
+                compareAtPriceHt: (string | null) | null;
+                /** @description Stock disponible. */
+                quantity: number;
+            } | null) | null;
+            /** @description Galerie ordonnée (image principale en tête) — survol, miniatures. */
+            images: {
+                /**
+                 * Format: uuid
+                 * @description UUID du média.
+                 */
+                id: string;
+                width: (number | null) | null;
+                height: (number | null) | null;
+            }[];
+            /** @description Axe couleur (option type=color) — pastilles, vide si aucune. */
+            swatches: {
+                /**
+                 * Format: uuid
+                 * @description UUID de la valeur d'option (couleur).
+                 */
+                optionValueId: string;
+                /** @description Libellé de la couleur (ex. « Rouge »). */
+                label: string;
+                /** @description Couleur CSS oklch prête au rendu (ex. « oklch(0.65 0.12 220 / 1) »). */
+                color: string;
+                image: ({
+                    /**
+                     * Format: uuid
+                     * @description UUID du média.
+                     */
+                    id: string;
+                    width: (number | null) | null;
+                    height: (number | null) | null;
+                } | null) | null;
+            }[];
+            /** @description Tags du produit (noms), triés par nom. Vide si aucun. */
+            tags: string[];
+        }[];
         TaxRateList: {
             /**
              * Format: uuid
@@ -1842,6 +1936,28 @@ export interface operations {
                         /** @description Stock disponible. */
                         quantity: number;
                     }[];
+                };
+            };
+        };
+    };
+    getProductsByIdRelated: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Produits liés (curés ou fallback voisinage), en cartes ordonnées. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelatedProducts"];
                 };
             };
         };
