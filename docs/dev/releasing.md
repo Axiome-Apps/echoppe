@@ -1,9 +1,14 @@
 # Publier une version
 
-Échoppe distribue **deux artefacts coordonnés** sur une même version :
+Échoppe distribue **deux artefacts coordonnés** sur une même version, en **une seule action** : le
+**merge de la PR « Version Packages »**.
 
-- **Images Docker** `axiomeapp/echoppe-api` + `-admin` — déclenchées par un tag `v*`.
-- **Paquet npm** `@echoppe/client` (SDK) — déclenché par un push `main` **avec changeset**.
+- **Paquet npm** `@echoppe/client` (SDK) — publié par `release.yml` au merge de la PR de version.
+- **Images Docker** `axiomeapp/echoppe-api` + `-admin` — construites dans la foulée par `release.yml`
+  (appel de `docker-build.yml`) à la **même version**, gate T2–T5 inclus. Pas de tag manuel.
+
+Le tag `v*` reste une **échappatoire manuelle** (re-cut d'images hors release npm), pas la voie
+normale.
 
 La règle d'or : **une release n'est bonne que si une base vierge, migrée depuis
 l'image publiée, répond `200` sur les routes clés.** Ce qui marche en dev via
@@ -68,9 +73,13 @@ docker rm -f mig-check
 il ne se code pas à la main. Après un changement de contrat storefront :
 
 ```bash
-# API à jour lancée (source :7533, ou une image via ECHOPPE_API_URL)
-bun run --cwd packages/client generate   # regénère openapi.json + types + façade
+bun run contracts        # boote l'app pure offline, régénère openapi.json + types + façade
+bun run contracts:check  # + échoue si les types figés divergent des routes (garde CI)
 ```
+
+`bun run contracts` remplace le rituel manuel (boot :7533 + generate). La garde `contracts:check`
+tourne en CI (`ci.yml`) et **casse toute PR** qui change une route sans régénérer le SDK — la dérive
+contrat est attrapée dès la PR, plus seulement au gate release (T4).
 
 Comme le SDK **dérive** du contrat, corriger l'API réaligne toute la chaîne : un SDK
 « en avance » sur des migrations en retard n'est pas un bug SDK, c'est un bug API.
@@ -79,11 +88,12 @@ Comme le SDK **dérive** du contrat, corriger l'API réaligne toute la chaîne :
 
 La CI **bloque la publication d'image** si les tests échouent :
 
-- `ci.yml` (push/PR) : `type-check`, `lint`, **drift-guard** (schéma == migrations), smoke
-  source-level.
-- `docker-build.yml` (sur tag) : job `integration` **dont dépend `build-and-push`** — build
-  l'image `api` puis la valide en **base vierge** (T2), **upgrade depuis `:latest`** (T3),
-  **parité contrat** (T4), **idempotence** (T5). Aucune image ne part si un test casse.
+- `ci.yml` (push/PR) : `type-check`, `lint`, **drift-guard Drizzle** (schéma == migrations),
+  **drift-guard contrat** (SDK figé == routes), smoke source-level.
+- `docker-build.yml` (appelé par `release.yml` au publish, ou sur tag manuel) : job `integration`
+  **dont dépend `build-and-push`** — build l'image `api` puis la valide en **base vierge** (T2),
+  **upgrade depuis `:latest`** (T3), **parité contrat** (T4), **idempotence** (T5). Aucune image ne
+  part si un test casse.
 
 Pour reproduire le gate en local : `bun run --cwd apps/api test:integration`.
 
@@ -92,21 +102,21 @@ Pour reproduire le gate en local : `bun run --cwd apps/api test:integration`.
 - [ ] Schéma changé → `db:generate` + migration committée (**jamais** `push` en prod).
 - [ ] Donnée requise en prod → seed **idempotent** dans une migration (pas le `db:seed`).
 - [ ] `db:generate` de contrôle → « No schema changes » (aucune dérive résiduelle).
-- [ ] Gate d'intégration vert (`test:integration`) — ou laisser la CI le jouer sur le tag.
-- [ ] SDK régénéré depuis l'OpenAPI, `type-check` + `build` verts.
+- [ ] Gate d'intégration vert (`test:integration`) — ou laisser la CI le jouer.
+- [ ] SDK régénéré (`bun run contracts`), `type-check` + `build` verts.
 - [ ] Changeset ajouté (bump `@echoppe/client`).
-- [ ] Push `main` (ouvre la PR « Version Packages ») **et** tag `v x.y.z` (déclenche Docker), même version.
-- [ ] Merge de la PR « Version Packages » → publication npm.
-- [ ] Images `api` + `admin` + SDK publiés en **cohérence** de version.
+- [ ] Push `main` → ouvre la PR « Version Packages ».
+- [ ] **Merge de la PR** → publication npm **+ images à la même version** (gate T2–T5), automatique.
 
-## Coordination des déclencheurs
+## Coordination des déclencheurs (one-move)
 
 | Déclencheur | Workflow | Effet |
 |-------------|----------|-------|
-| push `main` + changeset | `release.yml` | Ouvre/maj la PR « Version Packages » (npm) |
-| merge PR « Version Packages » | `release.yml` | Publie `@echoppe/client` sur npm |
-| push tag `v*` | `docker-build.yml` | Build + push `echoppe-api` / `-admin` (`x.y.z` + `latest`) |
+| push `main` + changeset | `release.yml` | Ouvre/maj la PR « Version Packages » |
+| **merge PR « Version Packages »** | `release.yml` | Publie npm, tag `v x.y.z`, **puis appelle `docker-build.yml`** (images `x.y.z` + `latest`, gate T2–T5) |
+| push tag `v*` (manuel) | `docker-build.yml` | Échappatoire : re-cut d'images hors release npm |
 
-Les deux lignes de version sont **indépendantes** (tags `v*` pour Docker,
-`@echoppe/client@x` créés par changesets) mais on les **aligne** sur le même numéro
-pour une release donnée.
+L'unique acte humain d'une release = le **merge de la PR**. La version des images = celle de
+`@echoppe/client` publiée (SDK co-versionné) → alignement garanti, plus de tag à saisir à la main. Le
+tag `v x.y.z` est posé automatiquement (traçage) mais ne re-déclenche pas les images (garde
+anti-récursion GitHub : un tag poussé au `GITHUB_TOKEN` ne relance aucun workflow).

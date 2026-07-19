@@ -63,6 +63,16 @@ dans `docker-build.yml`, job `integration` **dont dépend `build-and-push`** (`n
 aucune image ne part sur le registre si le gate échoue. Local : `bun run --cwd apps/api
 test:integration` (auto-provisionne tout, `INTEGRATION_IMAGE` pour réutiliser un build).
 
+**Garde contrat (ajoutée 2026-07-19).** Miroir de T1 pour le SDK : `bun run contracts:check`
+(`ci.yml`) régénère le client depuis l'app pure offline et échoue si les types figés
+(`openapi.ts`/`models.ts`/`facade.ts`) divergent des routes → attrape « route changée, SDK
+oublié » dès la PR, pas seulement au gate T4.
+
+**Release one-move (2026-07-19).** `docker-build.yml` est **réutilisable** (`workflow_call`) :
+`release.yml` l'appelle après le publish npm (merge de la PR « Version Packages ») avec la version
+publiée → npm + images en un seul acte humain (le merge), à la même version, gate T2–T5 inclus. Le
+trigger `push: tags v*` subsiste comme échappatoire manuelle.
+
 ## Garde-fous environnement
 
 - **Ne jamais** migrer/seed une base de prod. Conteneurs `dpc-*` = boutique réelle.

@@ -1,6 +1,16 @@
 name: Build and Push Docker Images
 
+# Deux entrées :
+#   - workflow_call (voie normale) : appelé par release.yml APRÈS un publish npm réussi, avec la
+#     version publiée → release « one-move » (merge de la PR Version = npm + images).
+#   - push tag v* (échappatoire manuelle) : re-cut d'images sans repasser par une release npm.
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version des images (sans le préfixe v), ex. 0.5.0'
+        required: true
+        type: string
   push:
     tags:
       - 'v*'
@@ -64,11 +74,18 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract version from tag
+      # Version = input (appel release.yml) sinon dérivée du tag v* (push manuel).
+      - name: Resolve version
         id: version
         env:
+          INPUT_VERSION: ${{ inputs.version }}
           REF: ${{ github.ref }}
-        run: echo "VERSION=${REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            echo "VERSION=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "VERSION=${REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build and push
         uses: docker/build-push-action@v7
