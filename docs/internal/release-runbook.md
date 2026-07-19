@@ -1,8 +1,9 @@
 # Runbook release — invariant, post-mortem, durcissement
 
-Notes internes sur la discipline de publication. La version contributeur (le
-« comment ») vit dans `docs/dev/releasing.md` ; ici on garde l'**invariant**, le
-**post-mortem** de l'incident 0.4.0 et le **plan de tests** qui l'aurait attrapé.
+Notes internes sur la discipline de publication. Vue d'ensemble du pipeline (npm + images, gardes,
+one-move) : [`pipeline-release.md`](./pipeline-release.md). Le « comment » pas-à-pas :
+`docs/dev/releasing.md`. Ici on garde l'**invariant**, le **post-mortem** de l'incident 0.4.0 et le
+**plan de tests** qui l'aurait attrapé.
 
 ## Invariant
 
