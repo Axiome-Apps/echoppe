@@ -40,7 +40,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 | Item | État | Notes |
 |------|------|-------|
 | B9. Bloc prose/richText page-builder | 🅱️ backlog | **Bloqué sur décision format : HTML vs Markdown.** Une partie du contenu est déjà en HTML → choisir Markdown imposerait d'homogénéiser tout l'existant (migration). Trancher ce point AVANT d'implémenter. `pages/by-slug` existe ; ajouter type de bloc prose une fois le format arbitré. |
-| B10. Signal low-stock public | ⬜ | ⚠️ décision : booléen calculé `isLowStock` vs seuil brut ([ADR-0006](./adr/ADR-0006-visibilite-catalogue.md) : seuil masqué) |
+| B10. Signal low-stock public | 🅱️ backlog | Décision (pré-tranchée, à confirmer à la reprise) : exposer un booléen calculé `isLowStock` (`quantity <= lowStockThreshold`) sur `variantPublicSchema`, **jamais** le seuil brut ([ADR-0006](./adr/ADR-0006-visibilite-catalogue.md) : seuil masqué). Implémentation simple une fois confirmé. |
 | B11. Source onglets produit (livraison/retours/conseils) | ⬜ | ⚠️ décision : backend vs statique |
 
 ## Checklist publication (avant bump)
