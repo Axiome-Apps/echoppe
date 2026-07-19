@@ -15,6 +15,7 @@ import {
 import { Elysia, t } from 'elysia';
 import { models } from '../../models';
 import { variantPublicSchema } from '../../models/catalog';
+import { type ImageRef, imageRef, loadMediaDimensions } from '../../utils/image-ref';
 import { getPersonalizationFields } from '../../utils/personalization';
 import { withNotFound, withReadErrors } from '../../utils/responses';
 import { getProductTags } from '../../utils/tags';
@@ -62,10 +63,17 @@ export const publicProductRoutes = new Elysia()
         .where(eq(productMedia.product, found.id))
         .orderBy(productMedia.sortOrder);
 
+      // Dimensions (px) des médias → refs image {id,width,height} sans N+1 (B5).
+      const mediaDims = await loadMediaDimensions([
+        featuredMedia?.mediaId,
+        ...allMedia.map((m) => m.mediaId),
+      ]);
+
       // Image mise en avant par variante (média featuredForVariant) → featuredImage du variant.
-      const featuredByVariant = new Map<string, string>();
+      const featuredByVariant = new Map<string, ImageRef>();
       for (const m of allMedia) {
-        if (m.featuredForVariant) featuredByVariant.set(m.featuredForVariant, m.mediaId);
+        const ref = imageRef(m.mediaId, mediaDims);
+        if (m.featuredForVariant && ref) featuredByVariant.set(m.featuredForVariant, ref);
       }
 
       const variantIds = variants.map((v) => v.id);
@@ -122,8 +130,10 @@ export const publicProductRoutes = new Elysia()
 
       return {
         ...found,
-        featuredImage: featuredMedia?.mediaId ?? null,
-        images: allMedia.map((m) => m.mediaId),
+        featuredImage: imageRef(featuredMedia?.mediaId ?? null, mediaDims),
+        images: allMedia
+          .map((m) => imageRef(m.mediaId, mediaDims))
+          .filter((r): r is ImageRef => r !== null),
         variants: variantsWithOptions,
         options: filteredOptions,
         tags,
@@ -162,9 +172,12 @@ export const publicProductRoutes = new Elysia()
         .where(
           and(eq(productMedia.product, params.id), isNotNull(productMedia.featuredForVariant)),
         );
-      const featuredByVariant = new Map<string, string>();
+      // Dimensions (px) des médias de variante → refs image {id,width,height} (B5).
+      const variantDims = await loadMediaDimensions(variantMedia.map((m) => m.mediaId));
+      const featuredByVariant = new Map<string, ImageRef>();
       for (const m of variantMedia) {
-        if (m.featuredForVariant) featuredByVariant.set(m.featuredForVariant, m.mediaId);
+        const ref = imageRef(m.mediaId, variantDims);
+        if (m.featuredForVariant && ref) featuredByVariant.set(m.featuredForVariant, ref);
       }
 
       const productOptions = await db

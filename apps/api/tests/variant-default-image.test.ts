@@ -161,11 +161,12 @@ describe('B1 — variant.featuredImage sur le détail', () => {
     ]);
     const mediaId = await insertMediaForVariant(p.id, variants[0].id);
 
-    const detail = await getJson<{ variants: { id: string; featuredImage: string | null }[] }>(
-      '/products/by-slug/b1-featured',
-    );
+    const detail = await getJson<{
+      variants: { id: string; featuredImage: { id: string } | null }[];
+    }>('/products/by-slug/b1-featured');
     const byId = new Map(detail.variants.map((v) => [v.id, v]));
-    expect(byId.get(variants[0].id)?.featuredImage).toBe(mediaId);
+    // B5 : featuredImage est une ref {id,width,height} (dimensions nulles ici, média sans w/h).
+    expect(byId.get(variants[0].id)?.featuredImage?.id).toBe(mediaId);
     expect(byId.get(variants[1].id)?.featuredImage).toBeNull();
   });
 });

@@ -12,7 +12,7 @@ if (!product) {
   Astro.response.status = 404;
 }
 
-const image = mediaUrl(product?.featuredImage);
+const image = mediaUrl(product?.featuredImage?.id);
 const price = product?.variants?.[0]?.priceHt;
 ---
 

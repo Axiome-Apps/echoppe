@@ -15,6 +15,20 @@ const tagsSchema = t.Array(t.String({ description: "Nom d'un tag." }), {
   description: 'Tags du produit (noms), triés par nom. Vide si aucun.',
 });
 
+// Référence image storefront (B5) — UUID + dimensions intrinsèques (px). Le framework n'optimise
+// pas les images (pas de resize serveur) : il expose l'original + ses dimensions, à charge du
+// storefront de bâtir son composant <Image> (srcset/ratio, anti-CLS). Cf. ADR-0021. Forme unique
+// partout où une image est servie (carte, galerie, image de variante, pastille couleur).
+export const imageRefSchema = t.Object({
+  id: t.String({ format: 'uuid', description: 'UUID du média.' }),
+  width: t.Nullable(
+    t.Number({ description: 'Largeur intrinsèque en pixels, ou null si inconnue.' }),
+  ),
+  height: t.Nullable(
+    t.Number({ description: 'Hauteur intrinsèque en pixels, ou null si inconnue.' }),
+  ),
+});
+
 export const defaultVariantSchema = t.Object({
   priceHt: t.String({ description: 'Prix HT, décimal en chaîne (ex. « 12.90 »).' }),
   compareAtPriceHt: t.Nullable(
@@ -31,9 +45,7 @@ export const swatchSchema = t.Object({
   color: t.String({
     description: 'Couleur CSS oklch prête au rendu (ex. « oklch(0.65 0.12 220 / 1) »).',
   }),
-  image: t.Nullable(
-    t.String({ format: 'uuid', description: 'UUID du média de la variante (survol), si défini.' }),
-  ),
+  image: t.Nullable(imageRefSchema),
 });
 
 export const productListSchema = t.Object({
@@ -46,11 +58,9 @@ export const productListSchema = t.Object({
   status: statusEnum,
   dateCreated: t.Date({ description: 'Date de création.' }),
   dateUpdated: t.Date({ description: 'Date de dernière modification.' }),
-  featuredImage: t.Nullable(
-    t.String({ format: 'uuid', description: 'UUID du média mis en avant.' }),
-  ),
+  featuredImage: t.Nullable(imageRefSchema),
   defaultVariant: t.Nullable(defaultVariantSchema),
-  images: t.Array(t.String({ format: 'uuid', description: "UUID d'un média de la galerie." }), {
+  images: t.Array(imageRefSchema, {
     description: 'Galerie ordonnée (image principale en tête) — survol, miniatures.',
   }),
   swatches: t.Array(swatchSchema, {
@@ -155,12 +165,9 @@ export const variantDetailSchema = t.Composite([
       t.String({ format: 'uuid', description: "UUID d'une valeur d'option sélectionnée." }),
       { description: 'Valeurs d’option qui définissent cette variante.' },
     ),
-    featuredImage: t.Nullable(
-      t.String({
-        format: 'uuid',
-        description: 'UUID du média de la variante (média `featuredForVariant`), sinon null.',
-      }),
-    ),
+    featuredImage: t.Nullable(imageRefSchema, {
+      description: 'Média de la variante (`featuredForVariant`) + dimensions, sinon null.',
+    }),
   }),
 ]);
 
@@ -253,10 +260,8 @@ export const personalizationFieldSchema = t.Object({
 export const productDetailSchema = t.Composite([
   productWithVariantsSchema,
   t.Object({
-    featuredImage: t.Nullable(
-      t.String({ format: 'uuid', description: 'UUID du média mis en avant.' }),
-    ),
-    images: t.Array(t.String({ format: 'uuid', description: "UUID d'un média de la galerie." }), {
+    featuredImage: t.Nullable(imageRefSchema),
+    images: t.Array(imageRefSchema, {
       description: 'Galerie de médias du produit.',
     }),
     personalizationEnabled: t.Boolean({

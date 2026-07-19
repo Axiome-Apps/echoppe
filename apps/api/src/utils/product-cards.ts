@@ -11,6 +11,7 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { selectDefaultVariants } from './default-variant';
+import { type ImageRef, imageRef, loadMediaDimensions } from './image-ref';
 import { getTagsByProduct } from './tags';
 
 // Projection « carte produit » storefront — SOURCE UNIQUE partagée par les endpoints de
@@ -29,13 +30,13 @@ interface Swatch {
   optionValueId: string;
   label: string; // valeur ("Rouge")
   color: string; // CSS oklch prêt au rendu
-  image: string | null; // média de la variante portant cette couleur, si défini
+  image: ImageRef | null; // média de la variante portant cette couleur, si défini
 }
 
 const emptyCard = {
-  featuredImage: null as string | null,
+  featuredImage: null as ImageRef | null,
   defaultVariant: null,
-  images: [] as string[],
+  images: [] as ImageRef[],
   swatches: [] as Swatch[],
   tags: [] as string[],
 };
@@ -83,20 +84,24 @@ export async function enrichProductCards<T extends { id: string }>(products: T[]
     getTagsByProduct(productIds),
   ]);
 
+  // Dimensions (px) de tous les médias référencés → refs image {id,width,height} sans N+1 (B5).
+  const dims = await loadMediaDimensions(media.map((m) => m.media));
+
   // Galerie ordonnée par produit : image featured en premier, puis sortOrder croissant.
-  const gallery = new Map<string, string[]>();
+  const gallery = new Map<string, ImageRef[]>();
   const sorted = [...media].sort((a, b) => {
     if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
     return a.sortOrder - b.sortOrder;
   });
   for (const m of sorted) {
     const list = gallery.get(m.product) ?? [];
-    list.push(m.media);
+    const ref = imageRef(m.media, dims);
+    if (ref) list.push(ref);
     gallery.set(m.product, list);
   }
 
   const featuredByProduct = new Map(
-    media.filter((m) => m.isFeatured).map((m) => [m.product, m.media]),
+    media.filter((m) => m.isFeatured).map((m) => [m.product, imageRef(m.media, dims)]),
   );
   const defaultVariantByProduct = new Map(
     defaultVariants.map((dv) => [
@@ -105,10 +110,11 @@ export async function enrichProductCards<T extends { id: string }>(products: T[]
     ]),
   );
 
-  // Image par variante (swatch-image / survol) : productMedia.featuredForVariant → média.
-  const imageByVariant = new Map<string, string>();
+  // Image par variante (swatch-image / survol) : productMedia.featuredForVariant → ref image.
+  const imageByVariant = new Map<string, ImageRef>();
   for (const m of media) {
-    if (m.featuredForVariant) imageByVariant.set(m.featuredForVariant, m.media);
+    const ref = imageRef(m.media, dims);
+    if (m.featuredForVariant && ref) imageByVariant.set(m.featuredForVariant, ref);
   }
 
   // Swatches couleur par produit, dédupliqués par valeur d'option (une couleur = une pastille,

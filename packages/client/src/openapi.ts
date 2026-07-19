@@ -1197,7 +1197,16 @@ export interface components {
                 quantity: number;
                 /** @description Valeurs d’option qui définissent cette variante. */
                 optionValues: string[];
-                featuredImage: (string | null) | null;
+                /** @description Média de la variante (`featuredForVariant`) + dimensions, sinon null. */
+                featuredImage: ({
+                    /**
+                     * Format: uuid
+                     * @description UUID du média.
+                     */
+                    id: string;
+                    width: (number | null) | null;
+                    height: (number | null) | null;
+                } | null) | null;
             }[];
             /** @description Options du produit. */
             options: {
@@ -1242,9 +1251,25 @@ export interface components {
             }[];
             /** @description Tags du produit (noms), triés par nom. Vide si aucun. */
             tags: string[];
-            featuredImage: (string | null) | null;
+            featuredImage: ({
+                /**
+                 * Format: uuid
+                 * @description UUID du média.
+                 */
+                id: string;
+                width: (number | null) | null;
+                height: (number | null) | null;
+            } | null) | null;
             /** @description Galerie de médias du produit. */
-            images: string[];
+            images: {
+                /**
+                 * Format: uuid
+                 * @description UUID du média.
+                 */
+                id: string;
+                width: (number | null) | null;
+                height: (number | null) | null;
+            }[];
             /** @description Le produit accepte une personnalisation (ADR-0010). */
             personalizationEnabled: boolean;
             /** @description Champs de personnalisation déclarés, vide si aucun. */
@@ -1293,7 +1318,15 @@ export interface components {
                 dateCreated: Record<string, never> | string | number;
                 /** @description Date de dernière modification. */
                 dateUpdated: Record<string, never> | string | number;
-                featuredImage: (string | null) | null;
+                featuredImage: ({
+                    /**
+                     * Format: uuid
+                     * @description UUID du média.
+                     */
+                    id: string;
+                    width: (number | null) | null;
+                    height: (number | null) | null;
+                } | null) | null;
                 defaultVariant: ({
                     /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
                     priceHt: string;
@@ -1302,7 +1335,15 @@ export interface components {
                     quantity: number;
                 } | null) | null;
                 /** @description Galerie ordonnée (image principale en tête) — survol, miniatures. */
-                images: string[];
+                images: {
+                    /**
+                     * Format: uuid
+                     * @description UUID du média.
+                     */
+                    id: string;
+                    width: (number | null) | null;
+                    height: (number | null) | null;
+                }[];
                 /** @description Axe couleur (option type=color) — pastilles, vide si aucune. */
                 swatches: {
                     /**
@@ -1314,7 +1355,15 @@ export interface components {
                     label: string;
                     /** @description Couleur CSS oklch prête au rendu (ex. « oklch(0.65 0.12 220 / 1) »). */
                     color: string;
-                    image: (string | null) | null;
+                    image: ({
+                        /**
+                         * Format: uuid
+                         * @description UUID du média.
+                         */
+                        id: string;
+                        width: (number | null) | null;
+                        height: (number | null) | null;
+                    } | null) | null;
                 }[];
                 /** @description Tags du produit (noms), triés par nom. Vide si aucun. */
                 tags: string[];
@@ -1386,7 +1435,16 @@ export interface components {
                 quantity: number;
                 /** @description Valeurs d’option qui définissent cette variante. */
                 optionValues: string[];
-                featuredImage: (string | null) | null;
+                /** @description Média de la variante (`featuredForVariant`) + dimensions, sinon null. */
+                featuredImage: ({
+                    /**
+                     * Format: uuid
+                     * @description UUID du média.
+                     */
+                    id: string;
+                    width: (number | null) | null;
+                    height: (number | null) | null;
+                } | null) | null;
             }[];
             /** @description Options du produit. */
             options: {

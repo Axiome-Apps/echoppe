@@ -19,7 +19,7 @@ const products = data?.data ?? [];
             name={product.name}
             slug={product.slug}
             price={product.defaultVariant?.priceHt}
-            imageId={product.featuredImage}
+            imageId={product.featuredImage?.id}
           />
         ))}
       </div>

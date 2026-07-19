@@ -27,7 +27,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 | Item | État | Notes |
 |------|------|-------|
 | B4. `sort`/`order` sur `/categories\|collections/{id}/products` | ✅ 🔒 | les 2 routes délèguent à `queryProductCards` (+ param `extraConditions` pour l'appartenance) au lieu du tri `dateCreated` figé ; `sort=price\|name\|dateCreated` + `order`. ⚠️ tri par défaut : `dateCreated` **DESC** (récent d'abord, aligné sur `/products/`) au lieu de l'ancien ASC. SDK régénéré. Verrou : `category-collection-sort.test.ts` |
-| B5. Resize média `/assets/{id}?width=` | ⬜ | lib d'image + cache disque ; ADR (choix lib) |
+| B5. ~~Resize média `/assets/{id}?width=`~~ → **dimensions exposées** | ✅ 🔒 | Décision : pas de resize serveur (le framework n'optimise pas les images). L'API sert l'original + expose `imageRef {id,width,height}` (carte, galerie, variante, swatch) ; le `<Image>` est la responsabilité de la boutique réelle (BFF/CDN via loader). Cf. [0021](./adr/ADR-0021-strategie-images.md). SDK régénéré (rupture uuid→objet, pré-1.0). Verrou : `image-dimensions.test.ts` |
 
 ### P3 — compte & engagement
 | Item | État | Notes |

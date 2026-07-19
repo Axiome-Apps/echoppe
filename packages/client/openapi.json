@@ -7844,12 +7844,47 @@
                   }
                 },
                 "featuredImage": {
+                  "description": "Média de la variante (`featuredForVariant`) + dimensions, sinon null.",
                   "nullable": true,
                   "anyOf": [
                     {
-                      "format": "uuid",
-                      "description": "UUID du média de la variante (média `featuredForVariant`), sinon null.",
-                      "type": "string"
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "id": {
+                          "format": "uuid",
+                          "description": "UUID du média.",
+                          "type": "string"
+                        },
+                        "width": {
+                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "height": {
+                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
                     },
                     {
                       "type": "null"
@@ -7986,9 +8021,43 @@
             "nullable": true,
             "anyOf": [
               {
-                "format": "uuid",
-                "description": "UUID du média mis en avant.",
-                "type": "string"
+                "type": "object",
+                "required": [
+                  "id",
+                  "width",
+                  "height"
+                ],
+                "properties": {
+                  "id": {
+                    "format": "uuid",
+                    "description": "UUID du média.",
+                    "type": "string"
+                  },
+                  "width": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "height": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
               },
               {
                 "type": "null"
@@ -7999,9 +8068,43 @@
             "description": "Galerie de médias du produit.",
             "type": "array",
             "items": {
-              "format": "uuid",
-              "description": "UUID d'un média de la galerie.",
-              "type": "string"
+              "type": "object",
+              "required": [
+                "id",
+                "width",
+                "height"
+              ],
+              "properties": {
+                "id": {
+                  "format": "uuid",
+                  "description": "UUID du média.",
+                  "type": "string"
+                },
+                "width": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "height": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
             }
           },
           "personalizationEnabled": {
@@ -8179,9 +8282,43 @@
                   "nullable": true,
                   "anyOf": [
                     {
-                      "format": "uuid",
-                      "description": "UUID du média mis en avant.",
-                      "type": "string"
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "id": {
+                          "format": "uuid",
+                          "description": "UUID du média.",
+                          "type": "string"
+                        },
+                        "width": {
+                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "height": {
+                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
                     },
                     {
                       "type": "null"
@@ -8230,9 +8367,43 @@
                   "description": "Galerie ordonnée (image principale en tête) — survol, miniatures.",
                   "type": "array",
                   "items": {
-                    "format": "uuid",
-                    "description": "UUID d'un média de la galerie.",
-                    "type": "string"
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "width",
+                      "height"
+                    ],
+                    "properties": {
+                      "id": {
+                        "format": "uuid",
+                        "description": "UUID du média.",
+                        "type": "string"
+                      },
+                      "width": {
+                        "nullable": true,
+                        "anyOf": [
+                          {
+                            "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "height": {
+                        "nullable": true,
+                        "anyOf": [
+                          {
+                            "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
                   }
                 },
                 "swatches": {
@@ -8264,9 +8435,43 @@
                         "nullable": true,
                         "anyOf": [
                           {
-                            "format": "uuid",
-                            "description": "UUID du média de la variante (survol), si défini.",
-                            "type": "string"
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "width",
+                              "height"
+                            ],
+                            "properties": {
+                              "id": {
+                                "format": "uuid",
+                                "description": "UUID du média.",
+                                "type": "string"
+                              },
+                              "width": {
+                                "nullable": true,
+                                "anyOf": [
+                                  {
+                                    "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "height": {
+                                "nullable": true,
+                                "anyOf": [
+                                  {
+                                    "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            }
                           },
                           {
                             "type": "null"
@@ -8573,12 +8778,47 @@
                   }
                 },
                 "featuredImage": {
+                  "description": "Média de la variante (`featuredForVariant`) + dimensions, sinon null.",
                   "nullable": true,
                   "anyOf": [
                     {
-                      "format": "uuid",
-                      "description": "UUID du média de la variante (média `featuredForVariant`), sinon null.",
-                      "type": "string"
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "id": {
+                          "format": "uuid",
+                          "description": "UUID du média.",
+                          "type": "string"
+                        },
+                        "width": {
+                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "height": {
+                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
                     },
                     {
                       "type": "null"

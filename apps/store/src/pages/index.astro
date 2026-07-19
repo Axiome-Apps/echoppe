@@ -31,7 +31,7 @@ const featured = (data?.data ?? []).filter((p) => p.status === 'published').slic
               name={product.name}
               slug={product.slug}
               price={product.defaultVariant?.priceHt}
-              imageId={product.featuredImage}
+              imageId={product.featuredImage?.id}
             />
           ))}
         </div>
