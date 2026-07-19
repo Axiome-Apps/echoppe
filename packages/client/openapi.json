@@ -71,6 +71,10 @@
       "description": "Panier client"
     },
     {
+      "name": "Wishlist",
+      "description": "Liste d’envies client"
+    },
+    {
       "name": "Customer Addresses",
       "description": "Adresses client"
     },
@@ -5071,6 +5075,189 @@
         "operationId": "getCustomerOrdersById"
       }
     },
+    "/wishlist/": {
+      "get": {
+        "tags": [
+          "Wishlist"
+        ],
+        "parameters": [
+          {
+            "name": "echoppe_customer_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wishlist du client, la plus récente en tête.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wishlist"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getWishlist"
+      },
+      "post": {
+        "tags": [
+          "Wishlist"
+        ],
+        "parameters": [
+          {
+            "name": "echoppe_customer_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "variantId"
+                ],
+                "properties": {
+                  "variantId": {
+                    "format": "uuid",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "variantId"
+                ],
+                "properties": {
+                  "variantId": {
+                    "format": "uuid",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "variantId"
+                ],
+                "properties": {
+                  "variantId": {
+                    "format": "uuid",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "description": "Opération réussie",
+                      "const": true,
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Description de l'erreur",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postWishlist"
+      }
+    },
+    "/wishlist/{variantId}": {
+      "delete": {
+        "tags": [
+          "Wishlist"
+        ],
+        "parameters": [
+          {
+            "name": "variantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "echoppe_customer_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "description": "Opération réussie",
+                      "const": true,
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "deleteWishlistByVariantId"
+      }
+    },
     "/checkout/": {
       "post": {
         "tags": [
@@ -8986,6 +9173,162 @@
           "$id": "#/components/schemas/TaxRate"
         },
         "$id": "#/components/schemas/TaxRateList"
+      },
+      "Wishlist": {
+        "description": "Wishlist du client, la plus récente en tête.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "variant",
+            "product",
+            "featuredImage",
+            "dateAdded"
+          ],
+          "properties": {
+            "variant": {
+              "type": "object",
+              "required": [
+                "id",
+                "sku",
+                "priceHt",
+                "compareAtPriceHt",
+                "quantity"
+              ],
+              "properties": {
+                "id": {
+                  "format": "uuid",
+                  "description": "UUID de la variante épinglée.",
+                  "type": "string"
+                },
+                "sku": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "description": "Référence interne (SKU).",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "priceHt": {
+                  "description": "Prix HT, décimal en chaîne (ex. « 12.90 »).",
+                  "type": "string"
+                },
+                "compareAtPriceHt": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "description": "Prix HT barré (avant remise), ou null. Décimal en chaîne.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "quantity": {
+                  "description": "Stock disponible (0 = rupture).",
+                  "type": "number"
+                }
+              }
+            },
+            "product": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "slug"
+              ],
+              "properties": {
+                "id": {
+                  "format": "uuid",
+                  "description": "UUID du produit.",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "Nom du produit.",
+                  "type": "string"
+                },
+                "slug": {
+                  "description": "Identifiant lisible pour l'URL.",
+                  "type": "string"
+                }
+              }
+            },
+            "featuredImage": {
+              "description": "Image mise en avant du produit + dimensions (ADR-0021), sinon null.",
+              "nullable": true,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "width",
+                    "height"
+                  ],
+                  "properties": {
+                    "id": {
+                      "format": "uuid",
+                      "description": "UUID du média.",
+                      "type": "string"
+                    },
+                    "width": {
+                      "nullable": true,
+                      "anyOf": [
+                        {
+                          "description": "Largeur intrinsèque en pixels, ou null si inconnue.",
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "height": {
+                      "nullable": true,
+                      "anyOf": [
+                        {
+                          "description": "Hauteur intrinsèque en pixels, ou null si inconnue.",
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "dateAdded": {
+              "description": "Date d'ajout à la wishlist.",
+              "anyOf": [
+                {
+                  "description": "Date d'ajout à la wishlist.",
+                  "type": "Date"
+                },
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          }
+        },
+        "$id": "#/components/schemas/Wishlist"
       },
       "MenuItemResolved": {
         "type": "object",

@@ -82,5 +82,10 @@ export function createResources(client: Client<paths>) {
     taxRates: {
       list: (init?: MaybeOptionalInit<paths['/tax-rates/'], 'get'>) => client.GET('/tax-rates/', init),
     },
+    wishlist: {
+      add: (init: MaybeOptionalInit<paths['/wishlist/'], 'post'>) => client.POST('/wishlist/', init),
+      list: (init?: MaybeOptionalInit<paths['/wishlist/'], 'get'>) => client.GET('/wishlist/', init),
+      remove: (init: MaybeOptionalInit<paths['/wishlist/{variantId}'], 'delete'>) => client.DELETE('/wishlist/{variantId}', init),
+    },
   };
 }

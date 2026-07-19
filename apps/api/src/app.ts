@@ -32,6 +32,7 @@ import { shippingRoutes } from './routes/shipping';
 import { stockRoutes } from './routes/stock';
 import { taxRatesRoutes } from './routes/tax-rates';
 import { usersRoutes } from './routes/users';
+import { wishlistRoutes } from './routes/wishlist';
 
 // Application Elysia PURE : construction des routes/plugins, sans aucun side-effect de
 // bootstrap (pas de listen, migrations, initAdmin ni intervals — cf. index.ts). Importable
@@ -78,6 +79,7 @@ export const app = new Elysia()
           { name: 'Assets', description: 'Fichiers statiques' },
           { name: 'Roles', description: 'Gestion des rôles et permissions' },
           { name: 'Cart', description: 'Panier client' },
+          { name: 'Wishlist', description: 'Liste d’envies client' },
           { name: 'Customer Addresses', description: 'Adresses client' },
           { name: 'Checkout', description: 'Tunnel de paiement' },
           { name: 'Communications', description: 'Configuration emails' },
@@ -132,6 +134,7 @@ export const app = new Elysia()
   .use(checkoutRoutes)
   .use(communicationsRoutes)
   .use(customersRoutes)
+  .use(wishlistRoutes)
   .use(usersRoutes)
   .use(contactRoutes)
   .use(auditLogsRoutes);

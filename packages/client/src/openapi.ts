@@ -632,6 +632,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/wishlist/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWishlist"];
+        put?: never;
+        post: operations["postWishlist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wishlist/{variantId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteWishlistByVariantId"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/checkout/": {
         parameters: {
             query?: never;
@@ -1502,6 +1534,45 @@ export interface components {
             rate: string;
             /** @description Taux appliqué par défaut aux nouveaux produits. */
             isDefault: boolean;
+        }[];
+        /** @description Wishlist du client, la plus récente en tête. */
+        Wishlist: {
+            variant: {
+                /**
+                 * Format: uuid
+                 * @description UUID de la variante épinglée.
+                 */
+                id: string;
+                sku: (string | null) | null;
+                /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
+                priceHt: string;
+                compareAtPriceHt: (string | null) | null;
+                /** @description Stock disponible (0 = rupture). */
+                quantity: number;
+            };
+            product: {
+                /**
+                 * Format: uuid
+                 * @description UUID du produit.
+                 */
+                id: string;
+                /** @description Nom du produit. */
+                name: string;
+                /** @description Identifiant lisible pour l'URL. */
+                slug: string;
+            };
+            /** @description Image mise en avant du produit + dimensions (ADR-0021), sinon null. */
+            featuredImage: ({
+                /**
+                 * Format: uuid
+                 * @description UUID du média.
+                 */
+                id: string;
+                width: (number | null) | null;
+                height: (number | null) | null;
+            } | null) | null;
+            /** @description Date d'ajout à la wishlist. */
+            dateAdded: Record<string, never> | string | number;
         }[];
         MenuItemResolved: {
             label: string;
@@ -3927,6 +3998,113 @@ export interface operations {
                     "application/json": {
                         /** @description Erreur interne */
                         message: string;
+                    };
+                };
+            };
+        };
+    };
+    getWishlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Wishlist du client, la plus récente en tête. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Wishlist"];
+                };
+            };
+        };
+    };
+    postWishlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    variantId: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    /** Format: uuid */
+                    variantId: string;
+                };
+                "multipart/form-data": {
+                    /** Format: uuid */
+                    variantId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Opération réussie
+                         * @constant
+                         */
+                        success: true;
+                    };
+                };
+            };
+            /** @description Response for status 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Description de l'erreur */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    deleteWishlistByVariantId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variantId: string;
+            };
+            cookie?: {
+                echoppe_customer_session?: string;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Opération réussie
+                         * @constant
+                         */
+                        success: true;
                     };
                 };
             };

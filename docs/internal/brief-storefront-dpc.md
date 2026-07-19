@@ -33,7 +33,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 | Item | État | Notes |
 |------|------|-------|
 | B6. Audit surface compte/checkout (doc) | ✅ | [audit-compte-checkout.md](./audit-compte-checkout.md) : socle connecté complet (auth/profil/adresses CRUD/commandes/checkout/panier). Manques = décisions produit : checkout invité (🔴), RGPD self-service (🟠, déjà anticipé code), double opt-in (🟡). |
-| B7. Wishlist (`GET/POST/DELETE /wishlist`) | ⬜ | vérifier resource RBAC existante |
+| B7. Wishlist (`GET/POST/DELETE /wishlist`) | ✅ 🔒 | table `wishlist_item` (PK customer+variant) préexistante → routes ajoutées (client authentifié, `customerAuth`). Ajout idempotent, listing enrichi (variant+produit+imageRef), 404 variante inconnue, 401 anonyme. SDK régénéré (namespace `wishlist`). Verrou : `wishlist.test.ts` (5 cas). |
 | B8. Recommandations `/products/{id}/related` | ⬜ | voisins même catégorie/collection |
 
 ### P4 — contenu & confort

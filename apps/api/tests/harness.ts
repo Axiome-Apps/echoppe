@@ -1,5 +1,16 @@
 import { fileURLToPath } from 'node:url';
-import { category, db, eq, role, runMigrations, session, taxRate, user } from '@echoppe/core';
+import {
+  category,
+  customer,
+  customerSession,
+  db,
+  eq,
+  role,
+  runMigrations,
+  session,
+  taxRate,
+  user,
+} from '@echoppe/core';
 import { app } from '../src/app';
 
 // Harness partagé des tests d'intégration API (audit test 2026-07-19, §builders/factories).
@@ -76,6 +87,30 @@ export async function createAdminSession(): Promise<string> {
     .insert(session)
     .values({ token, user: adminUser.id, expiresAt: new Date(Date.now() + 60 * 60 * 1000) });
   return `echoppe_admin_session=${token}`;
+}
+
+/**
+ * Injecte en base un client + sa session, renvoie { cookie, customerId }. `userAgent` laissé null
+ * → le pinning User-Agent du plugin est neutralisé (pas de header à répliquer dans le test). Emails
+ * uniques par appel → aucune collision entre fichiers dans un même run.
+ */
+export async function createCustomerSession(): Promise<{ cookie: string; customerId: string }> {
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const [c] = await db
+    .insert(customer)
+    .values({
+      email: `client-${suffix}@echoppe.test`,
+      passwordHash: 'x',
+      firstName: 'Client',
+      lastName: 'Test',
+      emailVerified: true,
+    })
+    .returning();
+  const token = crypto.randomUUID().replace(/-/g, '');
+  await db
+    .insert(customerSession)
+    .values({ token, customer: c.id, expiresAt: new Date(Date.now() + 60 * 60 * 1000) });
+  return { cookie: `echoppe_customer_session=${token}`, customerId: c.id };
 }
 
 /** FK partagée : la base vierge migrée n'a pas de catégorie. Idempotent (slug unique). */

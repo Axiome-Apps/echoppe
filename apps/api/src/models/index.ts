@@ -11,6 +11,7 @@ import { customerModels } from './customer';
 import { menuModels } from './menu';
 import { orderModels } from './order';
 import { taxRateModels } from './tax-rate';
+import { wishlistModels } from './wishlist';
 
 // Registre central des modèles nommés du contrat. Une seule source qui alimente :
 // - la validation runtime (via `.model()`),
@@ -34,6 +35,7 @@ export const allModels = {
   ...orderModels,
   ...contentModels,
   ...menuModels,
+  ...wishlistModels,
 };
 
 /** Union des noms de modèles enregistrés — remplace un `string` permissif. */

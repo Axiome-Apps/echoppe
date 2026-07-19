@@ -20,6 +20,7 @@ export const TAG_NAMESPACE: Record<string, string> = {
   Categories: 'categories',
   Collections: 'collections',
   Cart: 'cart',
+  Wishlist: 'wishlist',
   Checkout: 'checkout',
   Payments: 'checkout', // `/payments/checkout` fusionné dans checkout (`checkout.pay()`).
   Company: 'company',
@@ -59,6 +60,10 @@ export const METHOD_NAMES: Record<string, string> = {
   patchCartItemsById: 'updateItem',
   deleteCartItemsById: 'removeItem',
   postCartMerge: 'merge',
+
+  getWishlist: 'list',
+  postWishlist: 'add',
+  deleteWishlistByVariantId: 'remove',
   // checkout (+ payments)
   postCheckout: 'create',
   'getCheckoutPayment-providers': 'paymentProviders',
