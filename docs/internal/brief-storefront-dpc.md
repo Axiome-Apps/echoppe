@@ -32,7 +32,7 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 ### P3 — compte & engagement
 | Item | État | Notes |
 |------|------|-------|
-| B6. Audit surface compte/checkout (**à faire en premier de P3**) | ⬜ | pur doc : existe/manque login/register, adresses CRUD, commandes |
+| B6. Audit surface compte/checkout (doc) | ✅ | [audit-compte-checkout.md](./audit-compte-checkout.md) : socle connecté complet (auth/profil/adresses CRUD/commandes/checkout/panier). Manques = décisions produit : checkout invité (🔴), RGPD self-service (🟠, déjà anticipé code), double opt-in (🟡). |
 | B7. Wishlist (`GET/POST/DELETE /wishlist`) | ⬜ | vérifier resource RBAC existante |
 | B8. Recommandations `/products/{id}/related` | ⬜ | voisins même catégorie/collection |
 
