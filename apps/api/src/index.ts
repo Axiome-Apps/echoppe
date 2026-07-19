@@ -1,3 +1,4 @@
+import './env'; // garde-fou config — DOIT précéder tout import de @echoppe/core / ./app (cf. env.ts)
 import { fileURLToPath } from 'node:url';
 import { runMigrations } from '@echoppe/core';
 import { app } from './app';

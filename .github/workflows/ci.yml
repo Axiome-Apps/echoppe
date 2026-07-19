@@ -59,6 +59,15 @@ jobs:
           fi
           echo "✓ Schéma == migrations, aucune dérive."
 
+      # Garde anti-dérive du CONTRAT SDK : régénère le client depuis l'app pure (offline) et échoue
+      # si les types figés (openapi.ts/models.ts/facade.ts) divergent des routes. Miroir du drift-guard
+      # Drizzle : attrape « route changée, SDK figé oublié » dès la PR (au lieu du seul gate release
+      # T4). DATABASE_URL placeholder — l'app pure ne fait aucune requête, sert juste /docs/json.
+      - name: Contract drift guard
+        env:
+          DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
+        run: bun run contracts:check
+
   # T2 — Smoke « base vierge depuis les migrations » : Postgres neuf → migrate → les routes
   # clés répondent (/products/ 200 sans 500, /countries/ non vide). Aurait attrapé le 500
   # de l'image 0.4.0 (colonnes manquantes) et le /countries/ vide.

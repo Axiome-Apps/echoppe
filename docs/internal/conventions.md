@@ -74,6 +74,31 @@ Filet **lean anti-régression** (esprit CI/CD, sans gonfler la CI) : `bun test` 
 user+rôle+session Postgres et le cookie `echoppe_admin_session` (owner bypass). Chaque capacité ajoute
 1–2 assertions ciblées (contrat + comportement clé), rien de plus.
 
+## Contrat SDK — régénération & garde anti-dérive
+
+Le SDK figé (`packages/client/src/{openapi,models,facade}.ts` + `openapi.json`) **dérive des routes**.
+Ne jamais l'éditer à la main : `bun run contracts` boote l'app pure offline (`serve-contract`),
+régénère, et remplace le rituel manuel `:7533`. `bun run contracts:check` fait de même **puis échoue
+si les types figés ont bougé** — garde anti-dérive en CI (`ci.yml`, miroir du drift-guard Drizzle),
+qui attrape « route changée, SDK oublié » dès la PR. `openapi.json` n'est pas gardé (bruit cosmétique
+`additionalProperties` de TypeBox) — seuls les types dérivés le sont, comme le gate release T4.
+
+## Configuration & exploitation (self-host)
+
+**Validation env au boot.** `apps/api/src/env.ts` est un **garde-fou fail-fast** importé EN PREMIER
+par `index.ts` (avant tout import de `@echoppe/core`, dont le client DB throw sur `DATABASE_URL`
+absente). Il refuse le démarrage avec un message clair si une variable **critique** manque :
+`DATABASE_URL`, `ENCRYPTION_KEY` (32 octets base64). Les optionnelles ont des défauts sûrs. Autonome
+(n'importe pas core) pour pouvoir s'exécuter avant lui. Non chargé par `app.ts` (pure) ni les tests.
+
+**Sauvegarde (opérateur boutique).** La vérité de prod = Postgres + le volume d'uploads.
+- **Base** : `pg_dump` planifié (ex. quotidien) hors du conteneur, rétention à définir — ex.
+  `docker exec <db> pg_dump -U echoppe echoppe | gzip > backup-$(date +%F).sql.gz`. Restauration :
+  `gunzip -c … | docker exec -i <db> psql -U echoppe echoppe`.
+- **Uploads** : snapshot du volume `UPLOAD_DIR` (médias) — les migrations recréent le schéma, **pas**
+  les fichiers. Sauvegarder base **et** uploads ensemble (cohérence des références média).
+- ⚠️ Ne jamais tester une restauration sur la base de prod (`dpc-*`) ; utiliser une base jetable.
+
 ## Nommage & Git
 
 Code/API en **anglais**, URLs storefront en **français** (`/produits`), UI en français. Messages de
