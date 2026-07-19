@@ -39,9 +39,9 @@ Légende : ✅ fait · 🟡 en cours · ⬜ à faire · 🔒 verrouillé par tes
 ### P4 — contenu & confort
 | Item | État | Notes |
 |------|------|-------|
-| B9. Bloc prose/richText page-builder | 🅱️ backlog | **Bloqué sur décision format : HTML vs Markdown.** Une partie du contenu est déjà en HTML → choisir Markdown imposerait d'homogénéiser tout l'existant (migration). Trancher ce point AVANT d'implémenter. `pages/by-slug` existe ; ajouter type de bloc prose une fois le format arbitré. |
+| B9. Bloc prose/richText page-builder | 🅱️ backlog | **Bloqué sur décision format : HTML vs Markdown.** Une partie du contenu est déjà en HTML → choisir Markdown imposerait d'homogénéiser tout l'existant (migration). Trancher ce point AVANT d'implémenter. `pages/by-slug` existe ; ajouter type de bloc prose une fois le format arbitré. **Converge avec B11** : le prose devient une entité du système de contenu léger (cf. B11) → décision format = décision de ce système. |
 | B10. Signal low-stock public | 🅱️ backlog | Décision (pré-tranchée, à confirmer à la reprise) : exposer un booléen calculé `isLowStock` (`quantity <= lowStockThreshold`) sur `variantPublicSchema`, **jamais** le seuil brut ([ADR-0006](./adr/ADR-0006-visibilite-catalogue.md) : seuil masqué). Implémentation simple une fois confirmé. |
-| B11. Source onglets produit (livraison/retours/conseils) | ⬜ | ⚠️ décision : backend vs statique |
+| B11. Source onglets produit (livraison/retours/conseils) | 🅱️ backlog | **Reframe** : ne pas faire un système dédié aux onglets, mais un **système d'entités de contenu léger** (CMS minimal) — types d'entités configurables, **singleton** (ex. politique livraison) ou **liste** (ex. FAQ, conseils). Les onglets produit = un consommateur. **Absorbe B9** (prose = une entité) → la décision format HTML/Markdown est celle de ce système. À concevoir en ADR avant impl. |
 
 ## Checklist publication (avant bump)
 `generate` + migration committés (pas push) · SDK régénéré depuis l'image · smoke fresh + upgrade
