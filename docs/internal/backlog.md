@@ -72,5 +72,3 @@ brief storefront DPC.
 
 Avant tout bump : migration committée (pas `push`), SDK régénéré (`bun run contracts`), smoke
 fresh+upgrade verts (gate T2–T5), versions alignées. Détail : [pipeline-release.md](./pipeline-release.md).
-</content>
-</invoke>

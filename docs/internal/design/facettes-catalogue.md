@@ -28,4 +28,3 @@ Trancher avant d'ouvrir l'impl → à ce moment, acter en ADR si la forme d'API 
 
 Toute évolution du payload de carte passe par `apps/api/src/utils/product-cards.ts`
 (`enrichProductCards`) et la logique partagée `queryProductCards` — jamais dupliquée ×3.
-</content>

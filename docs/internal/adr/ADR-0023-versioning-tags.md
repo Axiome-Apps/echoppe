@@ -59,4 +59,3 @@ registre de vérité — **npm**.
 
 → [pipeline-release.md](../pipeline-release.md) (mécanique à jour) ·
 [distribution-architecture.md § Politique de versions](../distribution-architecture.md)
-</content>

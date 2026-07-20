@@ -41,4 +41,3 @@ B9 isolé) : le format retenu s'applique à toutes les entités prose. **Tranche
 ## Consommateurs cibles (V1)
 
 Pages légales prose (B9) · onglets produit livraison/retours/conseils (B11) · potentiellement FAQ.
-</content>

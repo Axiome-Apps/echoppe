@@ -21,4 +21,3 @@ le seuil réel ni le stock exact.
 - Ne rien changer au schéma DB (le seuil et la quantité existent déjà).
 - Contrat additif → SDK régénéré (`bun run contracts`), pas de rupture.
 - Vérif : variant sous le seuil → `isLowStock: true` côté storefront, seuil absent du payload.
-</content>
