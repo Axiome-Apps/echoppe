@@ -1,6 +1,6 @@
 # ADR-0004 — Migrations au boot + validation release (compose dev vs prod)
 
-Statut : accepté · 2026-07-08
+Statut : accepté · 2026-07-08 · politique de tags/versions affinée par [ADR-0023](./ADR-0023-versioning-tags.md)
 
 ## Contexte
 

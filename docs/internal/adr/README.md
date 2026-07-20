@@ -42,6 +42,7 @@ Statut : accepté | proposé | remplacé par ADR-00YY   ·   Date
 | [0020](./ADR-0020-colormetadata-double-representation.md) | ColorMetadata : représentation double verrouillée (interface core + TypeBox api + guard) | accepté | — |
 | [0021](./ADR-0021-strategie-images.md) | Stratégie images : pas de resize serveur, dimensions exposées (imageRef) | accepté | — |
 | [0022](./ADR-0022-produits-lies.md) | Produits liés : curation directionnelle + fallback voisinage | accepté | — |
+| [0023](./ADR-0023-versioning-tags.md) | Versioning : épine `v*` produit, packages sur npm (amende 0002/0004) | accepté | [pipeline-release.md](../pipeline-release.md) |
 
 ## Conventions (non-ADR)
 
