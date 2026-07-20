@@ -3,7 +3,7 @@
 Capture les **choix et seuils projet non dérivables du code** (cf. philosophy §9). La SSOT des
 idiomes reste `~/.code-conform/docs/` ; ce fichier ne note que ce qui est **spécifique à Échoppe**
 ou qui **tranche un point contextuel**. Les décisions structurantes vivent dans les
-[ADR](./adr/README.md) ; ici on capture les conventions de travail et les seuils.
+[ADR](../adr/README.md) ; ici on capture les conventions de travail et les seuils.
 
 ## Structure des packages
 
@@ -26,11 +26,11 @@ philosophy §6 / typescript.md §8, acté ici :
 `models/*.ts` (TypeBox) = SSOT du contrat : validation runtime **+** OpenAPI **+** inférence Eden.
 Une donnée `jsonb` typée côté `core` **et** validée côté `api` suit le pattern à double
 représentation verrouillée (interface core + TypeBox api + guard `Static<> extends`) —
-cf. [ADR-0020](./adr/ADR-0020-colormetadata-double-representation.md).
+cf. [ADR-0020](../adr/ADR-0020-colormetadata-double-representation.md).
 
 ### `apps/admin` — atomic + composables
 
-Détail dans [PATTERNS.md](./PATTERNS.md) / [ADR-0016](./adr/ADR-0016-conventions-front-admin.md) :
+Détail dans [PATTERNS.md](./PATTERNS.md) / [ADR-0016](../adr/ADR-0016-conventions-front-admin.md) :
 atomic design, **imports directs** (pas de barrel pour les composants Vue), types **inférés depuis
 Eden** (jamais d'interface manuelle pour les données API), un composable par feature `{state,
 actions}`.
@@ -48,14 +48,14 @@ actions}`.
 ## Frontière de validation
 
 Une seule frontière (philosophy §5) : **TypeBox/Elysia** à l'entrée HTTP
-([ADR-0015](./adr/ADR-0015-validation-typebox.md)). Pas de Zod (retiré de `core`/`shared`, deps
+([ADR-0015](../adr/ADR-0015-validation-typebox.md)). Pas de Zod (retiré de `core`/`shared`, deps
 mortes). En interne, on **truste** la donnée déjà parsée. `slugify`/dédup et autres normalisations
 sont des transformations, pas des revalidations.
 
 ## Providers & frontière HTTP
 
 `payments`/`shipping`/`communications` ne sont pas « le métier du paiement/livraison » mais la
-**frontière HTTP mince** vers le provisionner (adapters, [ADR-0011](./adr/ADR-0011-adapters-providers.md)).
+**frontière HTTP mince** vers le provisionner (adapters, [ADR-0011](../adr/ADR-0011-adapters-providers.md)).
 Ajouter un provider = un adapter + une entrée dans la SSOT `PAYMENT_PROVIDERS`, **zéro route**
 (webhook paramétrique `/:provider`). Seules restent des routes : création de session (secret serveur
 + montant autoritaire), webhook (le provider nous rappelle), config/statut/refund admin.

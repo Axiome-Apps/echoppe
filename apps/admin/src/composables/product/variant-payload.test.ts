@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { buildVariantPayload, type VariantFormValues } from './variant-payload';
 
-// Verrou de régression A1/A2 (cf. docs/internal/adr/ADR-0009) : le payload de mutation variante doit
+// Verrou de régression A1/A2 (cf. docs-internal/adr/ADR-0009) : le payload de mutation variante doit
 // TOUJOURS porter isDefault, et préserver sortOrder en édition — sinon la route (remplacement complet)
 // réinitialise ces champs à chaque enregistrement du VariantModal.
 

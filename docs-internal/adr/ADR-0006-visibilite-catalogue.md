@@ -33,4 +33,4 @@ possède `product:read`** (le storefront lit le catalogue).
 
 ## Détail
 
-→ [security-audit.md](../security-audit.md), [audit-rbac-plan.md](../audit-rbac-plan.md)
+→ [security-audit.md](../audits/security-audit.md), [audit-rbac-plan.md](../audits/audit-rbac-plan.md)

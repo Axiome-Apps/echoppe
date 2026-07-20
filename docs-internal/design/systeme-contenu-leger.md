@@ -1,6 +1,6 @@
 # Design — Système de contenu léger (B9 + B11)
 
-Détail des tâches **Système de contenu léger** du [backlog](../../../BACKLOG.md). **Note de conception** —
+Détail des tâches **Système de contenu léger** du [backlog](../../BACKLOG.md). **Note de conception** —
 pas encore d'ADR : plusieurs points structurants restent ouverts. **ADR requis avant impl.**
 
 ## Reframe
@@ -20,7 +20,7 @@ simples **consommateurs** de ce système. B9 est **absorbé** : le prose est une
 Les deux sont **complémentaires, pas concurrents** — ne pas les confondre :
 
 - Le **page-builder headless** `@echoppe/content`
-  ([ADR-0012](../adr/ADR-0012-module-contenu.md) / [content-module.md](../content-module.md)) compose
+  ([ADR-0012](../adr/ADR-0012-module-contenu.md) / [content-module.md](../reference/content-module.md)) compose
   des **pages en sections/blocs** déclarées config-as-code par le dev du front (mise en page éditoriale,
   rendu côté front).
 - Le **système d'entités léger** crée des **entités de données diverses** (singleton/liste), éditables

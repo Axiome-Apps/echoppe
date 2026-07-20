@@ -2,7 +2,7 @@
 //
 // ⚠️ La route API PUT/POST variante est un REMPLACEMENT COMPLET : omettre `isDefault`/`sortOrder`
 // les réinitialise côté serveur (`isDefault → false`, `sortOrder → 0`). C'est la régression A1 (voir
-// docs/internal/adr/ADR-0009). D'où la propagation SYSTÉMATIQUE de `isDefault`, et de `sortOrder`
+// docs-internal/adr/ADR-0009). D'où la propagation SYSTÉMATIQUE de `isDefault`, et de `sortOrder`
 // (préservé depuis la variante éditée) en mode édition.
 
 export interface VariantFormValues {

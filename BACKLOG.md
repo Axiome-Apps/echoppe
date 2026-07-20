@@ -2,12 +2,12 @@
 
 Backlog **interne, activable**, point d'entrée unique du travail ouvert (remplace l'ancien `TODO.md`).
 Une ligne = une tâche à cocher ; le **détail** vit dans un doc dédié (ADR, audit, note de design sous
-`docs/internal/`) que la ligne pointe. Ce fichier porte l'**état**, pas le contenu.
+`docs-internal/`) que la ligne pointe. Ce fichier porte l'**état**, pas le contenu.
 
 - **Roadmap publique** ≠ ce backlog → [`docs/roadmap.md`](docs/roadmap.md) (à retravailler post-V1).
-- **Décisions structurantes** → [ADR](docs/internal/adr/README.md). L'**historique du fait** = git +
+- **Décisions structurantes** → [ADR](docs-internal/adr/README.md). L'**historique du fait** = git +
   CHANGELOG + ADR (on ne tient pas de journal parallèle).
-- **Publication** → [pipeline-release.md](docs/internal/pipeline-release.md).
+- **Publication** → [pipeline-release.md](docs-internal/release/pipeline-release.md).
 
 Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durcissement · ⚪ dépendant.
 
@@ -16,20 +16,20 @@ Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durci
 ## Ouvert — finition V1
 
 ### Catalogue storefront
-- [ ] 🟠 **Facettes catalogue** (endpoints scopés) → [détail](docs/internal/design/facettes-catalogue.md)
+- [ ] 🟠 **Facettes catalogue** (endpoints scopés) → [détail](docs-internal/design/facettes-catalogue.md)
       — tri livré (B4) ; reste fourchette prix + `inStock`, puis facettes par option.
-- [ ] 🟡 **Signal low-stock public** (B10) → [détail](docs/internal/design/signal-low-stock.md)
-      — booléen `isLowStock`, jamais le seuil ([ADR-0006](docs/internal/adr/ADR-0006-visibilite-catalogue.md)).
+- [ ] 🟡 **Signal low-stock public** (B10) → [détail](docs-internal/design/signal-low-stock.md)
+      — booléen `isLowStock`, jamais le seuil ([ADR-0006](docs-internal/adr/ADR-0006-visibilite-catalogue.md)).
       *(≠ des alertes seuil bas **admin**, déjà livrées.)*
 
-### Compte & checkout — détail : [audit-compte-checkout.md](docs/internal/audit-compte-checkout.md)
+### Compte & checkout — détail : [audit-compte-checkout.md](docs-internal/audits/audit-compte-checkout.md)
 - [ ] 🔴 **Checkout invité (guest)** — `POST /checkout` exige un compte ; décision produit à trancher.
 - [ ] 🟠 **RGPD self-service** — export + suppression. ⚠️ La suppression est un **protocole**, pas un
       bouton delete (rétention légale) → voir « RGPD (protocole complet) » en V2.
 - [ ] 🟡 **Double opt-in** à l'inscription (vérification email).
 - [ ] ⚪ **Suivi de commande invité** (lookup n° + email) — dépend du checkout invité.
 
-### Sécurité / durcissement — détail : [security-audit.md](docs/internal/security-audit.md)
+### Sécurité / durcissement — détail : [security-audit.md](docs-internal/audits/security-audit.md)
 - [ ] 🔴 **Rate-limit fail-open sans Redis** + IP de confiance (X-Forwarded-For spoofable).
       ⚠️ *Deux remèdes à trancher* : **fallback in-memory** (rester protégé) vs **fail-closed + warning
       bruyant au boot** (refuser de démarrer sans backend).
@@ -43,8 +43,8 @@ Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durci
 
 ### RBAC & observabilité
 - [ ] 🟡 **Nettoyage matrice RBAC par scope** — séparer ressources admin vs store (`cart`/`wishlist`/
-      `address` en store `selfOnly`), guards PATCH explicites. *(Le **journal d'audit** est livré : route
-      `audit-logs`, vue `AuditLogsView`, `logAudit()` câblé.)*
+      `address` en store `selfOnly`), guards PATCH explicites →
+      [détail](docs-internal/audits/audit-rbac-plan.md) (partie 3). *(Le **journal d'audit** est livré.)*
 
 ### Refactoring / qualité
 - [ ] 🟠 **Extraire `enrichProductsWithMediaAndVariants()`** (dupliqué categories/collections/products).
@@ -54,7 +54,7 @@ Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durci
 - [ ] 🟡 **Uniformiser les messages d'erreur** API (français vs anglais).
 - [ ] 🟡 **Inférer `Invoice` depuis Eden** dans `OrderDetailView.vue` (pas d'interface manuelle).
 
-### Stock & paiement (reste) — détail : [ADR-0005](docs/internal/adr/ADR-0005-panier-stock.md)
+### Stock & paiement (reste) — détail : [ADR-0005](docs-internal/adr/ADR-0005-panier-stock.md)
 - [ ] 🔴 ⚠️ **Prérequis prod** : tester le flux capture manuelle en mode test Stripe (`stripe listen` +
       `stripe trigger`). Sans capture au webhook, un paiement resterait autorisé sans être débité.
 - [ ] 🟠 **Page retour `success_url` pilotée par le statut réel** de la commande (succès vs « rupture,
@@ -74,13 +74,13 @@ Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durci
 
 ### Architecture interne
 - [ ] 🟡 **Refactor `domain/<concept>/` dans `core`** (slicing vertical, différé) →
-      [conventions.md § core](docs/internal/conventions.md). Déclencheur = 2ᵉ consommateur. **ADR avant exécution.**
+      [conventions.md § core](docs-internal/reference/conventions.md). Déclencheur = 2ᵉ consommateur. **ADR avant exécution.**
 
 ---
 
 ## Plus tard — V2 (vision, non planifié ; sera reventilé dans `roadmap.md` post-V1)
 
-### Module contenu — page-builder headless (reste) → [ADR-0012](docs/internal/adr/ADR-0012-module-contenu.md) · [content-module.md](docs/internal/content-module.md)
+### Module contenu — page-builder headless (reste) → [ADR-0012](docs-internal/adr/ADR-0012-module-contenu.md) · [content-module.md](docs-internal/reference/content-module.md)
 > Pages en **sections** déclarées config-as-code (`@echoppe/content`). Boucle end-to-end validée.
 - [ ] **P2c** type-gen (CLI lit `defineContent` → types TS des sections/components pour le front).
 - [ ] **P3** générateur de formulaires admin depuis le registre (widgets par type) — gros morceau UX.
@@ -89,13 +89,13 @@ Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durci
 - [ ] Durcissement API-key (interdire aux principals `apikey` la gestion des clés) · **portabilité DB** (le
       `jsonb` couple à Postgres) · publier `@echoppe/content` sur npm quand P2c prêt.
 
-### Système de contenu léger (entités extensibles) → [design](docs/internal/design/systeme-contenu-leger.md)
+### Système de contenu léger (entités extensibles) → [design](docs-internal/design/systeme-contenu-leger.md)
 > **Distinct** du page-builder : un CMS **type Directus allégé** pour créer des **entités diverses**
 > (singleton/liste) et laisser le dev **étendre les fonctionnalités**. Absorbe B9 (prose) + B11 (onglets
 > produit). **ADR requis** ; décision format HTML vs Markdown à trancher.
 - [ ] Concevoir + acter l'ADR (modèle d'entités, édition admin, surface storefront, format riche).
 
-### Distribution & repo → [distribution-architecture.md](docs/internal/distribution-architecture.md) · [ADR-0002](docs/internal/adr/ADR-0002-distribution.md)
+### Distribution & repo → [distribution-architecture.md](docs-internal/reference/distribution-architecture.md) · [ADR-0002](docs-internal/adr/ADR-0002-distribution.md)
 - [ ] Créer/tester une **vraie boutique** (repo Astro hors monorepo) via la CLI — reste le test x86.
 - [ ] **Migration Bun → pnpm/Node** — en exploration (différée, cf. mémoire runtime-pm).
 
@@ -145,18 +145,18 @@ CHANGELOG + git**, pas de journal ici. Jalons storefront récents (verrouillés 
 
 | Lot | Contenu | Détail |
 |-----|---------|--------|
-| A1–A3, B1 | Variante par défaut (exclusivité, fallback publié) + `featuredImage` | [ADR-0009](docs/internal/adr/ADR-0009-variante-defaut-image.md) |
-| B2 | Personnalisation produit (champs, addon prix) | [ADR-0010](docs/internal/adr/ADR-0010-personnalisation-produit.md) |
-| B3 | Tags produit storefront | [ADR-0019](docs/internal/adr/ADR-0019-tags-produit.md) |
+| A1–A3, B1 | Variante par défaut (exclusivité, fallback publié) + `featuredImage` | [ADR-0009](docs-internal/adr/ADR-0009-variante-defaut-image.md) |
+| B2 | Personnalisation produit (champs, addon prix) | [ADR-0010](docs-internal/adr/ADR-0010-personnalisation-produit.md) |
+| B3 | Tags produit storefront | [ADR-0019](docs-internal/adr/ADR-0019-tags-produit.md) |
 | B4 | Tri sur endpoints scopés | — |
-| B5 | Stratégie images : pas de resize serveur, dimensions exposées (`imageRef`) | [ADR-0021](docs/internal/adr/ADR-0021-strategie-images.md) |
+| B5 | Stratégie images : pas de resize serveur, dimensions exposées (`imageRef`) | [ADR-0021](docs-internal/adr/ADR-0021-strategie-images.md) |
 | B7 | Wishlist | — |
-| B8 | Produits liés (curation + fallback) | [ADR-0022](docs/internal/adr/ADR-0022-produits-lies.md) |
-| Options | Options typées & swatches (oklch) | [ADR-0020](docs/internal/adr/ADR-0020-colormetadata-double-representation.md) |
-| Sécu/stock | Rate-limit, capture manuelle Stripe + garde atomique, idempotence webhook | [ADR-0005](docs/internal/adr/ADR-0005-panier-stock.md) |
+| B8 | Produits liés (curation + fallback) | [ADR-0022](docs-internal/adr/ADR-0022-produits-lies.md) |
+| Options | Options typées & swatches (oklch) | [ADR-0020](docs-internal/adr/ADR-0020-colormetadata-double-representation.md) |
+| Sécu/stock | Rate-limit, capture manuelle Stripe + garde atomique, idempotence webhook | [ADR-0005](docs-internal/adr/ADR-0005-panier-stock.md) |
 | Audits | Lot A + lot 2 (#1–#7) | — |
 
 ## Rappel publication
 
 Avant tout bump : migration committée (pas `push`), SDK régénéré (`bun run contracts`), smoke
-fresh+upgrade verts (gate T2–T5), versions alignées. Détail : [pipeline-release.md](docs/internal/pipeline-release.md).
+fresh+upgrade verts (gate T2–T5), versions alignées. Détail : [pipeline-release.md](docs-internal/release/pipeline-release.md).

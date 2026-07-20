@@ -57,5 +57,5 @@ registre de vérité — **npm**.
 
 ## Détail
 
-→ [pipeline-release.md](../pipeline-release.md) (mécanique à jour) ·
-[distribution-architecture.md § Politique de versions](../distribution-architecture.md)
+→ [pipeline-release.md](../release/pipeline-release.md) (mécanique à jour) ·
+[distribution-architecture.md § Politique de versions](../reference/distribution-architecture.md)

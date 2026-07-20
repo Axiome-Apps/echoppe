@@ -105,7 +105,7 @@ proscrire.
 ## Publier des packages npm (workflow) — **changesets câblé**
 
 > Vue d'ensemble du pipeline complet (npm **+** images, gardes anti-dérive, flux one-move) :
-> [`pipeline-release.md`](./pipeline-release.md). Cette section couvre le volet **npm**.
+> [`pipeline-release.md`](../release/pipeline-release.md). Cette section couvre le volet **npm**.
 
 Deux paquets publiables : `@echoppe/client` (scopé) et `create-echoppe` (non-scopé,
 comme `create-next-app`). Tous les autres workspaces sont `private: true` → ignorés.
@@ -158,7 +158,7 @@ version publiée). À figer sur un caret `^x.y.z` si on veut borner au palier 1.
 
 ## Versioning : unités indépendantes (ADR-0023)
 
-> **Amendé par [ADR-0023](./adr/ADR-0023-versioning-tags.md)** : le SDK n'est **plus co-versionné**
+> **Amendé par [ADR-0023](../adr/ADR-0023-versioning-tags.md)** : le SDK n'est **plus co-versionné**
 > avec l'API. Chaque unité (runtime api+admin, sdk, content, cli) est versionnée **indépendamment**
 > par changesets, ne bumpant que quand *son* code change (fini les bumps à changelog vide).
 

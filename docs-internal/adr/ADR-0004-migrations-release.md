@@ -36,4 +36,4 @@ l'image → 500 en base vierge.
 
 ## Détail
 
-→ [release-runbook.md](../release-runbook.md)
+→ [release-runbook.md](../release/release-runbook.md)

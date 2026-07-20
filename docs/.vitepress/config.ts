@@ -7,7 +7,8 @@ export default defineConfig({
   description: 'Documentation de la plateforme e-commerce Échoppe',
   lang: 'fr-FR',
   base: '/echoppe/',
-  srcExclude: ['internal/**'],
+  // La doc interne vit hors de l'arbre VitePress (`docs-internal/` à la racine) → plus besoin
+  // de srcExclude : la séparation est physique, pas une exclusion de config.
   // Détection des liens morts active (attrape les vrais liens cassés) ; seules les URLs
   // localhost de dev (Swagger, admin, API) sont tolérées.
   ignoreDeadLinks: 'localhostLinks',

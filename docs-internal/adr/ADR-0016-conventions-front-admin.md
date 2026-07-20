@@ -31,4 +31,4 @@ types et des états dérive. Il faut des règles stables, lisibles et outillable
 
 ## Détail
 
-→ [PATTERNS.md](../PATTERNS.md)
+→ [PATTERNS.md](../reference/PATTERNS.md)

@@ -32,4 +32,4 @@ d'ADR-0006 (règle 404 vs 403, `adminOnly`), qui s'appuie sur ce modèle.
 
 ## Détail
 
-→ [audit-rbac-plan.md](../audit-rbac-plan.md), [security-audit.md](../security-audit.md)
+→ [audit-rbac-plan.md](../audits/audit-rbac-plan.md), [security-audit.md](../audits/security-audit.md)

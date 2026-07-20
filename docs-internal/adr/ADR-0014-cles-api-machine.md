@@ -32,4 +32,4 @@ faut un principal machine à portée réduite, révocable, sans réutiliser les 
 
 ## Détail
 
-→ [api-keys.md](../api-keys.md)
+→ [api-keys.md](../reference/api-keys.md)

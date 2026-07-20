@@ -31,4 +31,4 @@ optionnel (rate-limit only, fail-open).
 
 ## Détail
 
-→ [api-keys.md](../api-keys.md) (principal clé d'API), [audit-rbac-plan.md](../audit-rbac-plan.md).
+→ [api-keys.md](../reference/api-keys.md) (principal clé d'API), [audit-rbac-plan.md](../audits/audit-rbac-plan.md).

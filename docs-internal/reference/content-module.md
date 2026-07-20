@@ -2,7 +2,7 @@
 
 Doc de **décision** (le _pourquoi_) du page builder headless et de son outillage
 `@echoppe/content` (P2). La doc utilisateur (le _comment_) vit dans
-[dev/content](../dev/content.md).
+[dev/content](../../docs/dev/content.md).
 
 Voir aussi [Clés d'API](./api-keys.md) : l'auth machine que consomme `content:push`.
 
@@ -196,7 +196,7 @@ notre registre). Le recouvrement avec Zod = ~30 lignes de types conditionnels.
 admin ; pas de sync bidirectionnelle). Le registre est traité comme une **migration
 forward-only** : `content:push` au déploiement + **`content:check`** en CI (compare local vs
 déployé par hash canonique, `read:content`, exit 1 si divergent). En dev local, pas besoin de
-push à chaque modif (le front se type depuis ses fichiers). Cf. [dev/content](../dev/content.md).
+push à chaque modif (le front se type depuis ses fichiers). Cf. [dev/content](../../docs/dev/content.md).
 
 ## État & suite
 
