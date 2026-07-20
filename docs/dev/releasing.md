@@ -3,15 +3,16 @@
 > Vue d'ensemble du pipeline (gardes anti-dérive, flux one-move, commandes) :
 > [`docs/internal/pipeline-release.md`](../internal/pipeline-release.md).
 
-Échoppe distribue **deux artefacts coordonnés** sur une même version, en **une seule action** : le
-**merge de la PR « Version Packages »**.
+Échoppe distribue plusieurs **unités versionnées indépendamment**, en **une seule action** : le
+**merge de la PR « Version Packages »**. Chaque unité n'avance que quand *son* code change.
 
-- **Paquet npm** `@echoppe/client` (SDK) — publié par `release.yml` au merge de la PR de version.
-- **Images Docker** `axiomeapp/echoppe-api` + `-admin` — construites dans la foulée par `release.yml`
-  (appel de `docker-build.yml`) à la **même version**, gate T2–T5 inclus. Pas de tag manuel.
+- **Runtime** (images Docker `echoppe-api` + `-admin`, paire co-versionnée) — seule à porter un **tag
+  git `v*`** (+ GitHub Release). Construit par `release.yml` (appel de `docker-build.yml`), gate
+  T2–T5 inclus.
+- **Paquets npm** `@echoppe/client`, `@echoppe/content`, `create-echoppe` — publiés par `release.yml`,
+  **sans tag ni Release git** (npm = leur registre de versions).
 
-Le tag `v*` reste une **échappatoire manuelle** (re-cut d'images hors release npm), pas la voie
-normale.
+Le tag `v*` peut aussi être poussé à la main (échappatoire re-cut d'images), pas la voie normale.
 
 La règle d'or : **une release n'est bonne que si une base vierge, migrée depuis
 l'image publiée, répond `200` sur les routes clés.** Ce qui marche en dev via
@@ -102,14 +103,14 @@ Pour reproduire le gate en local : `bun run --cwd apps/api test:integration`.
 
 ## Raccourci : `bun run ship`
 
-Le niveau de bump est l'**unique curseur** d'une release. `ship` crée le changeset au bon niveau,
-committe et pousse `main` — il ne reste qu'à **merger la PR** :
+Une release cible une **unité** (`runtime` / `sdk` / `content` / `cli`) à un **niveau** semver.
+`ship` crée le changeset, committe et pousse `main` — il ne reste qu'à **merger la PR** :
 
 ```bash
-bun run ship "résumé du changelog"             # minor (défaut)
-BUMP=major bun run ship "refonte du contrat"   # major
-BUMP=patch bun run ship "corrige X"            # patch
-bun run ship --dry "…"                         # crée le changeset sans commit/push (aperçu)
+bun run ship runtime minor "ajoute la wishlist"   # runtime (images + tag v*)
+bun run ship sdk patch "corrige un type"          # SDK npm seul
+bun run ship "…"                                   # interactif (demande unité + niveau)
+bun run ship --dry runtime major "…"               # crée le changeset sans commit/push (aperçu)
 ```
 
 Garde-fous : refuse hors branche `main` ou working tree non propre (le travail doit être committé
@@ -123,19 +124,19 @@ avant ; le changeset est le seul ajout embarqué). En 0.x, un **changement cassa
 - [ ] `db:generate` de contrôle → « No schema changes » (aucune dérive résiduelle).
 - [ ] Gate d'intégration vert (`test:integration`) — ou laisser la CI le jouer.
 - [ ] SDK régénéré (`bun run contracts`), `type-check` + `build` verts.
-- [ ] Changeset ajouté (bump `@echoppe/client`).
+- [ ] Changeset ajouté pour la bonne **unité** (`bun run ship <unité> <niveau>`).
 - [ ] Push `main` → ouvre la PR « Version Packages ».
-- [ ] **Merge de la PR** → publication npm **+ images à la même version** (gate T2–T5), automatique.
+- [ ] **Merge de la PR** → npm (paquets bumpés) et/ou tag `v*` + images (si runtime bumpé), automatique.
 
 ## Coordination des déclencheurs (one-move)
 
 | Déclencheur | Workflow | Effet |
 |-------------|----------|-------|
 | push `main` + changeset | `release.yml` | Ouvre/maj la PR « Version Packages » |
-| **merge PR « Version Packages »** | `release.yml` | Publie npm, tag `v x.y.z`, **puis appelle `docker-build.yml`** (images `x.y.z` + `latest`, gate T2–T5) |
+| **merge PR « Version Packages »** | `release.yml` | Publie npm (paquets bumpés) ; **si runtime bumpé** : tag `v x.y.z` + GitHub Release, **puis appelle `docker-build.yml`** (images `x.y.z` + `latest`, gate T2–T5) |
 | push tag `v*` (manuel) | `docker-build.yml` | Échappatoire : re-cut d'images hors release npm |
 
-L'unique acte humain d'une release = le **merge de la PR**. La version des images = celle de
-`@echoppe/client` publiée (SDK co-versionné) → alignement garanti, plus de tag à saisir à la main. Le
-tag `v x.y.z` est posé automatiquement (traçage) mais ne re-déclenche pas les images (garde
+L'unique acte humain d'une release = le **merge de la PR**. La version des images = celle du **runtime**
+(`apps/api/package.json`, paire `fixed` avec admin), détectée par l'absence du tag `v x.y.z` sur
+origin. Le tag est posé automatiquement (traçage) mais ne re-déclenche pas les images (garde
 anti-récursion GitHub : un tag poussé au `GITHUB_TOKEN` ne relance aucun workflow).

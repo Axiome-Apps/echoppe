@@ -1,17 +1,20 @@
 name: Release
 
-# Publication npm des paquets publiables (@echoppe/content, @echoppe/client, create-echoppe).
+# Publication npm des paquets publiables (@echoppe/content, @echoppe/client, create-echoppe) +
+# images Docker du runtime (api+admin). Politique de versions : ADR-0023.
 #
-# Auth : Trusted Publishing (OIDC) — AUCUN token npm. npm échange le jeton
-# OIDC de GitHub Actions contre un droit de publication éphémère, à condition
-# que le trusted publisher soit configuré côté npmjs.com pour chaque paquet
-# (repo Axiome-Apps/echoppe + workflow « release.yml »).
+# Auth npm : Trusted Publishing (OIDC) — AUCUN token. npm échange le jeton OIDC de GitHub Actions
+# contre un droit de publication éphémère (trusted publisher configuré côté npmjs.com par paquet).
 #
-# Flux « one-move » :
-#   - push sur main AVEC des changesets  → ouvre/maj la PR « Version Packages ».
-#   - merge de cette PR (versions bumpées) → publie npm (`bun run release`), pose le tag `v x.y.z`,
-#     puis appelle `docker-build.yml` (job `images`) → images api/admin à la même version, gate
-#     T2–T5 inclus. Le MERGE est l'unique acte humain d'une release.
+# Deux unités de release INDÉPENDANTES (ADR-0023) :
+#   - Packages npm (client/content/cli) → versionnés/publiés par changesets, SANS tag ni Release git
+#     (`--no-git-tag`, `createGithubReleases: false`). npm EST leur registre de versions.
+#   - Runtime api+admin → seule épine de tags git `v*` (+ GitHub Release). Sa version vient de
+#     `apps/api/package.json` (bumpée par changesets, paire `fixed` avec admin).
+#
+# Flux « one-move » : push main AVEC changesets → PR « Version Packages ». Merge de la PR →
+# publie npm (si paquet bumpé) ET/OU tague `v x.y.z` + construit les images (si runtime bumpé,
+# gate T2–T5 inclus). Le MERGE est l'unique acte humain.
 
 on:
   push:
@@ -20,7 +23,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
-  contents: write # commits/tags de la PR de version
+  contents: write # commits/tags de la PR de version + tag v* + GitHub Release
   pull-requests: write # PR « Version Packages »
   id-token: write # OIDC pour le trusted publishing npm
 
@@ -28,8 +31,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     outputs:
-      published: ${{ steps.changesets.outputs.published }}
-      version: ${{ steps.release-version.outputs.version }}
+      runtime_bumped: ${{ steps.runtime.outputs.bumped }}
+      version: ${{ steps.runtime.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -65,38 +68,46 @@ jobs:
         with:
           version: bun run version-packages
           publish: bun run release
+          createGithubReleases: false # ADR-0023 : pas de Release git par paquet (npm = registre)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true" # attestation de provenance (public, OIDC)
 
-      # Version de release = celle de @echoppe/client (SDK co-versionné avec l'API). Sert de version
-      # d'images. Renseignée uniquement quand un publish a réellement eu lieu (merge de la PR Version).
-      - name: Resolve release version
-        id: release-version
-        if: steps.changesets.outputs.published == 'true'
-        env:
-          PUBLISHED: ${{ steps.changesets.outputs.publishedPackages }}
+      # Version runtime = `apps/api/package.json` (paire `fixed` avec admin). Un bump runtime ne publie
+      # RIEN sur npm (privé) → on ne peut pas se fier à `published` : on détecte le bump par l'ABSENCE
+      # du tag `v x.y.z` sur origin. Un push sans release (version inchangée) → tag présent → no-op.
+      - name: Resolve runtime version
+        id: runtime
         run: |
-          VERSION=$(echo "$PUBLISHED" | jq -r '.[] | select(.name=="@echoppe/client") | .version')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          VERSION=$(jq -r .version apps/api/package.json)
+          if [ -n "$(git ls-remote --tags origin "refs/tags/v${VERSION}")" ]; then
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            echo "Runtime v${VERSION} déjà taggé → aucune nouvelle image."
+          else
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "Nouvelle version runtime : v${VERSION}."
+          fi
 
-      # Marqueur git lisible de la release (v0.5.0). Poussé au GITHUB_TOKEN → ne RE-déclenche PAS
+      # Épine produit : tag git `v*` + GitHub Release. Poussé au GITHUB_TOKEN → ne RE-déclenche PAS
       # docker-build (garde anti-récursion GitHub) : les images passent par le job `images` ci-dessous
-      # (workflow_call), pas par ce tag. Pur traçage.
-      - name: Tag release
-        if: steps.changesets.outputs.published == 'true' && steps.release-version.outputs.version != ''
+      # (workflow_call), pas par ce tag.
+      - name: Tag & release runtime
+        if: steps.runtime.outputs.bumped == 'true'
         env:
-          VERSION: ${{ steps.release-version.outputs.version }}
+          VERSION: ${{ steps.runtime.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git tag "v${VERSION}"
           git push origin "v${VERSION}"
+          gh release create "v${VERSION}" --title "v${VERSION}" --verify-tag --latest \
+            --notes "Échoppe ${VERSION} — images \`echoppe-api\`/\`echoppe-admin:${VERSION}\`."
 
-  # Release « one-move » : dès qu'un publish npm a eu lieu (merge de la PR Version), on construit et
-  # pousse les images à la MÊME version — gate T2–T5 inclus (aucune image cassée ne part). Le merge
-  # est donc l'unique acte humain : npm + images en découlent.
+  # Images à la version runtime — gate T2–T5 inclus (aucune image cassée ne part). Construit
+  # UNIQUEMENT si le runtime a été bumpé (un release npm-seul ne rebâtit pas d'image).
   images:
     needs: release
-    if: needs.release.outputs.published == 'true' && needs.release.outputs.version != ''
+    if: needs.release.outputs.runtime_bumped == 'true' && needs.release.outputs.version != ''
     uses: ./.github/workflows/docker-build.yml
     with:
       version: ${{ needs.release.outputs.version }}

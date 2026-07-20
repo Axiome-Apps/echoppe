@@ -156,11 +156,16 @@ version publiée). À figer sur un caret `^x.y.z` si on veut borner au palier 1.
 > **unpubliées** (fenêtre npm 72h) et le tag `next` retiré → npm est **pristine en
 > `0.1.0`** (`@echoppe/client` en `0.1.1` après correction des imports ESM `.js`).
 
-## Versioning : aligner SDK ↔ API
+## Versioning : unités indépendantes (ADR-0023)
 
-Le SDK est généré depuis le contrat de l'API → il doit être **versionné en phase avec
-l'API**. Une boutique déployée contre l'API `v0.3` consomme le SDK `0.3.x`. C'est
-l'intérêt du monorepo : régénération + publication atomiques, versions cohérentes.
+> **Amendé par [ADR-0023](./adr/ADR-0023-versioning-tags.md)** : le SDK n'est **plus co-versionné**
+> avec l'API. Chaque unité (runtime api+admin, sdk, content, cli) est versionnée **indépendamment**
+> par changesets, ne bumpant que quand *son* code change (fini les bumps à changelog vide).
+
+Le SDK est généré depuis le contrat de l'API et reste **régénéré/publié dans le même commit** (intérêt
+du monorepo). Mais il porte sa **propre version** : une boutique déclare la compatibilité (« SDK ≥
+0.3, API ≥ 0.5 »), elle n'est plus imposée par un numéro partagé. Côté tags git : **une seule épine
+`v*`** (le runtime déployable) ; les packages vivent sur **npm** (pas de tag git). Cf. ADR-0023.
 
 ## Ordre de réalisation — ✅ livré en 0.1.0
 
