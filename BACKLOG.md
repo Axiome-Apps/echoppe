@@ -93,7 +93,10 @@ Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durci
 > **Distinct** du page-builder : un CMS **type Directus allégé** pour créer des **entités diverses**
 > (singleton/liste) et laisser le dev **étendre les fonctionnalités**. Absorbe B9 (prose) + B11 (onglets
 > produit). **ADR requis** ; décision format HTML vs Markdown à trancher.
-- [ ] Concevoir + acter l'ADR (modèle d'entités, édition admin, surface storefront, format riche).
+- [ ] ⚠️ **Trancher le format du texte riche : HTML sanitisé vs Markdown** (= le cœur de B9) — du
+      contenu est **déjà en HTML**, donc Markdown impose une **migration/homogénéisation** de l'existant.
+      **Bloque toute impl prose.**
+- [ ] Concevoir + acter l'ADR du système (modèle d'entités, édition admin, surface storefront).
 
 ### Distribution & repo → [distribution-architecture.md](docs-internal/reference/distribution-architecture.md) · [ADR-0002](docs-internal/adr/ADR-0002-distribution.md)
 - [ ] Créer/tester une **vraie boutique** (repo Astro hors monorepo) via la CLI — reste le test x86.
