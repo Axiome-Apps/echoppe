@@ -65,7 +65,7 @@ curl http://localhost:7532/auth/me -b cookies.txt
 | GET | `/orders/:id` | Détail d'une commande |
 | PATCH | `/orders/:id/status` | Changer le statut |
 
-Voir la [documentation complète](/internal/api) ou Swagger pour tous les endpoints.
+Voir la [documentation interactive](#documentation-interactive) (Swagger) pour tous les endpoints.
 
 ## Client Eden (TypeScript)
 

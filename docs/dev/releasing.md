@@ -1,8 +1,5 @@
 # Publier une version
 
-> Vue d'ensemble du pipeline (gardes anti-dérive, flux one-move, commandes) :
-> [`docs/internal/pipeline-release.md`](../internal/pipeline-release.md).
-
 Échoppe distribue plusieurs **unités versionnées indépendamment**, en **une seule action** : le
 **merge de la PR « Version Packages »**. Chaque unité n'avance que quand *son* code change.
 

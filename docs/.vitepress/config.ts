@@ -8,7 +8,9 @@ export default defineConfig({
   lang: 'fr-FR',
   base: '/echoppe/',
   srcExclude: ['internal/**'],
-  ignoreDeadLinks: true,
+  // Détection des liens morts active (attrape les vrais liens cassés) ; seules les URLs
+  // localhost de dev (Swagger, admin, API) sont tolérées.
+  ignoreDeadLinks: 'localhostLinks',
 
   head: [['link', { rel: 'icon', href: '/favicon.ico' }]],
 

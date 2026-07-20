@@ -105,4 +105,4 @@ Les prestataires de paiement et livraison se configurent dans l'interface d'admi
 2. Configurer les clés API pour chaque service
 3. Activer les prestataires souhaités
 
-Voir la documentation [Prestataires](/admin/providers) pour plus de détails.
+Voir la documentation [Paramètres](/admin/settings) pour plus de détails.

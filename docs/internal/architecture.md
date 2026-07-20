@@ -2,7 +2,8 @@
 
 Point d'entrée pour comprendre le système. Les **décisions** sont dans les
 [ADR](./adr/README.md) ; les **conventions de code** dans [PATTERNS.md](./PATTERNS.md) ; le détail
-des routes dans [api.md](./api.md).
+des routes = l'**OpenAPI** (SSOT, Scalar sur `/docs` de l'API + référence SDK générée `docs/sdk/`) —
+jamais une liste maintenue à la main (elle dérive).
 
 ## Nature du produit
 
