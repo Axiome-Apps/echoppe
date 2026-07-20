@@ -53,6 +53,3 @@ docs/.vitepress/dist/
 
 # Claude Code — réglages personnels (le CLAUDE.md partagé reste versionné)
 .claude/settings.local.json
-
-# Tracker de tâches local (la roadmap publique vit ailleurs — cf. canal dédié)
-TODO.md
