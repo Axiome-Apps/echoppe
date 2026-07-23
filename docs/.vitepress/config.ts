@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitepress';
 // Généré par `bun run gen:reference` — arbre namespace→modèle de la référence SDK.
 import referenceNav from './generated/sdk-reference-nav.json';
+// Thèmes Shiki calqués sur la palette Axiome (teinte 272 + sémantiques).
+import axiomeDark from './theme/shiki/axiome-dark.json';
+import axiomeLight from './theme/shiki/axiome-light.json';
 
 export default defineConfig({
   title: 'Échoppe',
@@ -15,10 +18,14 @@ export default defineConfig({
 
   head: [['link', { rel: 'icon', href: '/favicon.ico' }]],
 
-  // Coloration de syntaxe des blocs de code alignée sur le skin (Latte/Mocha), sinon Shiki
-  // reste sur son thème par défaut (rouge/bleu) qui jure avec Catppuccin. Thèmes embarqués.
+  // Axiome est sombre par défaut (direction officielle) ; le clair reste accessible via
+  // le sélecteur de la barre de nav.
+  appearance: 'dark',
+
+  // Coloration de syntaxe alignée sur la palette Axiome : mots-clés indigo, chaînes en
+  // succès, commentaires en encre 3. Aucun thème Shiki embarqué ne tient la teinte unique.
   markdown: {
-    theme: { light: 'catppuccin-latte', dark: 'catppuccin-mocha' },
+    theme: { light: axiomeLight, dark: axiomeDark },
   },
 
   themeConfig: {

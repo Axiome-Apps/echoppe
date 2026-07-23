@@ -1,0 +1,358 @@
+/**
+ * Skin Axiome pour VitePress — d'après le handoff `design_handoff_vitepress_axiome`
+ * (README + mock `Documentation Axiome.dc.html`).
+ *
+ * Une seule teinte de marque : 272° (indigo). Toutes les surfaces, encres et filets en
+ * dérivent — aucune autre teinte n'est introduite hors des trois sémantiques (succès,
+ * avertissement, erreur). Valeurs sources en oklch, hex indicatif en commentaire.
+ *
+ * Axiome est SOMBRE par défaut : le bloc `.dark` est la direction officielle, `:root`
+ * (clair) en est la variante dérivée sur la même teinte.
+ *
+ * Les tokens concrets vivent dans `--ax-*` ; le mapping vers les `--vp-*` ne se fait
+ * qu'une fois — les custom properties se résolvant au point d'usage, la bascule
+ * clair↔sombre suit automatiquement.
+ */
+
+/* ── Direction sombre (officielle) ─────────────────────────────── */
+:root {
+  --ax-bg: oklch(0.21 0.02 272); /* #2a2d3a  canvas */
+  --ax-bg-2: oklch(0.185 0.02 272); /* #242734  sidebar, footer, blocs de code */
+  --ax-surface: oklch(0.255 0.022 272); /* #34384a  cartes */
+  --ax-surface-2: oklch(0.3 0.025 272); /* #414659  pop-overs, code inline */
+
+  --ax-primary: oklch(0.5591 0.0809 272.6); /* #6471a4  boutons pleins, état actif */
+  --ax-primary-deep: oklch(0.42 0.1 272.6); /* #525fa3  hover */
+  --ax-primary-light: oklch(0.74 0.07 272.6); /* #a3aed1  liens, texte actif */
+
+  --ax-fg: oklch(0.97 0.01 272); /* #f4f4f7 */
+  --ax-fg-2: oklch(0.82 0.012 272); /* #cbccd3 */
+  --ax-fg-3: oklch(0.62 0.015 272); /* #96979f */
+
+  --ax-rule: oklch(0.32 0.02 272); /* #3a3d4d  filet */
+  --ax-rule-2: oklch(0.4 0.022 272); /* #4c5062  filet 2 */
+
+  --ax-success: oklch(0.78 0.18 156); /* #4fd08a */
+  --ax-warning: oklch(0.78 0.14 60); /* #e0a94e */
+  --ax-error: oklch(0.65 0.16 20); /* #df6d63 */
+
+  /* Le primary porte les liens en sombre : c'est la version claire qui prend le texte. */
+  --ax-link: var(--ax-primary-light);
+  --ax-link-hover: var(--ax-primary);
+  --ax-soft: oklch(0.5591 0.0809 272.6 / 0.18);
+  --ax-btn-text: #ffffff;
+}
+
+/* ── Variante claire (dérivée, même teinte 272°) ───────────────── */
+:root:not(.dark) {
+  --ax-bg: oklch(0.99 0.004 272); /* #fbfbfd */
+  --ax-bg-2: oklch(0.975 0.006 272); /* #f3f3f7 */
+  --ax-surface: oklch(0.945 0.01 272); /* #e8e8f0 */
+  --ax-surface-2: oklch(0.965 0.007 272); /* #eeeef4 */
+
+  --ax-primary: oklch(0.5591 0.0809 272.6);
+  --ax-primary-deep: oklch(0.42 0.12 272.6); /* #444c96 */
+  --ax-primary-light: oklch(0.5 0.11 272.6); /* #5058a3 */
+
+  --ax-fg: oklch(0.24 0.02 272); /* #303343 */
+  --ax-fg-2: oklch(0.42 0.02 272); /* #5c5f70 */
+  --ax-fg-3: oklch(0.58 0.018 272); /* #86899a */
+
+  --ax-rule: oklch(0.905 0.008 272); /* #e0e0ea */
+  --ax-rule-2: oklch(0.85 0.01 272); /* #c9c9d6 */
+
+  --ax-success: oklch(0.55 0.13 156);
+  --ax-warning: oklch(0.62 0.12 60);
+  --ax-error: oklch(0.55 0.16 20);
+
+  --ax-link: oklch(0.5 0.11 272.6);
+  --ax-link-hover: oklch(0.42 0.12 272.6);
+  --ax-soft: oklch(0.5 0.11 272.6 / 0.12);
+}
+
+/* ── Mapping vers les tokens VitePress ─────────────────────────── */
+:root {
+  /* Typographie : Nunito porte toute la hiérarchie, JetBrains Mono les valeurs
+     techniques (code, métadonnées) — jamais le corps de texte. */
+  --vp-font-family-base: 'Nunito', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --vp-font-family-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Surfaces */
+  --vp-c-bg: var(--ax-bg);
+  --vp-c-bg-alt: var(--ax-bg-2);
+  --vp-c-bg-soft: var(--ax-surface);
+  --vp-c-bg-elv: var(--ax-surface-2);
+  --vp-c-gutter: var(--ax-rule);
+
+  /* Encres */
+  --vp-c-text-1: var(--ax-fg);
+  --vp-c-text-2: var(--ax-fg-2);
+  --vp-c-text-3: var(--ax-fg-3);
+
+  /* Filets */
+  --vp-c-divider: var(--ax-rule);
+  --vp-c-border: var(--ax-rule-2);
+
+  /* Marque — brand-1 porte le texte (liens, actifs), brand-3 les surfaces pleines */
+  --vp-c-brand-1: var(--ax-link);
+  --vp-c-brand-2: var(--ax-link-hover);
+  --vp-c-brand-3: var(--ax-primary);
+  --vp-c-brand-soft: var(--ax-soft);
+
+  /* Neutre */
+  --vp-c-default-1: var(--ax-fg-3);
+  --vp-c-default-2: var(--ax-rule-2);
+  --vp-c-default-3: var(--ax-rule);
+  --vp-c-default-soft: color-mix(in oklch, var(--ax-surface) 70%, transparent);
+
+  /* Familles sémantiques — blocs custom + coloration JSON de ResponseSample */
+  --vp-c-green-1: var(--ax-success);
+  --vp-c-green-2: var(--ax-success);
+  --vp-c-green-3: var(--ax-success);
+  --vp-c-green-soft: color-mix(in oklch, var(--ax-success) 14%, transparent);
+
+  --vp-c-yellow-1: var(--ax-warning);
+  --vp-c-yellow-2: var(--ax-warning);
+  --vp-c-yellow-3: var(--ax-warning);
+  --vp-c-yellow-soft: color-mix(in oklch, var(--ax-warning) 14%, transparent);
+
+  --vp-c-red-1: var(--ax-error);
+  --vp-c-red-2: var(--ax-error);
+  --vp-c-red-3: var(--ax-error);
+  --vp-c-red-soft: color-mix(in oklch, var(--ax-error) 14%, transparent);
+
+  /* Pas de violet dans le système : le rôle « purple » retombe sur la marque. */
+  --vp-c-purple-1: var(--ax-link);
+  --vp-c-purple-2: var(--ax-link);
+  --vp-c-purple-3: var(--ax-primary);
+  --vp-c-purple-soft: var(--ax-soft);
+
+  /* Code */
+  --vp-code-block-bg: var(--ax-bg-2);
+  --vp-code-copy-code-bg: var(--ax-surface);
+  --vp-code-copy-code-hover-bg: var(--ax-surface-2);
+
+  /* Boutons pleins : le primary est une surface, le texte reste blanc dans les 2 modes. */
+  --vp-button-brand-bg: var(--ax-primary);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: var(--ax-btn-text, #ffffff);
+  --vp-button-brand-hover-bg: var(--ax-primary-deep);
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: var(--ax-btn-text, #ffffff);
+  --vp-button-brand-active-bg: var(--ax-primary-deep);
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: var(--ax-btn-text, #ffffff);
+
+  /* Blocs custom : tip indigo, warning ambre, danger rouge */
+  --vp-custom-block-tip-border: color-mix(in oklch, var(--ax-primary) 40%, transparent);
+  --vp-custom-block-tip-text: var(--ax-fg-2);
+  --vp-custom-block-tip-bg: var(--ax-soft);
+  --vp-custom-block-warning-border: color-mix(in oklch, var(--ax-warning) 45%, transparent);
+  --vp-custom-block-warning-bg: color-mix(in oklch, var(--ax-warning) 14%, var(--ax-surface));
+  --vp-custom-block-danger-border: color-mix(in oklch, var(--ax-error) 45%, transparent);
+  --vp-custom-block-danger-bg: color-mix(in oklch, var(--ax-error) 14%, var(--ax-surface));
+
+  /* Hero : pas de dégradé agressif — la marque en aplat. */
+  --vp-home-hero-name-color: var(--ax-link);
+}
+
+/* Le texte des boutons pleins reste blanc en clair comme en sombre. */
+:root:not(.dark) {
+  --ax-btn-text: #ffffff;
+}
+
+/* ============================================================================
+   Signatures Axiome
+   ============================================================================ */
+
+/* Chiffres tabulaires : colonnes alignées dans les tables et les métadonnées. */
+.vp-doc table,
+.VPDocFooterLastUpdated {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ── Le filet calligraphique ────────────────────────────────────
+ * L'ornement officiel de la suite : un trait court sous le titre de page.
+ * Tracé du handoff, posé en masque pour hériter de la couleur de marque.
+ */
+.vp-doc h1::after {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 8px;
+  margin-top: 14px;
+  background-color: var(--vp-c-brand-1);
+  -webkit-mask: var(--ax-stroke) no-repeat center / contain;
+  mask: var(--ax-stroke) no-repeat center / contain;
+}
+
+:root {
+  --ax-stroke: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='8' viewBox='0 0 64 8'%3E%3Cpath d='M1 5 Q 22 1.5 38 4.2 T 63 3' stroke='%23000' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+}
+
+/* ── Hiérarchie typographique ─────────────────────────────────── */
+.vp-doc h1 {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.vp-doc h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.vp-doc h3,
+.vp-doc h4 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.VPHero .name,
+.VPHero .text {
+  letter-spacing: -0.02em;
+}
+
+/* Eyebrows : le seul texte en capitales du système. */
+.VPDocAsideOutline .outline-title,
+.VPSidebarItem.level-0 > .item > .text {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Coins généreux (12–14px) ───────────────────────────────── */
+.vp-doc div[class*='language-'],
+.vp-doc [class*='language-'] pre,
+.custom-block,
+.VPFeature,
+.VPButton,
+.vp-doc table,
+.pager-link,
+.VPTeamMembersItem {
+  border-radius: 12px;
+}
+
+/* ── Code ────────────────────────────────────────────────────── */
+/* Inline : encre indigo sur surface tintée, cerclée d'un filet. */
+.vp-doc :not(pre) > code {
+  background-color: var(--ax-surface-2);
+  color: var(--ax-link);
+  border: 1px solid var(--ax-rule);
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-size: 0.86em;
+}
+
+/* Le titre de fichier au-dessus d'un bloc : bandeau surface, comme dans le mock. */
+.vp-doc [class*='language-'] > span.lang,
+.vp-doc [class*='language-'] > button.copy {
+  color: var(--ax-fg-3);
+}
+
+/* ── Blocs custom : filet gauche marqué ─────────────────────── */
+.custom-block {
+  border-left-width: 3px;
+}
+
+.custom-block-title {
+  font-weight: 700;
+}
+
+/* ── Sidebar : le primary est une surface ────────────────────── */
+/* L'état actif se lit au fond indigo et à la pastille : la barre verticale native
+   ferait doublon (et sortirait du cadre avec les marges négatives ci-dessous). */
+.VPSidebarItem .indicator {
+  display: none;
+}
+
+/* Pastille d'état devant chaque lien — colorée uniquement sur l'item actif. */
+.VPSidebarItem.is-link:not(.level-0) > .item > .link > .text::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 9px;
+  border-radius: 50%;
+  background-color: transparent;
+  vertical-align: middle;
+}
+
+.VPSidebarItem.is-link:not(.level-0).is-active > .item > .link > .text::before {
+  background-color: var(--vp-c-brand-1);
+}
+
+.VPSidebarItem.is-link:not(.level-0) > .item {
+  padding-inline: 12px;
+  margin-inline: -12px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.VPSidebarItem.is-link:not(.level-0).is-active > .item {
+  background-color: var(--vp-c-brand-soft);
+}
+
+.VPSidebarItem.is-link:not(.level-0).is-active > .item > .link > .text {
+  font-weight: 700;
+}
+
+/* ── Sommaire « sur cette page » ─────────────────────────────── */
+.VPDocAsideOutline .outline-link.active {
+  font-weight: 700;
+}
+
+/* ── Cartes de navigation (prev / next) ──────────────────────── */
+.pager-link:hover {
+  border-color: var(--vp-c-brand-1);
+}
+
+.pager-link .title {
+  font-weight: 700;
+}
+
+/* ── CTA plein : lueur soft indigo (signature) ───────────────── */
+.VPButton.brand {
+  box-shadow: 0 12px 30px -12px color-mix(in oklch, var(--ax-primary) 55%, transparent);
+}
+
+/* ── Tables : en-tête sur surface, sans bordures verticales ──── */
+.vp-doc th {
+  background-color: var(--ax-surface);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.vp-doc th,
+.vp-doc td {
+  border-left: none;
+  border-right: none;
+}
+
+/* ── Ascenseurs discrets ─────────────────────────────────────── */
+* {
+  scrollbar-color: var(--ax-rule-2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ax-rule);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ax-rule-2);
+}
+
+::selection {
+  background-color: var(--vp-c-brand-soft);
+}
